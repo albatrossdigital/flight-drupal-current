@@ -1,0 +1,75 @@
+<?php
+/**
+ * Implement hook_schema().
+ *
+ * @see drupal.org/node/146843
+ */
+function reach_webform_schema() {
+  $schema['reach_webform'] = array(
+    'description' => 'Stores Reach webform information.',
+    'fields' => array(
+      'nid' => array(
+        'description' => 'The node identifier of a webform.',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'cookie' => array(
+        'description' => 'Save reach cookies',
+        'type' => 'int',
+        'size' => 'tiny',
+        'default' => 1,
+      ),
+      'fbconnect' => array(
+        'description' => 'Enable fbconnect?',
+        'type' => 'int',
+        'size' => 'tiny',
+        'default' => 1,
+      ),
+      'points' => array(
+        'description' => 'Reach Activity Points for submitting this webform',
+        'type' => 'float',
+        'default' => NULL,
+      ),
+    ),
+    'primary key' => array('nid'),
+  );
+  return $schema;
+}
+
+
+/**
+ * Implements hook_install().
+ */
+function reach_webform_install() {
+  db_update('system')
+    ->condition('name', 'reach_webform')
+    ->condition('type', 'module')
+    ->fields(array('weight' => 1))
+    ->execute();
+  
+  // TODO: These should get set by Strongarm, but they aren't
+  variable_set('webform_template_dest', array(
+    'form' => 'form',
+    'donation' => 'donation',
+    'donation' => 'event',
+  ));
+  variable_set('webform_template_src', array(
+    'webform' => 'webform',
+  ));
+  variable_set('webform_node_types', array(
+    'webform' => 'webform',
+    'form' => 'form',
+    'donation' => 'donation',
+    'event' => 'event',
+  ));
+  
+}
+
+
+/**
+ * Implement hook_uninstall().
+ */
+function reach_webform_uninstall() {
+  drupal_uninstall_schema('reach_webform');
+}

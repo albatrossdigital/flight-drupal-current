@@ -1,0 +1,14 @@
+<?php
+// $Id: menu_toolbar_coop.module,v 1.5.4.1 2010/11/10 20:32:18 jsfwd Exp $
+
+/**
+ * Implements hook_preprocess_toolbar().
+ * If you are admin and admin_menu is enabled, do not display toolbar 
+ */
+function menu_toolbar_coop_preprocess_toolbar(&$vars, $hook) {
+  if(module_exists('admin_menu') && user_access('access administration menu')) {
+    unset($vars['toolbar']);
+    // add js
+    drupal_add_js(drupal_get_path('module', 'menu_toolbar_coop') . '/menu_toolbar_coop.js');
+  }
+}

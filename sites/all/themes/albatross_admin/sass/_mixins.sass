@@ -1,0 +1,735 @@
+
+
+/* Albatross Mixins
+  @mixin sprite($left, $top, $url: url(../images/sprite.png))
+  @mixin sprite-block($width, $height, $left, $top, $url: url(../images/sprite.png?a))
+  @mixin fixed-background($image: url(../images/bg.jpg), $color: #fff)
+  @mixin fade-background($start, $stop, $position: top)
+  @mixin auto-fade-background($color, $position: top)
+  @mixin auto-fade-background-hover($color)
+  @mixin link-clear($color)
+  @mixin list-clear
+  @mixin list-float($float: left, $margin-horizontal: 10px, $margin-vertical: 0)
+
+
+
+@mixin reset
+  font: 13px / 1.4em "Helvetica Neue", helvetica, Arial, sans-serif
+
+@mixin block
+  h2,
+  .fieldset-legend
+    //+fade-background($white, $light_gray)
+    color: $dark_blue
+    margin: 0
+    font-size: 1em
+    padding: 0 10px
+    line-height: 2em
+    display: block
+  
+  h2
+    background: $light_gray
+    
+@mixin page-title
+  height: $header_height
+  line-height: $header_height
+  margin: $padding
+  background-color: $light_blue
+  font-family: "Lucida Grande", "Lucida Sans Unicode", sans-serif
+  text-transform: uppercase
+  padding: 0 10px
+
+  
+//***************************************
+//**** FONT AWESOME 
+//***************************************
+    
+%fontawe-glass
+  content: "\f000"
+
+%fontawe-music
+  content: "\f001"
+
+%fontawe-search
+  content: "\f002"
+
+%fontawe-envelope
+  content: "\f003"
+
+%fontawe-heart
+  content: "\f004"
+
+%fontawe-star
+  content: "\f005"
+
+%fontawe-star-empty
+  content: "\f006"
+
+%fontawe-user
+  content: "\f007"
+
+%fontawe-film
+  content: "\f008"
+
+%fontawe-th-large
+  content: "\f009"
+
+%fontawe-th
+  content: "\f00a"
+
+%fontawe-th-list
+  content: "\f00b"
+
+%fontawe-ok
+  content: "\f00c"
+
+%fontawe-remove
+  content: "\f00d"
+
+%fontawe-zoom-in
+  content: "\f00e"
+
+%fontawe-zoom-out
+  content: "\f010"
+
+%fontawe-off
+  content: "\f011"
+
+%fontawe-signal
+  content: "\f012"
+
+%fontawe-cog
+  content: "\f013"
+
+%fontawe-trash
+  content: "\f014"
+
+%fontawe-home
+  content: "\f015"
+
+%fontawe-file
+  content: "\f016"
+
+%fontawe-time
+  content: "\f017"
+
+%fontawe-road
+  content: "\f018"
+
+%fontawe-download-alt
+  content: "\f019"
+
+%fontawe-download
+  content: "\f01a"
+
+%fontawe-upload
+  content: "\f01b"
+
+%fontawe-inbox
+  content: "\f01c"
+
+%fontawe-play-circle
+  content: "\f01d"
+
+%fontawe-repeat
+  content: "\f01e"
+
+// \f020 doesn't work in Safari. all shifted one down
+%fontawe-refresh
+  content: "\f021"
+
+%fontawe-list-alt
+  content: "\f022"
+
+%fontawe-lock
+  content: "\f023"
+
+%fontawe-flag
+  content: "\f024"
+
+%fontawe-headphones
+  content: "\f025"
+
+%fontawe-volume-off
+  content: "\f026"
+
+%fontawe-volume-down
+  content: "\f027"
+
+%fontawe-volume-up
+  content: "\f028"
+
+%fontawe-qrcode
+  content: "\f029"
+
+%fontawe-barcode
+  content: "\f02a"
+
+%fontawe-tag
+  content: "\f02b"
+
+%fontawe-tags
+  content: "\f02c"
+
+%fontawe-book
+  content: "\f02d"
+
+%fontawe-bookmark
+  content: "\f02e"
+
+%fontawe-print
+  content: "\f02f"
+
+%fontawe-camera
+  content: "\f030"
+
+%fontawe-font
+  content: "\f031"
+
+%fontawe-bold
+  content: "\f032"
+
+%fontawe-italic
+  content: "\f033"
+
+%fontawe-text-height
+  content: "\f034"
+
+%fontawe-text-width
+  content: "\f035"
+
+%fontawe-align-left
+  content: "\f036"
+
+%fontawe-align-center
+  content: "\f037"
+
+%fontawe-align-right
+  content: "\f038"
+
+%fontawe-align-justify
+  content: "\f039"
+
+%fontawe-list
+  content: "\f03a"
+
+%fontawe-indent-left
+  content: "\f03b"
+
+%fontawe-indent-right
+  content: "\f03c"
+
+%fontawe-facetime-video
+  content: "\f03d"
+
+%fontawe-picture
+  content: "\f03e"
+
+%fontawe-pencil
+  content: "\f040"
+
+%fontawe-map-marker
+  content: "\f041"
+
+%fontawe-adjust
+  content: "\f042"
+
+%fontawe-tint
+  content: "\f043"
+
+%fontawe-edit
+  content: "\f044"
+
+%fontawe-share
+  content: "\f045"
+
+%fontawe-check
+  content: "\f046"
+
+%fontawe-move
+  content: "\f047"
+
+%fontawe-step-backward
+  content: "\f048"
+
+%fontawe-fast-backward
+  content: "\f049"
+
+%fontawe-backward
+  content: "\f04a"
+
+%fontawe-play
+  content: "\f04b"
+
+%fontawe-pause
+  content: "\f04c"
+
+%fontawe-stop
+  content: "\f04d"
+
+%fontawe-forward
+  content: "\f04e"
+
+%fontawe-fast-forward
+  content: "\f050"
+
+%fontawe-step-forward
+  content: "\f051"
+
+%fontawe-eject
+  content: "\f052"
+
+%fontawe-chevron-left
+  content: "\f053"
+
+%fontawe-chevron-right
+  content: "\f054"
+
+%fontawe-plus-sign
+  content: "\f055"
+
+%fontawe-minus-sign
+  content: "\f056"
+
+%fontawe-remove-sign
+  content: "\f057"
+
+%fontawe-ok-sign
+  content: "\f058"
+
+%fontawe-question-sign
+  content: "\f059"
+
+%fontawe-info-sign
+  content: "\f05a"
+
+%fontawe-screenshot
+  content: "\f05b"
+
+%fontawe-remove-circle
+  content: "\f05c"
+
+%fontawe-ok-circle
+  content: "\f05d"
+
+%fontawe-ban-circle
+  content: "\f05e"
+
+%fontawe-arrow-left
+  content: "\f060"
+
+%fontawe-arrow-right
+  content: "\f061"
+
+%fontawe-arrow-up
+  content: "\f062"
+
+%fontawe-arrow-down
+  content: "\f063"
+
+%fontawe-share-alt
+  content: "\f064"
+
+%fontawe-resize-full
+  content: "\f065"
+
+%fontawe-resize-small
+  content: "\f066"
+
+%fontawe-plus
+  content: "\f067"
+
+%fontawe-minus
+  content: "\f068"
+
+%fontawe-asterisk
+  content: "\f069"
+
+%fontawe-exclamation-sign
+  content: "\f06a"
+
+%fontawe-gift
+  content: "\f06b"
+
+%fontawe-leaf
+  content: "\f06c"
+
+%fontawe-fire
+  content: "\f06d"
+
+%fontawe-eye-open
+  content: "\f06e"
+
+%fontawe-eye-close
+  content: "\f070"
+
+%fontawe-warning-sign
+  content: "\f071"
+
+%fontawe-plane
+  content: "\f072"
+
+%fontawe-calendar
+  content: "\f073"
+
+%fontawe-random
+  content: "\f074"
+
+%fontawe-comment
+  content: "\f075"
+
+%fontawe-magnet
+  content: "\f076"
+
+%fontawe-chevron-up
+  content: "\f077"
+
+%fontawe-chevron-down
+  content: "\f078"
+
+%fontawe-retweet
+  content: "\f079"
+
+%fontawe-shopping-cart
+  content: "\f07a"
+
+%fontawe-folder-close
+  content: "\f07b"
+
+%fontawe-folder-open
+  content: "\f07c"
+
+%fontawe-resize-vertical
+  content: "\f07d"
+
+%fontawe-resize-horizontal
+  content: "\f07e"
+
+%fontawe-bar-chart
+  content: "\f080"
+
+%fontawe-twitter-sign
+  content: "\f081"
+
+%fontawe-facebook-sign
+  content: "\f082"
+
+%fontawe-camera-retro
+  content: "\f083"
+
+%fontawe-key
+  content: "\f084"
+
+%fontawe-cogs
+  content: "\f085"
+
+%fontawe-comments
+  content: "\f086"
+
+%fontawe-thumbs-up
+  content: "\f087"
+
+%fontawe-thumbs-down
+  content: "\f088"
+
+%fontawe-star-half
+  content: "\f089"
+
+%fontawe-heart-empty
+  content: "\f08a"
+
+%fontawe-signout
+  content: "\f08b"
+
+%fontawe-linkedin-sign
+  content: "\f08c"
+
+%fontawe-pushpin
+  content: "\f08d"
+
+%fontawe-external-link
+  content: "\f08e"
+
+%fontawe-signin
+  content: "\f090"
+
+%fontawe-trophy
+  content: "\f091"
+
+%fontawe-github-sign
+  content: "\f092"
+
+%fontawe-upload-alt
+  content: "\f093"
+
+%fontawe-lemon
+  content: "\f094"
+
+%fontawe-phone
+  content: "\f095"
+
+%fontawe-check-empty
+  content: "\f096"
+
+%fontawe-bookmark-empty
+  content: "\f097"
+
+%fontawe-phone-sign
+  content: "\f098"
+
+%fontawe-twitter
+  content: "\f099"
+
+%fontawe-facebook
+  content: "\f09a"
+
+%fontawe-github
+  content: "\f09b"
+
+%fontawe-unlock
+  content: "\f09c"
+
+%fontawe-credit-card
+  content: "\f09d"
+
+%fontawe-rss
+  content: "\f09e"
+
+%fontawe-hdd
+  content: "\f0a0"
+
+%fontawe-bullhorn
+  content: "\f0a1"
+
+%fontawe-bell
+  content: "\f0a2"
+
+%fontawe-certificate
+  content: "\f0a3"
+
+%fontawe-hand-right
+  content: "\f0a4"
+
+%fontawe-hand-left
+  content: "\f0a5"
+
+%fontawe-hand-up
+  content: "\f0a6"
+
+%fontawe-hand-down
+  content: "\f0a7"
+
+%fontawe-circle-arrow-left
+  content: "\f0a8"
+
+%fontawe-circle-arrow-right
+  content: "\f0a9"
+
+%fontawe-circle-arrow-up
+  content: "\f0aa"
+
+%fontawe-circle-arrow-down
+  content: "\f0ab"
+
+%fontawe-globe
+  content: "\f0ac"
+
+%fontawe-wrench
+  content: "\f0ad"
+
+%fontawe-tasks
+  content: "\f0ae"
+
+%fontawe-filter
+  content: "\f0b0"
+
+%fontawe-briefcase
+  content: "\f0b1"
+
+%fontawe-fullscreen
+  content: "\f0b2"
+
+%fontawe-group
+  content: "\f0c0"
+
+%fontawe-link
+  content: "\f0c1"
+
+%fontawe-cloud
+  content: "\f0c2"
+
+%fontawe-beaker
+  content: "\f0c3"
+
+%fontawe-cut
+  content: "\f0c4"
+
+%fontawe-copy
+  content: "\f0c5"
+
+%fontawe-paper-clip
+  content: "\f0c6"
+
+%fontawe-save
+  content: "\f0c7"
+
+%fontawe-sign-blank
+  content: "\f0c8"
+
+%fontawe-reorder
+  content: "\f0c9"
+
+%fontawe-list-ul
+  content: "\f0ca"
+
+%fontawe-list-ol
+  content: "\f0cb"
+
+%fontawe-strikethrough
+  content: "\f0cc"
+
+%fontawe-underline
+  content: "\f0cd"
+
+%fontawe-table
+  content: "\f0ce"
+
+%fontawe-magic
+  content: "\f0d0"
+
+%fontawe-truck
+  content: "\f0d1"
+
+%fontawe-pinterest
+  content: "\f0d2"
+
+%fontawe-pinterest-sign
+  content: "\f0d3"
+
+%fontawe-google-plus-sign
+  content: "\f0d4"
+
+%fontawe-google-plus
+  content: "\f0d5"
+
+%fontawe-money
+  content: "\f0d6"
+
+%fontawe-caret-down
+  content: "\f0d7"
+
+%fontawe-caret-up
+  content: "\f0d8"
+
+%fontawe-caret-left
+  content: "\f0d9"
+
+%fontawe-caret-right
+  content: "\f0da"
+
+%fontawe-columns
+  content: "\f0db"
+
+%fontawe-sort
+  content: "\f0dc"
+
+%fontawe-sort-down
+  content: "\f0dd"
+
+%fontawe-sort-up
+  content: "\f0de"
+
+%fontawe-envelope-alt
+  content: "\f0e0"
+
+%fontawe-linkedin
+  content: "\f0e1"
+
+%fontawe-undo
+  content: "\f0e2"
+
+%fontawe-legal
+  content: "\f0e3"
+
+%fontawe-dashboard
+  content: "\f0e4"
+
+%fontawe-comment-alt
+  content: "\f0e5"
+
+%fontawe-comments-alt
+  content: "\f0e6"
+
+%fontawe-bolt
+  content: "\f0e7"
+
+%fontawe-sitemap
+  content: "\f0e8"
+
+%fontawe-umbrella
+  content: "\f0e9"
+
+%fontawe-paste
+  content: "\f0ea"
+
+%fontawe-user-md
+  content: "\f200"
+  
+    
+$fontAwesomePath: "../../../../all/libraries/Font-Awesome/font/fontawesome-webfont" !default
+    
+%fontawe-core
+  font-family: FontAwesome!important
+  font-weight: normal!important
+  font-style: normal!important
+  display: inline-block
+  text-decoration: inherit!important
+  vertical-align: middle!important
+
+@mixin fontawe-init()
+  //+font-face("FontAwesome", font-files("#{$fontAwesomePath}.woff", woff, "#{$fontAwesomePath}.ttf", truetype, "#{$fontAwesomePath}.svg#FontAwesomeRegular", svg), "#{$fontAwesomePath}.eot", normal, normal)
+  @font-face
+    font-family: 'FontAwesome'
+    src: url('#{$fontAwesomePath}.eot')
+    src: url('#{$fontAwesomePath}.eot?#iefix') format('embedded-opentype'), url('#{$fontAwesomePath}.woff') format('woff'), url('#{$fontAwesomePath}.ttf') format('truetype'), url('#{$fontAwesomePath}.svg#FontAwesomeRegular') format('svg')
+    font-weight: normal
+    font-style: normal
+
+// Standard does both font + font-awesome
+@mixin fontawe($icon, $font: inherit, $color: false, $hover: false)
+  @if $color != false
+    color: $color
+    @if $hover != false
+      &:hover
+        color: $hover
+  line-height: $font * 1.5
+        
+  &:before
+    font-size: $font
+    @extend %fontawe-core
+    @extend %fontawe-#{$icon}
+
+// Simple does just styles font-awesome   
+@mixin fontawe_s($icon, $font: inherit, $color: false, $hover: false)
+  &:before
+    font-size: $font
+    @if $color != false
+      color: $color
+      @if $hover != false
+        &:hover
+          color: $hover
+
+    @extend %fontawe-core
+    @extend %fontawe-#{$icon}
+
+// Replace, just shows font-awesome icon    
+@mixin fontawe_r($icon, $w, $h: $w, $color: false, $hover: false)
+  +fontawe($icon, $w, $color, $hover)    
+  display: block
+  font-size: $w
+  height: $h
+  line-height: $h
+  overflow: hidden
+  width: $w
+  
+

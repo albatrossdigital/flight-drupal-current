@@ -1,0 +1,8 @@
+;$Id: 
+name = Feeds Oauth Connector Fetcher
+description = Load feeds after Oauth autentication.
+package = Feeds
+dependencies[] = feeds
+dependencies[] = oauthconnector
+core = 7.x
+

@@ -1,0 +1,6 @@
+name = Albatross User Drop-down Menu
+description = Creates a drop-down menu with user-related links.
+package = Albatross
+core = 7.x
+dependencies[] = block
+//dependencies[] = block_hover

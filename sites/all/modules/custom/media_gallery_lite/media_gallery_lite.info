@@ -1,0 +1,14 @@
+name = Media Gallery
+description = A flexible gallery of media.
+core = 7.x
+package = Media
+
+dependencies[] = list
+dependencies[] = number
+dependencies[] = media
+dependencies[] = multiform
+
+files[] = media_gallery_lite.module
+files[] = media_gallery_lite.fields.inc
+
+

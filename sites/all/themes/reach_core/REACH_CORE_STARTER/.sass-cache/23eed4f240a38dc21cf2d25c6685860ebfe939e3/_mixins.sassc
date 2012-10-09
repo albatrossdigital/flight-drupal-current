@@ -1,0 +1,1449 @@
+3.2.0.alpha.95 (Bleeding Edge)
+ef059e5cf3d48aa863a3c825217e2117a5b2db41
+o:Sass::Tree::RootNode	:@template"C9@import _variables.sass
+
+// Sprite creation
+@import "compass/utilities/sprites/base"
+$icons-spacing: 60px
+@import "icons/*.png"
+$disable-magic-sprite-selectors:true
+@include all-icons-sprites
+
+
+// Sprite mixins
+
+@function center-y($y, $item)
+  $h: icons-sprite-height($item)
+  @return (($y - $h) / 2)
+  
+@function center-x($x, $item)
+  $w: icons-sprite-width($item)
+  @return (($x - $w) / 2)
+  
+  
+
+//****
+// FONTs
+
+@mixin adelle($alt: normal)
+  font-family: $font_adelle
+  @if $alt == italic
+    font-style: italic
+  @else if $alt == bold
+    font-weight: bold
+  @else if $alt == bolditalic
+    font-style: italic
+    font-weight: bold
+  
+@mixin leaguegothic()
+  font-weight: normal
+  font-family: $font_league
+
+// Borderbox mixin
+// Use box-sizing: border-box; with impunity
+// Borderbox outputs equivalent CSS in <IE8
+
+// Set to true if you prefer declaring a global box-sizing prop.
+//
+// Ex:
+// $global-border-box: true;
+// 
+// * {
+//     @include box-sizing(border-box);
+// }
+
+$global-border-box: false !default
+
+@mixin borderbox($dimensions, $padding: false, $border: false) 
+  @if not $global-border-box 
+    @include box-sizing(border-box)
+  
+
+  // Extract width/height values
+  $width: nth($dimensions, 1)
+  $height: false
+
+  @if length($dimensions) == 2 
+    $height: nth($dimensions, 2)
+  
+
+  // Extract padding values
+  $padding-length: length($padding)
+  $padding-y: 0
+  $padding-x: 0
+
+  @if $padding 
+    padding: $padding
+
+    @if $padding-length == 4 
+      $padding-y: nth($padding, 1) + nth($padding, 3)
+      $padding-x: nth($padding, 2) + nth($padding, 4)
+    @else if $padding-length == 3 
+      $padding-y: nth($padding, 1) + nth($padding, 3)
+      $padding-x: nth($padding, 2) * 2
+    @else if $padding-length == 2 
+      $padding-y: nth($padding, 1) * 2
+      $padding-x: nth($padding, 2) * 2
+    @else if $padding-length == 1 
+      $padding-y: $padding * 2
+      $padding-x: $padding * 2
+    
+  
+
+  // Extract border values
+  $use-border-shorthand: false
+  $border-width: false
+
+  @each $unit in $border 
+    @if type-of($unit) == number 
+      @if $border-width 
+        $border-width: append($border-width, $unit)
+      @else 
+        $border-width: $unit
+      
+    @else 
+      $use-border-shorthand: true
+    
+  
+
+  $border-length: length($border-width)
+  $border-y: 0
+  $border-x: 0
+
+  @if $border 
+    @if $use-border-shorthand 
+      border: $border
+    @else 
+      border-width: $border-width
+    
+
+    @if $border-length == 4 
+      $border-y: nth($border-width, 1) + nth($border-width, 3)
+      $border-x: nth($border-width, 2) + nth($border-width, 4)
+    @else if $border-length == 3 
+      $border-y: nth($border-width, 1) + nth($border-width, 3)
+      $border-x: nth($border-width, 2) * 2
+    @else if $border-length == 2 
+      $border-y: nth($border-width, 1) * 2
+      $border-x: nth($border-width, 2) * 2
+    @else if $border-length == 1 
+      $border-y: $border-width * 2
+      $border-x: $border-width * 2
+  
+
+  // Set width value
+  @if $width 
+    @if $width == auto 
+      width: $width
+    @else 
+      width: $width
+      @if $legacy-support-for-ie 
+        *width: $width - $padding-x - $border-x
+      
+    
+  
+
+  // Set height value
+  @if $height 
+    @if $height == auto 
+      height: $height 
+    @else
+      height: $height
+      @if $legacy-support-for-ie
+        *height: $height - $padding-y - $border-y
+
+@function grid-width($n, $left_outer: false, $right_outer: false)
+  @if $n == false
+    @return auto
+  @else
+    $width: ($n * $col_width) + (2 * $col_margin * ($n - 1))
+    @if $left_outer == true
+      $width: $width + $col_margin_outer
+    @if $right_outer == true
+      $width: $width + $col_margin_outer
+    @return $width
+    
+@mixin rounded($r)
+  +border-radius($r)
+  border-radius: $r
+  //behavior: url(/sites/all/libraries/css3pie/PIE.htc)
+
+// Utilize the themes alternate text in style
+@mixin alternate-font($set: true, $f_weight: $font_alt_weight)
+  +leaguegothic()
+  @if $set == true
+    font-style: normal
+    letter-spacing: $font_league_spacing
+    text-transform: uppercase
+  
+@mixin normal-font($set: true, $f_weight: normal)
+  font-family: $font_normal
+  @if $set == true
+    font-weight: $f_weight
+    text-transform: none
+
+@mixin box-border($w, $h, $b)
+  +box-sizing(border-box)
+  border: $b solid
+  //if height is auto
+  @if $h == auto
+    height: $h
+  @else 
+    height: $h
+    *height: $h - (2 * $b)
+  //if width is auto
+  @if $w == auto 
+    width: $w
+  @else
+    width: $w
+    *width: $w - (2 * $b)
+    
+@mixin border-override($c: transparent)
+  border-bottom-color: $c
+  border-left-color: $c
+  border-right-color: $c
+  border-top-color: $c
+
+@mixin block-link($w, $h, $f: 1em, $alt: true, $display: block)
+  display: $display
+  height: $h
+  font-size: $f
+  @if $h == auto
+    line-height: 1em
+  @else  
+    line-height: $h
+  @if $alt == true
+    +alternate-font()
+  text-decoration: none
+  width: $w
+  
+  &:hover
+    text-decoration: none
+  
+//Make link into button style
+@mixin buttonize-link($w, $h, $f: 1.4em, $back_c: $b_back_color, $alt: true, $display: block)
+  +block-link($w, $h, $f, $alt, $display)
+  background: $b_back_color
+  border-bottom: 2px solid darken($back_c, 20%)
+  color: $color1_font
+  +rounded(2px)
+  text-align: center
+  
+  &:hover
+    background: lighten($back_c, 5%)
+  
+
+//cross browser top facing fade
+@mixin simple-grad-top($c, $c2: false)
+  background-color: $c
+  $experimental-support-for-svg: true
+  //if no second color, just use lighten
+  @if $c2 == false
+    @include filter-gradient(lighten($c, 5%), $c)
+    +background-image(linear-gradient(color-stops(lighten($c, 5%), $c 50%, $c 100%)))
+  @else
+    @include filter-gradient($c, $c2)
+    +background-image(linear-gradient(color-stops($c, $c2 50%, $c2 100%)))  
+  
+//cross browser bottom facing fade
+@mixin simple-grad-bottom($c, $c2: false)
+  background-color: $c
+  //if no second color, just use darken
+  @if $c2 == false
+    @include filter-gradient($c, darken($c, 5%))
+    $experimental-support-for-svg: true
+    +background-image(linear-gradient(color-stops($c, $c 50%, darken($c, 5%) 100%)))
+  @else
+    @include filter-gradient($c, $c2)
+    $experimental-support-for-svg: true
+    +background-image(linear-gradient(color-stops($c, $c 50%, $c2)))
+  
+@mixin square-button-link($n: false, $h: $square_block_h, $font_s: $square_block_font)
+  $w: grid-width($n)
+  display: block
+  font-size: 1em
+  height: $h
+  position: relative
+  width: $w
+  
+  span
+    @if $w == auto
+      +block-link($w, auto, $font_s)
+    @else
+      +block-link(($w - 20), auto, $font_s)
+    bottom: 10px
+    display: block
+    position: absolute
+    left: 10px
+    
+@mixin clear-square-button-link()
+  float: none
+  height: auto
+  position: relative
+  width: auto
+  
+  span
+    bottom: auto
+    left: 20px
+    padding: 10px 0
+    position: relative
+    width: auto
+
+    
+/***********************************
+ * FONT MIXINS
+ ***********************************/
+    
+@mixin font-face-sansus() 
+  @font-face
+    font-family: 'Sansus'
+    src: url('../fonts/sansus-webissimo-regular-webfont.eot')
+    src: url('../fonts/sansus-webissimo-regular-webfont.eot?#iefix') format('embedded-opentype'), url('../fonts/sansus-webissimo-regular-webfont.woff') format('woff'), url('../fonts/sansus-webissimo-regular-webfont.ttf') format('truetype'), url('../fonts/sansus-webissimo-regular-webfont.svg#ArvoItalic') format('svg')
+    font-weight: normal
+    font-style: normal
+    
+  @font-face
+    font-family: 'Sansus'
+    src: url('../fonts/sansus-webissimo-italic-webfont.eot')
+    src: url('../fonts/sansus-webissimo-italic-webfont.eot?#iefix') format('embedded-opentype'), url('../fonts/sansus-webissimo-italic-webfont.woff') format('woff'), url('../fonts/sansus-webissimo-italic-webfont.ttf') format('truetype'), url('../fonts/sansus-webissimo-italic-webfont.svg#ArvoItalic') format('svg')
+    font-weight: normal
+    font-style: italic
+
+  
+  
+/******************************************8
+
+@mixin old-sprite($left, $top, $img: "sprite.png", $repeat: no-repeat)
+  background-image: url(../images/#{$img})
+  background-position: $left $top
+  background-repeat: no-repeat
+  
+@mixin sprite-block($width, $height, $left, $top, $img: "sprite.png", $repeat: no-repeat)
+  width: $width
+  height: $height
+  display: block
+  text-indent: -1000em
+  overflow: hidden
+  @include old-sprite($left, $top, $img, $repeat)
+
+@mixin fixed-background($image: url(../images/bg.jpg), $color: #fff)
+  color: #fff
+  background: $color $image no-repeat center center fixed
+  +background-size(cover)
+
+@mixin fade-background($start, $stop, $position: top)
+  +linear-gradient(color-stops($start, $stop), $position)
+  background-color: $start
+
+
+@mixin auto-fade-background($color, $position: top)
+  +fade-background(lighten($color, 20%), $color, $position)
+
+
+@mixin auto-fade-background-hover($color)
+  +auto-fade-background($color, top)
+  
+  &:hover
+    +auto-fade-background($color, bottom)
+
+
+@mixin link-clear($color)
+  &,
+  a
+    color: $color !important
+    text-decoration: none !important
+  
+@mixin list-clear
+  &,
+  ul,
+  li
+    margin: 0
+    padding: 0
+    list-style: none
+    list-style-image: none
+
+@mixin list-float($float: left, $margin-horizontal: 10px, $margin-vertical: 0)
+  +list-clear
+  >li
+    margin: $margin-vertical $margin-horizontal
+    float: $float 
+
+
+/***********************************
+ * FONT MIXINS
+ ***********************************/
+
+
+@mixin font_face_otari()
+  @font-face
+    font-family: 'otari'
+    src: url('../../../../all/themes/albatross/fonts/otari-bold-limited_copy-webfont.eot')
+    src: url('../../../../all/themes/albatross/fonts/otari-bold-limited_copy-webfont.eot?#iefix') format('embedded-opentype'), url('../../../../all/themes/albatross/fonts/otari-bold-limited_copy-webfont.woff') format('woff'), url('../../../../all/themes/albatross/fonts/otari-bold-limited_copy-webfont.ttf') format('truetype'), url('../../../../all/themes/albatross/fonts/otari-bold-limited_copy-webfont.svg#OtariBold-Limited') format('svg')
+    font-weight: normal
+    font-style: normal
+    
+@mixin font_face_pacifico()
+  @font-face
+    font-family: 'pacifico'
+    src: url('../../../../all/themes/albatross/fonts/pacifico_copy-webfont.eot')
+    src: url('../../../../all/themes/albatross/fonts/pacifico_copy-webfont.eot?#iefix') format('embedded-opentype'), url('../../../../all/themes/albatross/fonts/pacifico_copy-webfont.woff') format('woff'), url('../../../../all/themes/albatross/fonts/pacifico_copy-webfont.ttf') format('truetype'), url('../../../../all/themes/albatross/fonts/pacifico_copy-webfont.svg#PacificoRegular') format('svg')
+    font-weight: normal
+    font-style: normal
+
+@mixin font_face_nevis()
+  @font-face
+    font-family: 'nevis'
+    src: url('../../../../all/themes/albatross/fonts/nevis-webfont.eot')
+    src: url('../../../../all/themes/albatross/fonts/nevis-webfont.eot?#iefix') format('embedded-opentype'), url('../../../../all/themes/albatross/fonts/nevis-webfont.woff') format('woff'), url('../../../../all/themes/albatross/fonts/nevis-webfont.ttf') format('truetype'), url('../../../../all/themes/albatross/fonts/nevis-webfont.svg#webfontHubXaE9b') format('svg')
+    font-weight: normal
+    font-style: normal
+    
+@mixin font_face_copse()
+  @font-face
+    font-family: 'CopseRegular'
+    src: url('../../../../all/themes/albatross/fonts/Copse-Regular-webfont.eot')
+    src: url('../../../../all/themes/albatross/fonts/Copse-Regular-webfont.eot?#iefix') format('embedded-opentype'), url('../../../../all/themes/albatross/fonts/Copse-Regular-webfont.woff') format('woff'), url('../../../../all/themes/albatross/fonts/Copse-Regular-webfont.ttf') format('truetype'), url('../../../../all/themes/albatross/fonts/Copse-Regular-webfont.svg#CopseRegular') format('svg')
+    font-weight: normal
+    font-style: normal
+
+@mixin font_face_arvo()
+  @font-face
+    font-family: 'Arvo'
+    src: url('../../../../all/themes/albatross/fonts/Arvo-Regular-webfont.eot')
+    src: url('../../../../all/themes/albatross/fonts/Arvo-Regular-webfont.eot?#iefix') format('embedded-opentype'), url('../../../../all/themes/albatross/fonts/Arvo-Regular-webfont.woff') format('woff'), url('../../../../all/themes/albatross/fonts/Arvo-Regular-webfont.ttf') format('truetype'), url('../../../../all/themes/albatross/fonts/Arvo-Regular-webfont.svg#ArvoRegular') format('svg')
+    font-weight: normal
+    font-style: normal
+
+  @font-face
+    font-family: 'Arvo'
+    src: url('../../../../all/themes/albatross/fonts/Arvo-Italic-webfont.eot')
+    src: url('../../../../all/themes/albatross/fonts/Arvo-Italic-webfont.eot?#iefix') format('embedded-opentype'), url('../../../../all/themes/albatross/fonts/Arvo-Italic-webfont.woff') format('woff'), url('../../../../all/themes/albatross/fonts/Arvo-Italic-webfont.ttf') format('truetype'), url('../../../../all/themes/albatross/fonts/Arvo-Italic-webfont.svg#ArvoItalic') format('svg')
+    font-weight: normal
+    font-style: italic
+    
+  @font-face
+    font-family: 'Arvo'
+    src: url('../../../../all/themes/albatross/fonts/Arvo-Bold-webfont.eot')
+    src: url('../../../../all/themes/albatross/fonts/Arvo-Bold-webfont.eot?#iefix') format('embedded-opentype'), url('../../../../all/themes/albatross/fonts/Arvo-Bold-webfont.woff') format('woff'), url('../../../../all/themes/albatross/fonts/Arvo-Bold-webfont.ttf') format('truetype'), url('../../../../all/themes/albatross/fonts/Arvo-Bold-webfont.svg#ArvoRegular') format('svg')
+    font-weight: bold
+    font-style: normal
+    
+  @font-face
+    font-family: 'Arvo'
+    src: url('../../../../all/themes/albatross/fonts/Arvo-BoldItalic-webfont.eot')
+    src: url('../../../../all/themes/albatross/fonts/Arvo-BoldItalic-webfont.eot?#iefix') format('embedded-opentype'), url('../../../../all/themes/albatross/fonts/Arvo-BoldItalic-webfont.woff') format('woff'), url('../../../../all/themes/albatross/fonts/Arvo-BoldItalic-webfont.ttf') format('truetype'), url('../../../../all/themes/albatross/fonts/Arvo-BoldItalic-webfont.svg#ArvoItalic') format('svg')
+    font-weight: bold
+    font-style: italic
+    
+@mixin font_face_comfortaa()
+  @font-face
+    font-family: 'Comfortaa'
+    src: url('../../../../all/themes/albatross/fonts/comfortaa_bold_copy-webfont')
+    src: url('../../../../all/themes/albatross/fonts/comfortaa_bold_copy-webfont.eot?#iefix') format('embedded-opentype'), url('../../../../all/themes/albatross/fonts/comfortaa_bold_copy-webfont.woff') format('woff'), url('../../../../all/themes/albatross/fonts/comfortaa_bold_copy-webfont.ttf') format('truetype'), url('../../../../all/themes/albatross/fonts/comfortaa_bold_copy-webfont.svg#ArvoItalic') format('svg')
+    font-weight: normal
+    font-style: normal
+:@has_childrenT:@options{ :@children[9o:Sass::Tree::ImportNode:@filename"e/var/aegir/platforms/reach-7.12/sites/sfaf.play.albatrossdemos.com/themes/sfaf/sass/_mixins.sass:@imported_filename"_variables.sass:
+@linei;0;@;	[ o:Sass::Tree::CommentNode;@
+:
+@type:silent;i;@;	[ :@value["// Sprite creationo;
+;@
+;"#compass/utilities/sprites/base;i	;0;@;	[ o:Sass::Tree::VariableNode:@guarded0;@
+:
+@name"icons-spacing;i
+:
+@expro:Sass::Script::Number;i
+:@denominator_units[ :@numerator_units["px;@:@original"	60px;iA;@;	[ o;
+;@
+;"icons/*.png;i;0;@;	[ o;;0;@
+;"#disable-magic-sprite-selectors;i;o:Sass::Script::Bool;i;@;T;@;	[ o:Sass::Tree::MixinNode:
+@args[ ;@
+;"all-icons-sprites;i:@keywords{ ;@;	[ o;;@
+;;;i;@;	[ ;["// Sprite mixinso:Sass::Tree::FunctionNode;[[o:Sass::Script::Variable:@underscored_name"y;"y;@0[o;; "	item;"	item;@0;@
+;"center-y;i;T;@;	[o;;0;@
+;"h;i;o:Sass::Script::Funcall
+;[o;	; "	item;"	item;i;@;"icons-sprite-height;i;{ ;@;@;	[ o:Sass::Tree::ReturnNode
+;@
+;i;o:Sass::Script::Operation
+;i:@operand2o;
+;i;[ ;[ ;@;i;@:@operator:div:@operand1o;#
+;i;$o;	; "h;"h;i;@;@;%:
+minus;'o;	; "y;"y;i;@;@;	[ o;;[[o;; "x;"x;@0[o;; "	item;"	item;@0;@
+;"center-x;i;T;@;	[o;;0;@
+;"w;i;o;!
+;[o;	; "	item;"	item;i;@;"icons-sprite-width;i;{ ;@;@;	[ o;"
+;@
+;i;o;#
+;i;$o;
+;i;@E;[ ;@;i;@;%;&;'o;#
+;i;$o;	; "w;"w;i;@;@;%;(;'o;	; "x;"x;i;@;@;	[ o;;@
+;;;i;@;	[ ;["
+//***"
+"// FONTso:Sass::Tree::MixinDefNode;[[o;; "alt;"alt;@o:Sass::Script::String	;:identifier;i;@;"normal;@
+;"adelle;i;T;@;	[o:Sass::Tree::PropNode;@
+;["font-family;i :@prop_syntax:new:
+@tabsi ;@;	[ ;o;	; "font_adelle;"font_adelle;i ;@u:Sass::Tree::IfNodeÀ[o:Sass::Script::Operation
+:
+@linei!:@operand2o:Sass::Script::String	:
+@type:identifier;i!:@options{ :@value"italic;@:@operator:eq:@operand1o:Sass::Script::Variable	:@underscored_name"alt:
+@name"alt;i!;@u:Sass::Tree::IfNodeÌ[o:Sass::Script::Operation
+:
+@linei#:@operand2o:Sass::Script::String	:
+@type:identifier;i#:@options{ :@value"	bold;@:@operator:eq:@operand1o:Sass::Script::Variable	:@underscored_name"alt:
+@name"alt;i#;@u:Sass::Tree::IfNode[o:Sass::Script::Operation
+:
+@linei%:@operand2o:Sass::Script::String	:
+@type:identifier;i%:@options{ :@value"bolditalic;@:@operator:eq:@operand1o:Sass::Script::Variable	:@underscored_name"alt:
+@name"alt;i%;@0[o:Sass::Tree::PropNode:@filename"e/var/aegir/platforms/reach-7.12/sites/sfaf.play.albatrossdemos.com/themes/sfaf/sass/_mixins.sass;["font-style;i&:@prop_syntax:new:
+@tabsi ;@:@children[ ;o;	;	;
+;i&;@;"italico;;@;["font-weight;i';;;i ;@;[ ;o;	;	;
+;i';@;"	bold[o:Sass::Tree::PropNode:@filename"e/var/aegir/platforms/reach-7.12/sites/sfaf.play.albatrossdemos.com/themes/sfaf/sass/_mixins.sass;["font-weight;i$:@prop_syntax:new:
+@tabsi ;@:@children[ ;o;	;	;
+;i$;@;"	bold[o:Sass::Tree::PropNode:@filename"e/var/aegir/platforms/reach-7.12/sites/sfaf.play.albatrossdemos.com/themes/sfaf/sass/_mixins.sass;["font-style;i":@prop_syntax:new:
+@tabsi ;@:@children[ ;o;	;	;
+;i";@;"italico;);[ ;@
+;"leaguegothic;i);T;@;	[o;,;@
+;["font-weight;i*;-;.;/i ;@;	[ ;o;*	;;+;i*;@;"normalo;,;@
+;["font-family;i+;-;.;/i ;@;	[ ;o;	; "font_league;"font_league;i+;@o;;@
+;;;i-;@;	[ ;[
+"// Borderbox mixin"
+"1// Use box-sizing: border-box; with impunity"
+"0// Borderbox outputs equivalent CSS in <IE8o;;@
+;;;i1;@;	[ ;["E// Set to true if you prefer declaring a global box-sizing prop."
+"//"
+"// Ex:"
+"!// $global-border-box: true;"
+"//"
+"// * {"
+",//     @include box-sizing(border-box);"
+"	// }o;;"!default;@
+;"global-border-box;i:;o;;i:;@;F;@;	[ o;);[[o;; "dimensions;"dimensions;@0[o;; "padding;"padding;@o;;i<;@;F[o;; "border;"border;@o;;i<;@;F;@
+;"borderbox;i<;T;@;	[u;0æ[o:!Sass::Script::UnaryOperation	:
+@linei=:@options{ :@operator:not:@operando:Sass::Script::Variable	:@underscored_name"global_border_box:
+@name"global-border-box;i=;@0[o:Sass::Tree::MixinNode:
+@args[o:Sass::Script::String	:
+@type:identifier;i>;@:@value"border-box:@filename"e/var/aegir/platforms/reach-7.12/sites/sfaf.play.albatrossdemos.com/themes/sfaf/sass/_mixins.sass;"box-sizing;i>:@keywords{ ;@:@children[ o;;@
+;;;iA;@;	[ ;["#// Extract width/height valueso;;0;@
+;"
+width;iB;o;!
+;[o;	; "dimensions;"dimensions;iB;@o;;iB;@E;[ ;@;"1;i;"nth;iB;{ ;@;@;	[ o;;0;@
+;"height;iC;o;;iC;@;F;@;	[ u;0m[o:Sass::Script::Operation
+:
+@lineiE:@operand2o:Sass::Script::Number;iE:@denominator_units[ :@numerator_units[ :@options{ :@original"2:@valuei;@
+:@operator:eq:@operand1o:Sass::Script::Funcall
+:
+@args[o:Sass::Script::Variable	:@underscored_name"dimensions:
+@name"dimensions;iE;@
+;"length;iE:@keywords{ ;@
+0[o:Sass::Tree::VariableNode:@guarded0:@filename"e/var/aegir/platforms/reach-7.12/sites/sfaf.play.albatrossdemos.com/themes/sfaf/sass/_mixins.sass;"height;iF:
+@expro;
+;[o;	;"dimensions;"dimensions;iF;@
+o;;iF;	@;
+[ ;@
+;"2;i;"nth;iF;{ ;@
+;@
+:@children[ o;;@
+;;;iI;@;	[ ;["// Extract padding valueso;;0;@
+;"padding-length;iJ;o;!
+;[o;	; "padding;"padding;iJ;@;"length;iJ;{ ;@;@;	[ o;;0;@
+;"padding-y;iK;o;;iK;@E;[ ;@;"0;i ;@;	[ o;;0;@
+;"padding-x;iL;o;;iL;@E;[ ;@;"0;i ;@;	[ u;0ø[o:Sass::Script::Variable	:@underscored_name"padding:
+@name"padding:
+@lineiN:@options{ 0[o:Sass::Tree::PropNode:@filename"e/var/aegir/platforms/reach-7.12/sites/sfaf.play.albatrossdemos.com/themes/sfaf/sass/_mixins.sass;["padding;iO:@prop_syntax:new:
+@tabsi ;	@	:@children[ :@valueo; 	;"padding;"padding;iO;	@	u:Sass::Tree::IfNodeX[o:Sass::Script::Operation
+:
+@lineiQ:@operand2o:Sass::Script::Number;iQ:@denominator_units[ :@numerator_units[ :@options{ :@original"4:@valuei	;@
+:@operator:eq:@operand1o:Sass::Script::Variable	:@underscored_name"padding_length:
+@name"padding-length;iQ;@
+u:Sass::Tree::IfNodeç	[o:Sass::Script::Operation
+:
+@lineiT:@operand2o:Sass::Script::Number;iT:@denominator_units[ :@numerator_units[ :@options{ :@original"3:@valuei;@
+:@operator:eq:@operand1o:Sass::Script::Variable	:@underscored_name"padding_length:
+@name"padding-length;iT;@
+u:Sass::Tree::IfNode˙[o:Sass::Script::Operation
+:
+@lineiW:@operand2o:Sass::Script::Number;iW:@denominator_units[ :@numerator_units[ :@options{ :@original"2:@valuei;@
+:@operator:eq:@operand1o:Sass::Script::Variable	:@underscored_name"padding_length:
+@name"padding-length;iW;@
+u:Sass::Tree::IfNode®[o:Sass::Script::Operation
+:
+@lineiZ:@operand2o:Sass::Script::Number;iZ:@denominator_units[ :@numerator_units[ :@options{ :@original"1:@valuei;@
+:@operator:eq:@operand1o:Sass::Script::Variable	:@underscored_name"padding_length:
+@name"padding-length;iZ;@
+0[o:Sass::Tree::VariableNode:@guarded0:@filename"e/var/aegir/platforms/reach-7.12/sites/sfaf.play.albatrossdemos.com/themes/sfaf/sass/_mixins.sass;"padding-y;i[:
+@expro; 
+;i[;o;;i[;	@;
+[ ;@
+;"2;i;@
+;:
+times;o;	;"padding;"padding;i[;@
+;@
+:@children[ o;;0;@;"padding-x;i\;o; 
+;i\;o;;i\;	@;
+[ ;@
+;"2;i;@
+;;;o;	;"padding;"padding;i\;@
+;@
+;[ [o:Sass::Tree::VariableNode:@guarded0:@filename"e/var/aegir/platforms/reach-7.12/sites/sfaf.play.albatrossdemos.com/themes/sfaf/sass/_mixins.sass;"padding-y;iX:
+@expro; 
+;iX;o;;iX;	@;
+[ ;@
+;"2;i;@
+;:
+times;o:Sass::Script::Funcall
+:
+@args[o;	;"padding;"padding;iX;@
+o;;iX;	@;
+[ ;@
+;"1;i;"nth;iX:@keywords{ ;@
+;@
+:@children[ o;;0;@;"padding-x;iY;o; 
+;iY;o;;iY;	@;
+[ ;@
+;"2;i;@
+;;;o;
+;[o;	;"padding;"padding;iY;@
+o;;iY;	@;
+[ ;@
+;"2;i;"nth;iY;{ ;@
+;@
+;[ [o:Sass::Tree::VariableNode:@guarded0:@filename"e/var/aegir/platforms/reach-7.12/sites/sfaf.play.albatrossdemos.com/themes/sfaf/sass/_mixins.sass;"padding-y;iU:
+@expro; 
+;iU;o:Sass::Script::Funcall
+:
+@args[o;	;"padding;"padding;iU;@
+o;;iU;	@;
+[ ;@
+;"3;i;"nth;iU:@keywords{ ;@
+;@
+;:	plus;o;
+;[o;	;"padding;"padding;iU;@
+o;;iU;	@;
+[ ;@
+;"1;i;"nth;iU;{ ;@
+;@
+:@children[ o;;0;@;"padding-x;iV;o; 
+;iV;o;;iV;	@;
+[ ;@
+;"2;i;@
+;:
+times;o;
+;[o;	;"padding;"padding;iV;@
+o;;iV;	@;
+[ ;@
+;"2;i;"nth;iV;{ ;@
+;@
+;[ [o:Sass::Tree::VariableNode:@guarded0:@filename"e/var/aegir/platforms/reach-7.12/sites/sfaf.play.albatrossdemos.com/themes/sfaf/sass/_mixins.sass;"padding-y;iR:
+@expro; 
+;iR;o:Sass::Script::Funcall
+:
+@args[o;	;"padding;"padding;iR;@
+o;;iR;	@;
+[ ;@
+;"3;i;"nth;iR:@keywords{ ;@
+;@
+;:	plus;o;
+;[o;	;"padding;"padding;iR;@
+o;;iR;	@;
+[ ;@
+;"1;i;"nth;iR;{ ;@
+;@
+:@children[ o;;0;@;"padding-x;iS;o; 
+;iS;o;
+;[o;	;"padding;"padding;iS;@
+o;;iS;	@;
+[ ;@
+;"4;i	;"nth;iS;{ ;@
+;@
+;;;o;
+;[o;	;"padding;"padding;iS;@
+o;;iS;	@;
+[ ;@
+;"2;i;"nth;iS;{ ;@
+;@
+;[ o;;@
+;;;i`;@;	[ ;["// Extract border valueso;;0;@
+;"use-border-shorthand;ia;o;;ia;@;F;@;	[ o;;0;@
+;"border-width;ib;o;;ib;@;F;@;	[ o:Sass::Tree::EachNode;@
+;id:	@var"	unit;T:
+@listo;	; "border;"border;id;@;@;	[u;08[o:Sass::Script::Operation
+:
+@lineie:@operand2o:Sass::Script::String	:
+@type:identifier;ie:@options{ :@value"number;@:@operator:eq:@operand1o:Sass::Script::Funcall
+:
+@args[o:Sass::Script::Variable	:@underscored_name"	unit:
+@name"	unit;ie;@;"type-of;ie:@keywords{ ;@u:Sass::Tree::IfNode	[00[o:Sass::Tree::VariableNode:@guarded0:@filename"e/var/aegir/platforms/reach-7.12/sites/sfaf.play.albatrossdemos.com/themes/sfaf/sass/_mixins.sass:
+@name"use-border-shorthand:
+@lineil:
+@expro:Sass::Script::Bool;	il:@options{ :@valueT;@:@children[ [u;È[o:Sass::Script::Variable	:@underscored_name"border_width:
+@name"border-width:
+@lineif:@options{ u:Sass::Tree::IfNode[00[o:Sass::Tree::VariableNode:@guarded0:@filename"e/var/aegir/platforms/reach-7.12/sites/sfaf.play.albatrossdemos.com/themes/sfaf/sass/_mixins.sass:
+@name"border-width:
+@lineii:
+@expro:Sass::Script::Variable	:@underscored_name"	unit;"	unit;	ii:@options{ ;@:@children[ [o:Sass::Tree::VariableNode:@guarded0:@filename"e/var/aegir/platforms/reach-7.12/sites/sfaf.play.albatrossdemos.com/themes/sfaf/sass/_mixins.sass;"border-width;ig:
+@expro:Sass::Script::Funcall
+:
+@args[o; 	;"border_width;"border-width;ig;	@	o; 	;"	unit;"	unit;ig;	@	;"append;ig:@keywords{ ;	@	;	@	:@children[ o;;0;@
+;"border-length;ip;o;!
+;[o;	; "border_width;"border-width;ip;@;"length;ip;{ ;@;@;	[ o;;0;@
+;"border-y;iq;o;;iq;@E;[ ;@;"0;i ;@;	[ o;;0;@
+;"border-x;ir;o;;ir;@E;[ ;@;"0;i ;@;	[ u;0[o:Sass::Script::Variable	:@underscored_name"border:
+@name"border:
+@lineit:@options{ 0[u:Sass::Tree::IfNode∫[o:Sass::Script::Variable	:@underscored_name"use_border_shorthand:
+@name"use-border-shorthand:
+@lineiu:@options{ u:Sass::Tree::IfNode=[00[o:Sass::Tree::PropNode:@filename"e/var/aegir/platforms/reach-7.12/sites/sfaf.play.albatrossdemos.com/themes/sfaf/sass/_mixins.sass:
+@name["border-width:
+@lineix:@prop_syntax:new:
+@tabsi :@options{ :@children[ :@valueo:Sass::Script::Variable	:@underscored_name"border_width;"border-width;ix;@[o:Sass::Tree::PropNode:@filename"e/var/aegir/platforms/reach-7.12/sites/sfaf.play.albatrossdemos.com/themes/sfaf/sass/_mixins.sass;["border;iv:@prop_syntax:new:
+@tabsi ;	@	:@children[ :@valueo; 	;"border;"border;iv;	@	u;
+÷[o:Sass::Script::Operation
+:
+@linei{:@operand2o:Sass::Script::Number;i{:@denominator_units[ :@numerator_units[ :@options{ :@original"4:@valuei	;@
+:@operator:eq:@operand1o:Sass::Script::Variable	:@underscored_name"border_length:
+@name"border-length;i{;@
+u:Sass::Tree::IfNodeÁ	[o:Sass::Script::Operation
+:
+@linei~:@operand2o:Sass::Script::Number;i~:@denominator_units[ :@numerator_units[ :@options{ :@original"3:@valuei;@
+:@operator:eq:@operand1o:Sass::Script::Variable	:@underscored_name"border_length:
+@name"border-length;i~;@
+u:Sass::Tree::IfNode4[o:Sass::Script::Operation
+:
+@linei|:@operand2o:Sass::Script::Number;i|:@denominator_units[ :@numerator_units[ :@options{ :@original"2:@valuei;@
+:@operator:eq:@operand1o:Sass::Script::Variable	:@underscored_name"border_length:
+@name"border-length;i|;@
+u:Sass::Tree::IfNode√[o:Sass::Script::Operation
+:
+@linei:@operand2o:Sass::Script::Number;i:@denominator_units[ :@numerator_units[ :@options{ :@original"1:@valuei;@
+:@operator:eq:@operand1o:Sass::Script::Variable	:@underscored_name"border_length:
+@name"border-length;i;@
+0[o:Sass::Tree::VariableNode:@guarded0:@filename"e/var/aegir/platforms/reach-7.12/sites/sfaf.play.albatrossdemos.com/themes/sfaf/sass/_mixins.sass;"border-y;iÄ:
+@expro; 
+;iÄ;o;;iÄ;	@;
+[ ;@
+;"2;i;@
+;:
+times;o;	;"border_width;"border-width;iÄ;@
+;@
+:@children[ o;;0;@;"border-x;iÅ;o; 
+;iÅ;o;;iÅ;	@;
+[ ;@
+;"2;i;@
+;;;o;	;"border_width;"border-width;iÅ;@
+;@
+;[ [o:Sass::Tree::VariableNode:@guarded0:@filename"e/var/aegir/platforms/reach-7.12/sites/sfaf.play.albatrossdemos.com/themes/sfaf/sass/_mixins.sass;"border-y;i}:
+@expro; 
+;i};o;;i};	@;
+[ ;@
+;"2;i;@
+;:
+times;o:Sass::Script::Funcall
+:
+@args[o;	;"border_width;"border-width;i};@
+o;;i};	@;
+[ ;@
+;"1;i;"nth;i}:@keywords{ ;@
+;@
+:@children[ o;;0;@;"border-x;i~;o; 
+;i~;o;;i~;	@;
+[ ;@
+;"2;i;@
+;;;o;
+;[o;	;"border_width;"border-width;i~;@
+o;;i~;	@;
+[ ;@
+;"2;i;"nth;i~;{ ;@
+;@
+;[ [o:Sass::Tree::VariableNode:@guarded0:@filename"e/var/aegir/platforms/reach-7.12/sites/sfaf.play.albatrossdemos.com/themes/sfaf/sass/_mixins.sass;"border-y;i:
+@expro; 
+;i;o:Sass::Script::Funcall
+:
+@args[o;	;"border_width;"border-width;i;@
+o;;i;	@;
+[ ;@
+;"3;i;"nth;i:@keywords{ ;@
+;@
+;:	plus;o;
+;[o;	;"border_width;"border-width;i;@
+o;;i;	@;
+[ ;@
+;"1;i;"nth;i;{ ;@
+;@
+:@children[ o;;0;@;"border-x;i{;o; 
+;i{;o;;i{;	@;
+[ ;@
+;"2;i;@
+;:
+times;o;
+;[o;	;"border_width;"border-width;i{;@
+o;;i{;	@;
+[ ;@
+;"2;i;"nth;i{;{ ;@
+;@
+;[ [o:Sass::Tree::VariableNode:@guarded0:@filename"e/var/aegir/platforms/reach-7.12/sites/sfaf.play.albatrossdemos.com/themes/sfaf/sass/_mixins.sass;"border-y;i|:
+@expro; 
+;i|;o:Sass::Script::Funcall
+:
+@args[o;	;"border_width;"border-width;i|;@
+o;;i|;	@;
+[ ;@
+;"3;i;"nth;i|:@keywords{ ;@
+;@
+;:	plus;o;
+;[o;	;"border_width;"border-width;i|;@
+o;;i|;	@;
+[ ;@
+;"1;i;"nth;i|;{ ;@
+;@
+:@children[ o;;0;@;"border-x;i};o; 
+;i};o;
+;[o;	;"border_width;"border-width;i};@
+o;;i};	@;
+[ ;@
+;"4;i	;"nth;i};{ ;@
+;@
+;;;o;
+;[o;	;"border_width;"border-width;i};@
+o;;i};	@;
+[ ;@
+;"2;i;"nth;i};{ ;@
+;@
+;[ o;;@
+;;;iÑ;@;	[ ;["// Set width valueu;0≥[o:Sass::Script::Variable	:@underscored_name"
+width:
+@name"
+width:
+@lineiÖ:@options{ 0[u:Sass::Tree::IfNode<[o:Sass::Script::Operation
+:
+@lineiÜ:@operand2o:Sass::Script::String	:
+@type:identifier;iÜ:@options{ :@value"	auto;@:@operator:eq:@operand1o:Sass::Script::Variable	:@underscored_name"
+width:
+@name"
+width;iÜ;@u:Sass::Tree::IfNodeX[00[o:Sass::Tree::PropNode:@filename"e/var/aegir/platforms/reach-7.12/sites/sfaf.play.albatrossdemos.com/themes/sfaf/sass/_mixins.sass:
+@name["
+width:
+@lineiâ:@prop_syntax:new:
+@tabsi :@options{ :@children[ :@valueo:Sass::Script::Variable	:@underscored_name"
+width;"
+width;iâ;@u:Sass::Tree::IfNode[o:Sass::Script::Variable	:@underscored_name"legacy_support_for_ie:
+@name"legacy-support-for-ie:
+@lineiä:@options{ 0[o:Sass::Tree::PropNode:@filename"e/var/aegir/platforms/reach-7.12/sites/sfaf.play.albatrossdemos.com/themes/sfaf/sass/_mixins.sass;["*width;iã:@prop_syntax:new:
+@tabsi ;	@	:@children[ :@valueo:Sass::Script::Operation
+;iã:@operand2o; 	;"border_x;"border-x;iã;	@	;	@	:@operator:
+minus:@operand1o;
+;iã;o; 	;"padding_x;"padding-x;iã;	@	;	@	;;;o; 	;"
+width;"
+width;iã;	@	[o:Sass::Tree::PropNode:@filename"e/var/aegir/platforms/reach-7.12/sites/sfaf.play.albatrossdemos.com/themes/sfaf/sass/_mixins.sass;["
+width;iá:@prop_syntax:new:
+@tabsi ;@:@children[ ;o;	;"
+width;"
+width;iá;@o;;@
+;;;iê;@;	[ ;["// Set height valueu;0¿[o:Sass::Script::Variable	:@underscored_name"height:
+@name"height:
+@lineië:@options{ 0[u:Sass::Tree::IfNodeG[o:Sass::Script::Operation
+:
+@lineií:@operand2o:Sass::Script::String	:
+@type:identifier;ií:@options{ :@value"	auto;@:@operator:eq:@operand1o:Sass::Script::Variable	:@underscored_name"height:
+@name"height;ií;@u:Sass::Tree::IfNode^[00[o:Sass::Tree::PropNode:@filename"e/var/aegir/platforms/reach-7.12/sites/sfaf.play.albatrossdemos.com/themes/sfaf/sass/_mixins.sass:
+@name["height:
+@lineiï:@prop_syntax:new:
+@tabsi :@options{ :@children[ :@valueo:Sass::Script::Variable	:@underscored_name"height;"height;iï;@u:Sass::Tree::IfNode[o:Sass::Script::Variable	:@underscored_name"legacy_support_for_ie:
+@name"legacy-support-for-ie:
+@lineiñ:@options{ 0[o:Sass::Tree::PropNode:@filename"e/var/aegir/platforms/reach-7.12/sites/sfaf.play.albatrossdemos.com/themes/sfaf/sass/_mixins.sass;["*height;ió:@prop_syntax:new:
+@tabsi ;	@	:@children[ :@valueo:Sass::Script::Operation
+;ió:@operand2o; 	;"border_y;"border-y;ió;	@	;	@	:@operator:
+minus:@operand1o;
+;ió;o; 	;"padding_y;"padding-y;ió;	@	;	@	;;;o; 	;"height;"height;ió;	@	[o:Sass::Tree::PropNode:@filename"e/var/aegir/platforms/reach-7.12/sites/sfaf.play.albatrossdemos.com/themes/sfaf/sass/_mixins.sass;["height;iì:@prop_syntax:new:
+@tabsi ;@:@children[ ;o;	;"height;"height;iì;@o;;[[o;; "n;"n;@0[o;; "left_outer;"left_outer;@o;;iô;@;F[o;; "right_outer;"right_outer;@o;;iô;@;F;@
+;"grid-width;iô;T;@;	[u;0À[o:Sass::Script::Operation
+:
+@lineiö:@operand2o:Sass::Script::Bool;iö:@options{ :@valueF;	@:@operator:eq:@operand1o:Sass::Script::Variable	:@underscored_name"n:
+@name"n;iö;	@u:Sass::Tree::IfNode[00[	o:Sass::Tree::VariableNode:@guarded0:@filename"e/var/aegir/platforms/reach-7.12/sites/sfaf.play.albatrossdemos.com/themes/sfaf/sass/_mixins.sass:
+@name"
+width:
+@lineiù:
+@expro:Sass::Script::Operation
+;	iù:@operand2o;
+;	iù;o;
+;	iù;o:Sass::Script::Number;	iù:@denominator_units[ :@numerator_units[ :@options{ :@original"1:@valuei;@:@operator:
+minus:@operand1o:Sass::Script::Variable	:@underscored_name"n;"n;	iù;@;@;:
+times;o;
+;	iù;o;	;"col_margin;"col_margin;	iù;@;@;;;o;
+;	iù;@;[ ;@;i;@;:	plus;o;
+;	iù;o;	;"col_width;"col_width;	iù;@;@;;;o;	;"n;"n;	iù;@;@:@children[ u:Sass::Tree::IfNode[o:Sass::Script::Operation
+:
+@lineiû:@operand2o:Sass::Script::Bool;iû:@options{ :@valueT;	@:@operator:eq:@operand1o:Sass::Script::Variable	:@underscored_name"left_outer:
+@name"left_outer;iû;	@0[o:Sass::Tree::VariableNode:@guarded0:@filename"e/var/aegir/platforms/reach-7.12/sites/sfaf.play.albatrossdemos.com/themes/sfaf/sass/_mixins.sass;"
+width;iü:
+@expro; 
+;iü;o;	;"col_margin_outer;"col_margin_outer;iü;	@;	@;:	plus;o;	;"
+width;"
+width;iü;	@;	@:@children[ u;[o:Sass::Script::Operation
+:
+@linei†:@operand2o:Sass::Script::Bool;i†:@options{ :@valueT;	@:@operator:eq:@operand1o:Sass::Script::Variable	:@underscored_name"right_outer:
+@name"right_outer;i†;	@0[o:Sass::Tree::VariableNode:@guarded0:@filename"e/var/aegir/platforms/reach-7.12/sites/sfaf.play.albatrossdemos.com/themes/sfaf/sass/_mixins.sass;"
+width;i°:
+@expro; 
+;i°;o;	;"col_margin_outer;"col_margin_outer;i°;	@;	@;:	plus;o;	;"
+width;"
+width;i°;	@;	@:@children[ o:Sass::Tree::ReturnNode
+;@;	i¢;
+o;	;"
+width;"
+width;	i¢;@;@;[ [o:Sass::Tree::ReturnNode
+:@filename"e/var/aegir/platforms/reach-7.12/sites/sfaf.play.albatrossdemos.com/themes/sfaf/sass/_mixins.sass;iõ:
+@expro:Sass::Script::String	:
+@type:identifier;iõ;	@;
+"	auto;	@:@children[ o;);[[o;; "r;"r;@0;@
+;"rounded;i§;T;@;	[o;;[o;	; "r;"r;i•;@;@
+;"border-radius;i•;{ ;@;	[ o;,;@
+;["border-radius;i¶;-;.;/i ;@;	[ ;o;	; "r;"r;i¶;@o;;@
+;;;iß;@;	[ ;["://behavior: url(/sites/all/libraries/css3pie/PIE.htc)o;;@
+;;;i©;@;	[ ;["2// Utilize the themes alternate text in styleo;);[[o;; "set;"set;@o;;i™;@;T[o;; "f_weight;"f_weight;@o;	; "font_alt_weight;"font_alt_weight;i™;@;@
+;"alternate-font;i™;T;@;	[o;;[ ;@
+;"leaguegothic;i´;{ ;@;	[ u;0í[o:Sass::Script::Operation
+:
+@linei¨:@operand2o:Sass::Script::Bool;i¨:@options{ :@valueT;	@:@operator:eq:@operand1o:Sass::Script::Variable	:@underscored_name"set:
+@name"set;i¨;	@0[o:Sass::Tree::PropNode:@filename"e/var/aegir/platforms/reach-7.12/sites/sfaf.play.albatrossdemos.com/themes/sfaf/sass/_mixins.sass;["font-style;i≠:@prop_syntax:new:
+@tabsi ;	@:@children[ ;
+o:Sass::Script::String	:
+@type:identifier;i≠;	@;
+"normalo;;@;["letter-spacing;iÆ;;;i ;	@;[ ;
+o;	;"font_league_spacing;"font_league_spacing;iÆ;	@o;;@;["text-transform;iØ;;;i ;	@;[ ;
+o;	;;;iØ;	@;
+"uppercaseo;);[[o;; "set;"set;@o;;i±;@;T[o;; "f_weight;"f_weight;@o;*	;;+;i±;@;"normal;@
+;"normal-font;i±;T;@;	[o;,;@
+;["font-family;i≤;-;.;/i ;@;	[ ;o;	; "font_normal;"font_normal;i≤;@u;0*[o:Sass::Script::Operation
+:
+@linei≥:@operand2o:Sass::Script::Bool;i≥:@options{ :@valueT;	@:@operator:eq:@operand1o:Sass::Script::Variable	:@underscored_name"set:
+@name"set;i≥;	@0[o:Sass::Tree::PropNode:@filename"e/var/aegir/platforms/reach-7.12/sites/sfaf.play.albatrossdemos.com/themes/sfaf/sass/_mixins.sass;["font-weight;i¥:@prop_syntax:new:
+@tabsi ;	@:@children[ ;
+o;	;"f_weight;"f_weight;i¥;	@o;;@;["text-transform;iµ;;;i ;	@;[ ;
+o:Sass::Script::String	:
+@type:identifier;iµ;	@;
+"	noneo;);[[o;; "w;"w;@0[o;; "h;"h;@0[o;; "b;"b;@0;@
+;"box-border;i∑;T;@;	[o;;[o;*	;;+;i∏;@;"border-box;@
+;"box-sizing;i∏;{ ;@;	[ o;,;@
+;["border;iπ;-;.;/i ;@;	[ ;o:Sass::Script::List	:@separator:
+space;iπ;@;[o;	; "b;"b;iπ;@o;*	;;+;iπ;@;"
+solido;;@
+;;;i∫;@;	[ ;["//if height is autou;0[o:Sass::Script::Operation
+:
+@lineiª:@operand2o:Sass::Script::String	:
+@type:identifier;iª:@options{ :@value"	auto;@:@operator:eq:@operand1o:Sass::Script::Variable	:@underscored_name"h:
+@name"h;iª;@u:Sass::Tree::IfNode2[00[o:Sass::Tree::PropNode:@filename"e/var/aegir/platforms/reach-7.12/sites/sfaf.play.albatrossdemos.com/themes/sfaf/sass/_mixins.sass:
+@name["height:
+@lineiæ:@prop_syntax:new:
+@tabsi :@options{ :@children[ :@valueo:Sass::Script::Variable	:@underscored_name"h;"h;iæ;@o; ;@;["*height;iø;	;
+;i ;@;[ ;o:Sass::Script::Operation
+;iø:@operand2o;
+;iø;o;	;"b;"b;iø;@;@:@operator:
+times:@operand1o:Sass::Script::Number
+;iø:@denominator_units[ :@numerator_units[ ;@;i;@;:
+minus;o;	;"h;"h;iø;@[o:Sass::Tree::PropNode:@filename"e/var/aegir/platforms/reach-7.12/sites/sfaf.play.albatrossdemos.com/themes/sfaf/sass/_mixins.sass;["height;iº:@prop_syntax:new:
+@tabsi ;@:@children[ ;o;	;"h;"h;iº;@o;;@
+;;;i¿;@;	[ ;["//if width is autou;0[o:Sass::Script::Operation
+:
+@linei¡:@operand2o:Sass::Script::String	:
+@type:identifier;i¡:@options{ :@value"	auto;@:@operator:eq:@operand1o:Sass::Script::Variable	:@underscored_name"w:
+@name"w;i¡;@u:Sass::Tree::IfNode0[00[o:Sass::Tree::PropNode:@filename"e/var/aegir/platforms/reach-7.12/sites/sfaf.play.albatrossdemos.com/themes/sfaf/sass/_mixins.sass:
+@name["
+width:
+@lineiƒ:@prop_syntax:new:
+@tabsi :@options{ :@children[ :@valueo:Sass::Script::Variable	:@underscored_name"w;"w;iƒ;@o; ;@;["*width;i≈;	;
+;i ;@;[ ;o:Sass::Script::Operation
+;i≈:@operand2o;
+;i≈;o;	;"b;"b;i≈;@;@:@operator:
+times:@operand1o:Sass::Script::Number
+;i≈:@denominator_units[ :@numerator_units[ ;@;i;@;:
+minus;o;	;"w;"w;i≈;@[o:Sass::Tree::PropNode:@filename"e/var/aegir/platforms/reach-7.12/sites/sfaf.play.albatrossdemos.com/themes/sfaf/sass/_mixins.sass;["
+width;i¬:@prop_syntax:new:
+@tabsi ;@:@children[ ;o;	;"w;"w;i¬;@o;);[[o;; "c;"c;@o;*	;;+;i«;@;"transparent;@
+;"border-override;i«;T;@;	[	o;,;@
+;["border-bottom-color;i»;-;.;/i ;@;	[ ;o;	; "c;"c;i»;@o;,;@
+;["border-left-color;i…;-;.;/i ;@;	[ ;o;	; "c;"c;i…;@o;,;@
+;["border-right-color;i ;-;.;/i ;@;	[ ;o;	; "c;"c;i ;@o;,;@
+;["border-top-color;iÀ;-;.;/i ;@;	[ ;o;	; "c;"c;iÀ;@o;);[
+[o;; "w;"w;@0[o;; "h;"h;@0[o;; "f;"f;@o;;iÕ;[ ;["em;@;"1em;i[o;; "alt;"alt;@o;;iÕ;@;T[o;; "display;"display;@o;*	;;+;iÕ;@;"
+block;@
+;"block-link;iÕ;T;@;	[o;,;@
+;["display;iŒ;-;.;/i ;@;	[ ;o;	; "display;"display;iŒ;@o;,;@
+;["height;iœ;-;.;/i ;@;	[ ;o;	; "h;"h;iœ;@o;,;@
+;["font-size;i–;-;.;/i ;@;	[ ;o;	; "f;"f;i–;@u;0N[o:Sass::Script::Operation
+:
+@linei—:@operand2o:Sass::Script::String	:
+@type:identifier;i—:@options{ :@value"	auto;@:@operator:eq:@operand1o:Sass::Script::Variable	:@underscored_name"h:
+@name"h;i—;@u:Sass::Tree::IfNode([00[o:Sass::Tree::PropNode:@filename"e/var/aegir/platforms/reach-7.12/sites/sfaf.play.albatrossdemos.com/themes/sfaf/sass/_mixins.sass:
+@name["line-height:
+@linei‘:@prop_syntax:new:
+@tabsi :@options{ :@children[ :@valueo:Sass::Script::Variable	:@underscored_name"h;"h;i‘;@[o:Sass::Tree::PropNode:@filename"e/var/aegir/platforms/reach-7.12/sites/sfaf.play.albatrossdemos.com/themes/sfaf/sass/_mixins.sass;["line-height;i“:@prop_syntax:new:
+@tabsi ;@:@children[ ;o:Sass::Script::Number;i“:@denominator_units[ :@numerator_units["em;@:@original"1em;iu;0ê[o:Sass::Script::Operation
+:
+@linei’:@operand2o:Sass::Script::Bool;i’:@options{ :@valueT;	@:@operator:eq:@operand1o:Sass::Script::Variable	:@underscored_name"alt:
+@name"alt;i’;	@0[o:Sass::Tree::MixinNode:
+@args[ :@filename"e/var/aegir/platforms/reach-7.12/sites/sfaf.play.albatrossdemos.com/themes/sfaf/sass/_mixins.sass;"alternate-font;i÷:@keywords{ ;	@:@children[ o;,;@
+;["text-decoration;i◊;-;.;/i ;@;	[ ;o;*	;;+;i◊;@;"	noneo;,;@
+;["
+width;iÿ;-;.;/i ;@;	[ ;o;	; "w;"w;iÿ;@o:Sass::Tree::RuleNode;@
+;i⁄;/i ;T:
+@rule["&:hover;@:@parsed_ruleso:"Sass::Selector::CommaSequence;@
+;i⁄:@members[o:Sass::Selector::Sequence;;[o:#Sass::Selector::SimpleSequence;@
+;i⁄;;[o:Sass::Selector::Parent;@
+;i⁄o:Sass::Selector::Pseudo
+:	@arg0;@
+;["
+hover;:
+class;i⁄;	[o;,;@
+;["text-decoration;i€;-;.;/i ;@;	[ ;o;*	;;+;i€;@;"	noneo;;@
+;;;i›;@;	[ ;[""//Make link into button styleo;);[[o;; "w;"w;@0[o;; "h;"h;@0[o;; "f;"f;@o;;iﬁ;[ ;["em;@;"
+1.4em;f1.3999999999999999 ff[o;; "back_c;"back_c;@o;	; "b_back_color;"b_back_color;iﬁ;@[o;; "alt;"alt;@o;;iﬁ;@;T[o;; "display;"display;@o;*	;;+;iﬁ;@;"
+block;@
+;"buttonize-link;iﬁ;T;@;	[o;;[
+o;	; "w;"w;iﬂ;@o;	; "h;"h;iﬂ;@o;	; "f;"f;iﬂ;@o;	; "alt;"alt;iﬂ;@o;	; "display;"display;iﬂ;@;@
+;"block-link;iﬂ;{ ;@;	[ o;,;@
+;["background;i‡;-;.;/i ;@;	[ ;o;	; "b_back_color;"b_back_color;i‡;@o;,;@
+;["border-bottom;i·;-;.;/i ;@;	[ ;o;4	;5;6;i·;@;[o;;i·;[ ;["px;@;"2px;io;*	;;+;i·;@;"
+solido;!
+;[o;	; "back_c;"back_c;i·;@o;;i·;[ ;["%;@;"20%;i;"darken;i·;{ ;@o;,;@
+;["
+color;i‚;-;.;/i ;@;	[ ;o;	; "color1_font;"color1_font;i‚;@o;;[o;;i„;[ ;["px;@;"2px;i;@
+;"rounded;i„;{ ;@;	[ o;,;@
+;["text-align;i‰;-;.;/i ;@;	[ ;o;*	;;+;i‰;@;"centero;7;@
+;iÊ;/i ;T;8["&:hover;@;9o;:;@
+;iÊ;;[o;<;;[o;=;@
+;iÊ;;[o;>;@
+;iÊo;?
+;@0;@
+;["
+hover;;A;iÊ;	[o;,;@
+;["background;iÁ;-;.;/i ;@;	[ ;o;!
+;[o;	; "back_c;"back_c;iÁ;@o;;iÁ;[ ;["%;@;"5%;i
+;"lighten;iÁ;{ ;@o;;@
+;;;iÍ;@;	[ ;["$//cross browser top facing fadeo;);[[o;; "c;"c;@0[o;; "c2;"c2;@o;;iÎ;@;F;@
+;"simple-grad-top;iÎ;T;@;	[	o;,;@
+;["background-color;iÏ;-;.;/i ;@;	[ ;o;	; "c;"c;iÏ;@o;;0;@
+;"!experimental-support-for-svg;iÌ;o;;iÌ;@;T;@;	[ o;;@
+;;;iÓ;@;	[ ;["+//if no second color, just use lightenu;0Ë[o:Sass::Script::Operation
+:
+@lineiÔ:@operand2o:Sass::Script::Bool;iÔ:@options{ :@valueF;	@:@operator:eq:@operand1o:Sass::Script::Variable	:@underscored_name"c2:
+@name"c2;iÔ;	@u:Sass::Tree::IfNodeË[00[o:Sass::Tree::MixinNode:
+@args[o:Sass::Script::Variable	:@underscored_name"c:
+@name"c:
+@lineiÛ:@options{ o;	;"c2;	"c2;
+iÛ;@:@filename"e/var/aegir/platforms/reach-7.12/sites/sfaf.play.albatrossdemos.com/themes/sfaf/sass/_mixins.sass;	"filter-gradient;
+iÛ:@keywords{ ;@:@children[ o; ;[o:Sass::Script::Funcall
+;[o;
+;[o;	;"c;	"c;
+iÙ;@o:Sass::Script::List	:@separator:
+space;
+iÙ;@:@value[o;	;"c2;	"c2;
+iÙ;@o:Sass::Script::Number;
+iÙ:@denominator_units[ :@numerator_units["%;@:@original"50%;i7o;	;;;
+iÙ;@;[o;	;"c2;	"c2;
+iÙ;@o;;
+iÙ;[ ;["%;@;"	100%;ii;	"color-stops;
+iÙ;{ ;@;	"linear-gradient;
+iÙ;{ ;@;@;	"background-image;
+iÙ;{ ;@;[ [o:Sass::Tree::MixinNode:
+@args[o:Sass::Script::Funcall
+;[o;	;"c;"c;i;	@o:Sass::Script::Number;i:@denominator_units[ :@numerator_units["%;	@:@original"5%;
+i
+;"lighten;i:@keywords{ ;	@o;	;"c;"c;i;	@:@filename"e/var/aegir/platforms/reach-7.12/sites/sfaf.play.albatrossdemos.com/themes/sfaf/sass/_mixins.sass;"filter-gradient;i;{ ;	@:@children[ o;;[o;
+;[o;
+;[o;
+;[o;	;"c;"c;iÒ;	@o;;iÒ;[ ;["%;	@;"5%;
+i
+;"lighten;iÒ;{ ;	@o:Sass::Script::List	:@separator:
+space;iÒ;	@;
+[o;	;"c;"c;iÒ;	@o;;iÒ;[ ;["%;	@;"50%;
+i7o;	;;;iÒ;	@;
+[o;	;"c;"c;iÒ;	@o;;iÒ;[ ;["%;	@;"	100%;
+ii;"color-stops;iÒ;{ ;	@;"linear-gradient;iÒ;{ ;	@;@;"background-image;iÒ;{ ;	@;[ o;;@
+;;;iˆ;@;	[ ;["'//cross browser bottom facing fadeo;);[[o;; "c;"c;@0[o;; "c2;"c2;@o;;i˜;@;F;@
+;"simple-grad-bottom;i˜;T;@;	[o;,;@
+;["background-color;i¯;-;.;/i ;@;	[ ;o;	; "c;"c;i¯;@o;;@
+;;;i˘;@;	[ ;["*//if no second color, just use darkenu;0•[o:Sass::Script::Operation
+:
+@linei˙:@operand2o:Sass::Script::Bool;i˙:@options{ :@valueF;	@:@operator:eq:@operand1o:Sass::Script::Variable	:@underscored_name"c2:
+@name"c2;i˙;	@u:Sass::Tree::IfNode8[00[o:Sass::Tree::MixinNode:
+@args[o:Sass::Script::Variable	:@underscored_name"c:
+@name"c:
+@lineiˇ:@options{ o;	;"c2;	"c2;
+iˇ;@:@filename"e/var/aegir/platforms/reach-7.12/sites/sfaf.play.albatrossdemos.com/themes/sfaf/sass/_mixins.sass;	"filter-gradient;
+iˇ:@keywords{ ;@:@children[ o:Sass::Tree::VariableNode:@guarded0;@;	"!experimental-support-for-svg;
+i :
+@expro:Sass::Script::Bool;
+i ;@:@valueT;@;[ o; ;[o:Sass::Script::Funcall
+;[o;
+;[o;	;"c;	"c;
+i;@o:Sass::Script::List	:@separator:
+space;
+i;@;[o;	;"c;	"c;
+i;@o:Sass::Script::Number;
+i:@denominator_units[ :@numerator_units["%;@:@original"50%;i7o;	;"c2;	"c2;
+i;@;	"color-stops;
+i;{ ;@;	"linear-gradient;
+i;{ ;@;@;	"background-image;
+i;{ ;@;[ [o:Sass::Tree::MixinNode:
+@args[o;	;"c;"c;i˚;	@o:Sass::Script::Funcall
+;[o;	;"c;"c;i˚;	@o:Sass::Script::Number;i˚:@denominator_units[ :@numerator_units["%;	@:@original"5%;
+i
+;"darken;i˚:@keywords{ ;	@:@filename"e/var/aegir/platforms/reach-7.12/sites/sfaf.play.albatrossdemos.com/themes/sfaf/sass/_mixins.sass;"filter-gradient;i˚;{ ;	@:@children[ o:Sass::Tree::VariableNode:@guarded0;@;"!experimental-support-for-svg;i¸:
+@expro;;i¸;	@;
+T;	@;[ o;;[o;
+;[o;
+;[o;	;"c;"c;i˝;	@o:Sass::Script::List	:@separator:
+space;i˝;	@;
+[o;	;"c;"c;i˝;	@o;;i˝;[ ;["%;	@;"50%;
+i7o;	; ;!;i˝;	@;
+[o;
+;[o;	;"c;"c;i˝;	@o;;i˝;[ ;["%;	@;"5%;
+i
+;"darken;i˝;{ ;	@o;;i˝;[ ;["%;	@;"	100%;
+ii;"color-stops;i˝;{ ;	@;"linear-gradient;i˝;{ ;	@;@;"background-image;i˝;{ ;	@;[ o;);[[o;; "n;"n;@o;;i;@;F[o;; "h;"h;@o;	; "square_block_h;"square_block_h;i;@[o;; "font_s;"font_s;@o;	; "square_block_font;"square_block_font;i;@;@
+;"square-button-link;i;T;@;	[o;;0;@
+;"w;i;o;!
+;[o;	; "n;"n;i;@;"grid-width;i;{ ;@;@;	[ o;,;@
+;["display;i;-;.;/i ;@;	[ ;o;*	;;+;i;@;"
+blocko;,;@
+;["font-size;i;-;.;/i ;@;	[ ;o;;i;[ ;["em;@;"1em;io;,;@
+;["height;i;-;.;/i ;@;	[ ;o;	; "h;"h;i;@o;,;@
+;["position;i;-;.;/i ;@;	[ ;o;*	;;+;i;@;"relativeo;,;@
+;["
+width;i	;-;.;/i ;@;	[ ;o;	; "w;"w;i	;@o;7;@
+;i;/i ;T;8["	span;@;9o;:;@
+;i;;[o;<;;[o;=;@
+;i;;[o:Sass::Selector::Element	;@
+;["	span;i:@namespace0;	[
+u;0<[o:Sass::Script::Operation
+:
+@linei:@operand2o:Sass::Script::String	:
+@type:identifier;i:@options{ :@value"	auto;@:@operator:eq:@operand1o:Sass::Script::Variable	:@underscored_name"w:
+@name"w;i;@u:Sass::Tree::IfNode+[00[o:Sass::Tree::MixinNode:
+@args[o:Sass::Script::Operation
+:
+@linei:@operand2o:Sass::Script::Number;i:@denominator_units[ :@numerator_units[ :@options{ :@original"20:@valuei;@:@operator:
+minus:@operand1o:Sass::Script::Variable	:@underscored_name"w:
+@name"w;i;@o:Sass::Script::String	:
+@type:identifier;i;@;"	autoo;	;"font_s;"font_s;i;@:@filename"e/var/aegir/platforms/reach-7.12/sites/sfaf.play.albatrossdemos.com/themes/sfaf/sass/_mixins.sass;"block-link;i:@keywords{ ;@:@children[ [o:Sass::Tree::MixinNode:
+@args[o;	;"w;"w;i;@o;	;	;
+;i;@;"	autoo;	;"font_s;"font_s;i;@:@filename"e/var/aegir/platforms/reach-7.12/sites/sfaf.play.albatrossdemos.com/themes/sfaf/sass/_mixins.sass;"block-link;i:@keywords{ ;@:@children[ o;,;@
+;["bottom;i;-;.;/i ;@;	[ ;o;;i;[ ;["px;@;"	10px;io;,;@
+;["display;i;-;.;/i ;@;	[ ;o;*	;;+;i;@;"
+blocko;,;@
+;["position;i;-;.;/i ;@;	[ ;o;*	;;+;i;@;"absoluteo;,;@
+;["	left;i;-;.;/i ;@;	[ ;o;;i;[ ;["px;@;"	10px;io;);[ ;@
+;"clear-square-button-link;i;T;@;	[
+o;,;@
+;["
+float;i;-;.;/i ;@;	[ ;o;*	;;+;i;@;"	noneo;,;@
+;["height;i;-;.;/i ;@;	[ ;o;*	;;+;i;@;"	autoo;,;@
+;["position;i;-;.;/i ;@;	[ ;o;*	;;+;i;@;"relativeo;,;@
+;["
+width;i;-;.;/i ;@;	[ ;o;*	;;+;i;@;"	autoo;7;@
+;i;/i ;T;8["	span;@;9o;:;@
+;i;;[o;<;;[o;=;@
+;i;;[o;B	;@
+;["	span;i;C0;	[
+o;,;@
+;["bottom;i;-;.;/i ;@;	[ ;o;*	;;+;i;@;"	autoo;,;@
+;["	left;i;-;.;/i ;@;	[ ;o;;i;[ ;["px;@;"	20px;io;,;@
+;["padding;i;-;.;/i ;@;	[ ;o;4	;5;6;i;@;[o;;i;[ ;["px;@;"	10px;io;;i;@E;[ ;@;"0;i o;,;@
+;["position;i;-;.;/i ;@;	[ ;o;*	;;+;i;@;"relativeo;,;@
+;["
+width;i ;-;.;/i ;@;	[ ;o;*	;;+;i ;@;"	autoo;;@
+;:normal;i#;@;	[ ;["^/**********************************
+ * FONT MIXINS
+ ********************************** */o;);[ ;@
+;"font-face-sansus;i';T;@;	[o:Sass::Tree::DirectiveNode;@
+;i(;T;@;	[
+o;,;@
+;["font-family;i);-;.;/i ;@;	[ ;o;*	;:string;i);@;"Sansuso;,;@
+;["src;i*;-;.;/i ;@;	[ ;o;!
+;[o;*	;;F;i*;@;"2../fonts/sansus-webissimo-regular-webfont.eot;"url;i*;{ ;@o;,;@
+;["src;i+;-;.;/i ;@;	[ ;o;4	;5:
+comma;i+;@;[	o;4	;5;6;i+;@;[o;!
+;[o;*	;;F;i+;@;"9../fonts/sansus-webissimo-regular-webfont.eot?#iefix;"url;i+;{ ;@o;!
+;[o;*	;;F;i+;@;"embedded-opentype;"format;i+;{ ;@o;4	;5;6;i+;@;[o;!
+;[o;*	;;F;i+;@;"3../fonts/sansus-webissimo-regular-webfont.woff;"url;i+;{ ;@o;!
+;[o;*	;;F;i+;@;"	woff;"format;i+;{ ;@o;4	;5;6;i+;@;[o;!
+;[o;*	;;F;i+;@;"2../fonts/sansus-webissimo-regular-webfont.ttf;"url;i+;{ ;@o;!
+;[o;*	;;F;i+;@;"truetype;"format;i+;{ ;@o;4	;5;6;i+;@;[o;!
+;[o;*	;;F;i+;@;"=../fonts/sansus-webissimo-regular-webfont.svg#ArvoItalic;"url;i+;{ ;@o;!
+;[o;*	;;F;i+;@;"svg;"format;i+;{ ;@o;,;@
+;["font-weight;i,;-;.;/i ;@;	[ ;o;*	;;+;i,;@;"normalo;,;@
+;["font-style;i-;-;.;/i ;@;	[ ;o;*	;;+;i-;@;"normal;["@font-faceo;E;@
+;i/;T;@;	[
+o;,;@
+;["font-family;i0;-;.;/i ;@;	[ ;o;*	;;F;i0;@;"Sansuso;,;@
+;["src;i1;-;.;/i ;@;	[ ;o;!
+;[o;*	;;F;i1;@;"1../fonts/sansus-webissimo-italic-webfont.eot;"url;i1;{ ;@o;,;@
+;["src;i2;-;.;/i ;@;	[ ;o;4	;5;G;i2;@;[	o;4	;5;6;i2;@;[o;!
+;[o;*	;;F;i2;@;"8../fonts/sansus-webissimo-italic-webfont.eot?#iefix;"url;i2;{ ;@o;!
+;[o;*	;;F;i2;@;"embedded-opentype;"format;i2;{ ;@o;4	;5;6;i2;@;[o;!
+;[o;*	;;F;i2;@;"2../fonts/sansus-webissimo-italic-webfont.woff;"url;i2;{ ;@o;!
+;[o;*	;;F;i2;@;"	woff;"format;i2;{ ;@o;4	;5;6;i2;@;[o;!
+;[o;*	;;F;i2;@;"1../fonts/sansus-webissimo-italic-webfont.ttf;"url;i2;{ ;@o;!
+;[o;*	;;F;i2;@;"truetype;"format;i2;{ ;@o;4	;5;6;i2;@;[o;!
+;[o;*	;;F;i2;@;"<../fonts/sansus-webissimo-italic-webfont.svg#ArvoItalic;"url;i2;{ ;@o;!
+;[o;*	;;F;i2;@;"svg;"format;i2;{ ;@o;,;@
+;["font-weight;i3;-;.;/i ;@;	[ ;o;*	;;+;i3;@;"normalo;,;@
+;["font-style;i4;-;.;/i ;@;	[ ;o;*	;;+;i4;@;"italic;["@font-faceo;;@
+;;D;i8;@;	[ ;["3/*****************************************8 */o;);[	[o;; "	left;"	left;@0[o;; "top;"top;@0[o;; "img;"img;@o;*	;;F;i:;@;"sprite.png[o;; "repeat;"repeat;@o;*	;;+;i:;@;"no-repeat;@
+;"old-sprite;i:;T;@;	[o;,;@
+;["background-image;i;;-;.;/i ;@;	[ ;o:&Sass::Script::StringInterpolation
+:@aftero;*	;;+;i;;@;"):	@mido;	; "img;"img;i;;@;i;:@beforeo;*	;;+;i;;@;"url(../images/;@o;,;@
+;["background-position;i<;-;.;/i ;@;	[ ;o;4	;5;6;i<;@;[o;	; "	left;"	left;i<;@o;	; "top;"top;i<;@o;,;@
+;["background-repeat;i=;-;.;/i ;@;	[ ;o;*	;;+;i=;@;"no-repeato;);[[o;; "
+width;"
+width;@0[o;; "height;"height;@0[o;; "	left;"	left;@0[o;; "top;"top;@0[o;; "img;"img;@o;*	;;F;i?;@;"sprite.png[o;; "repeat;"repeat;@o;*	;;+;i?;@;"no-repeat;@
+;"sprite-block;i?;T;@;	[o;,;@
+;["
+width;i@;-;.;/i ;@;	[ ;o;	; "
+width;"
+width;i@;@o;,;@
+;["height;iA;-;.;/i ;@;	[ ;o;	; "height;"height;iA;@o;,;@
+;["display;iB;-;.;/i ;@;	[ ;o;*	;;+;iB;@;"
+blocko;,;@
+;["text-indent;iC;-;.;/i ;@;	[ ;o;;iC;[ ;["em;@;"-1000em;i˛¸o;,;@
+;["overflow;iD;-;.;/i ;@;	[ ;o;*	;;+;iD;@;"hiddeno;;[	o;	; "	left;"	left;iE;@o;	; "top;"top;iE;@o;	; "img;"img;iE;@o;	; "repeat;"repeat;iE;@;@
+;"old-sprite;iE;{ ;@;	[ o;);[[o;; "
+image;"
+image;@o;*	;;+;iG;@;"url(../images/bg.jpg)[o;; "
+color;"
+color;@o:Sass::Script::Color	;iG:@attrs{	:rediˇ:
+alphai:
+greeniˇ:	blueiˇ;@;0;@
+;"fixed-background;iG;T;@;	[o;,;@
+;["
+color;iH;-;.;/i ;@;	[ ;o;L	;iH;M{	;Niˇ;Oi;Piˇ;Qiˇ;@;0o;,;@
+;["background;iI;-;.;/i ;@;	[ ;o;4	;5;6;iI;@;[o;	; "
+color;"
+color;iI;@o;	; "
+image;"
+image;iI;@o;*	;;+;iI;@;"no-repeato;*	;;+;iI;@;"centero;*	;;+;iI;@;"centero;*	;;+;iI;@;"
+fixedo;;[o;*	;;+;iJ;@;"
+cover;@
+;"background-size;iJ;{ ;@;	[ o;);[[o;; "
+start;"
+start;@0[o;; "	stop;"	stop;@0[o;; "position;"position;@o;*	;;+;iL;@;"top;@
+;"fade-background;iL;T;@;	[o;;[o;!
+;[o;	; "
+start;"
+start;iM;@o;	; "	stop;"	stop;iM;@;"color-stops;iM;{ ;@o;	; "position;"position;iM;@;@
+;"linear-gradient;iM;{ ;@;	[ o;,;@
+;["background-color;iN;-;.;/i ;@;	[ ;o;	; "
+start;"
+start;iN;@o;);[[o;; "
+color;"
+color;@0[o;; "position;"position;@o;*	;;+;iQ;@;"top;@
+;"auto-fade-background;iQ;T;@;	[o;;[o;!
+;[o;	; "
+color;"
+color;iR;@o;;iR;[ ;["%;@;"20%;i;"lighten;iR;{ ;@o;	; "
+color;"
+color;iR;@o;	; "position;"position;iR;@;@
+;"fade-background;iR;{ ;@;	[ o;);[[o;; "
+color;"
+color;@0;@
+;"auto-fade-background-hover;iU;T;@;	[o;;[o;	; "
+color;"
+color;iV;@o;*	;;+;iV;@;"top;@
+;"auto-fade-background;iV;{ ;@;	[ o;7;@
+;iX;/i ;T;8["&:hover;@;9o;:;@
+;iX;;[o;<;;[o;=;@
+;iX;;[o;>;@
+;iXo;?
+;@0;@
+;["
+hover;;A;iX;	[o;;[o;	; "
+color;"
+color;iY;@o;*	;;+;iY;@;"bottom;@
+;"auto-fade-background;iY;{ ;@;	[ o;);[[o;; "
+color;"
+color;@0;@
+;"link-clear;i\;T;@;	[o;7;@
+;i];/i ;T;8["	&,
+a;@;9o;:;" ;i;;[o;<;;[o;=;@”;i;;[o;>;@”;io;<;;["
+o;=;@”;i;;[o;B	;@”;["a;i;C0;	[o;,;@
+;["
+color;i_;-;.;/i ;@;	[ ;o;4	;5;6;i_;@;[o;	; "
+color;"
+color;i_;@o;*	;;+;i_;@;"!importanto;,;@
+;["text-decoration;i`;-;.;/i ;@;	[ ;o;4	;5;6;i`;@;[o;*	;;+;i`;@;"	noneo;*	;;+;i`;@;"!importanto;);[ ;@
+;"list-clear;ib;T;@;	[o;7;@
+;ic;/i ;T;8["&,
+ul,
+li;@;9o;:;" ;i;;[o;<;;[o;=;@ ;i;;[o;>;@ ;io;<;;["
+o;=;@ ;i;;[o;B	;@ ;["ul;i;C0o;<;;["
+o;=;@ ;i;;[o;B	;@ ;["li;i;C0;	[	o;,;@
+;["margin;if;-;.;/i ;@;	[ ;o;;if;@E;[ ;@;"0;i o;,;@
+;["padding;ig;-;.;/i ;@;	[ ;o;;ig;@E;[ ;@;"0;i o;,;@
+;["list-style;ih;-;.;/i ;@;	[ ;o;*	;;+;ih;@;"	noneo;,;@
+;["list-style-image;ii;-;.;/i ;@;	[ ;o;*	;;+;ii;@;"	noneo;);[[o;; "
+float;"
+float;@o;*	;;+;ik;@;"	left[o;; "margin_horizontal;"margin-horizontal;@o;;ik;[ ;["px;@;"	10px;i[o;; "margin_vertical;"margin-vertical;@o;;ik;@E;[ ;@;"0;i ;@
+;"list-float;ik;T;@;	[o;;[ ;@
+;"list-clear;il;{ ;@;	[ o;7;@
+;im;/i ;T;8[">li;@;9o;:;@
+;im;;[o;<;;[">o;=;@
+;im;;[o;B	;@
+;["li;im;C0;	[o;,;@
+;["margin;in;-;.;/i ;@;	[ ;o;4	;5;6;in;@;[o;	; "margin_vertical;"margin-vertical;in;@o;	; "margin_horizontal;"margin-horizontal;in;@o;,;@
+;["
+float;io;-;.;/i ;@;	[ ;o;	; "
+float;"
+float;io;@o;;@
+;;D;ir;@;	[ ;["^/**********************************
+ * FONT MIXINS
+ ********************************** */o;);[ ;@
+;"font_face_otari;iw;T;@;	[o;E;@
+;ix;T;@;	[
+o;,;@
+;["font-family;iy;-;.;/i ;@;	[ ;o;*	;;F;iy;@;"
+otario;,;@
+;["src;iz;-;.;/i ;@;	[ ;o;!
+;[o;*	;;F;iz;@;"O../../../../all/themes/albatross/fonts/otari-bold-limited_copy-webfont.eot;"url;iz;{ ;@o;,;@
+;["src;i{;-;.;/i ;@;	[ ;o;4	;5;G;i{;@;[	o;4	;5;6;i{;@;[o;!
+;[o;*	;;F;i{;@;"V../../../../all/themes/albatross/fonts/otari-bold-limited_copy-webfont.eot?#iefix;"url;i{;{ ;@o;!
+;[o;*	;;F;i{;@;"embedded-opentype;"format;i{;{ ;@o;4	;5;6;i{;@;[o;!
+;[o;*	;;F;i{;@;"P../../../../all/themes/albatross/fonts/otari-bold-limited_copy-webfont.woff;"url;i{;{ ;@o;!
+;[o;*	;;F;i{;@;"	woff;"format;i{;{ ;@o;4	;5;6;i{;@;[o;!
+;[o;*	;;F;i{;@;"O../../../../all/themes/albatross/fonts/otari-bold-limited_copy-webfont.ttf;"url;i{;{ ;@o;!
+;[o;*	;;F;i{;@;"truetype;"format;i{;{ ;@o;4	;5;6;i{;@;[o;!
+;[o;*	;;F;i{;@;"a../../../../all/themes/albatross/fonts/otari-bold-limited_copy-webfont.svg#OtariBold-Limited;"url;i{;{ ;@o;!
+;[o;*	;;F;i{;@;"svg;"format;i{;{ ;@o;,;@
+;["font-weight;i|;-;.;/i ;@;	[ ;o;*	;;+;i|;@;"normalo;,;@
+;["font-style;i};-;.;/i ;@;	[ ;o;*	;;+;i};@;"normal;["@font-faceo;);[ ;@
+;"font_face_pacifico;i;T;@;	[o;E;@
+;iÄ;T;@;	[
+o;,;@
+;["font-family;iÅ;-;.;/i ;@;	[ ;o;*	;;F;iÅ;@;"pacificoo;,;@
+;["src;iÇ;-;.;/i ;@;	[ ;o;!
+;[o;*	;;F;iÇ;@;"E../../../../all/themes/albatross/fonts/pacifico_copy-webfont.eot;"url;iÇ;{ ;@o;,;@
+;["src;iÉ;-;.;/i ;@;	[ ;o;4	;5;G;iÉ;@;[	o;4	;5;6;iÉ;@;[o;!
+;[o;*	;;F;iÉ;@;"L../../../../all/themes/albatross/fonts/pacifico_copy-webfont.eot?#iefix;"url;iÉ;{ ;@o;!
+;[o;*	;;F;iÉ;@;"embedded-opentype;"format;iÉ;{ ;@o;4	;5;6;iÉ;@;[o;!
+;[o;*	;;F;iÉ;@;"F../../../../all/themes/albatross/fonts/pacifico_copy-webfont.woff;"url;iÉ;{ ;@o;!
+;[o;*	;;F;iÉ;@;"	woff;"format;iÉ;{ ;@o;4	;5;6;iÉ;@;[o;!
+;[o;*	;;F;iÉ;@;"E../../../../all/themes/albatross/fonts/pacifico_copy-webfont.ttf;"url;iÉ;{ ;@o;!
+;[o;*	;;F;iÉ;@;"truetype;"format;iÉ;{ ;@o;4	;5;6;iÉ;@;[o;!
+;[o;*	;;F;iÉ;@;"U../../../../all/themes/albatross/fonts/pacifico_copy-webfont.svg#PacificoRegular;"url;iÉ;{ ;@o;!
+;[o;*	;;F;iÉ;@;"svg;"format;iÉ;{ ;@o;,;@
+;["font-weight;iÑ;-;.;/i ;@;	[ ;o;*	;;+;iÑ;@;"normalo;,;@
+;["font-style;iÖ;-;.;/i ;@;	[ ;o;*	;;+;iÖ;@;"normal;["@font-faceo;);[ ;@
+;"font_face_nevis;iá;T;@;	[o;E;@
+;ià;T;@;	[
+o;,;@
+;["font-family;iâ;-;.;/i ;@;	[ ;o;*	;;F;iâ;@;"
+neviso;,;@
+;["src;iä;-;.;/i ;@;	[ ;o;!
+;[o;*	;;F;iä;@;"=../../../../all/themes/albatross/fonts/nevis-webfont.eot;"url;iä;{ ;@o;,;@
+;["src;iã;-;.;/i ;@;	[ ;o;4	;5;G;iã;@;[	o;4	;5;6;iã;@;[o;!
+;[o;*	;;F;iã;@;"D../../../../all/themes/albatross/fonts/nevis-webfont.eot?#iefix;"url;iã;{ ;@o;!
+;[o;*	;;F;iã;@;"embedded-opentype;"format;iã;{ ;@o;4	;5;6;iã;@;[o;!
+;[o;*	;;F;iã;@;">../../../../all/themes/albatross/fonts/nevis-webfont.woff;"url;iã;{ ;@o;!
+;[o;*	;;F;iã;@;"	woff;"format;iã;{ ;@o;4	;5;6;iã;@;[o;!
+;[o;*	;;F;iã;@;"=../../../../all/themes/albatross/fonts/nevis-webfont.ttf;"url;iã;{ ;@o;!
+;[o;*	;;F;iã;@;"truetype;"format;iã;{ ;@o;4	;5;6;iã;@;[o;!
+;[o;*	;;F;iã;@;"M../../../../all/themes/albatross/fonts/nevis-webfont.svg#webfontHubXaE9b;"url;iã;{ ;@o;!
+;[o;*	;;F;iã;@;"svg;"format;iã;{ ;@o;,;@
+;["font-weight;iå;-;.;/i ;@;	[ ;o;*	;;+;iå;@;"normalo;,;@
+;["font-style;iç;-;.;/i ;@;	[ ;o;*	;;+;iç;@;"normal;["@font-faceo;);[ ;@
+;"font_face_copse;iè;T;@;	[o;E;@
+;iê;T;@;	[
+o;,;@
+;["font-family;ië;-;.;/i ;@;	[ ;o;*	;;F;ië;@;"CopseRegularo;,;@
+;["src;ií;-;.;/i ;@;	[ ;o;!
+;[o;*	;;F;ií;@;"E../../../../all/themes/albatross/fonts/Copse-Regular-webfont.eot;"url;ií;{ ;@o;,;@
+;["src;iì;-;.;/i ;@;	[ ;o;4	;5;G;iì;@;[	o;4	;5;6;iì;@;[o;!
+;[o;*	;;F;iì;@;"L../../../../all/themes/albatross/fonts/Copse-Regular-webfont.eot?#iefix;"url;iì;{ ;@o;!
+;[o;*	;;F;iì;@;"embedded-opentype;"format;iì;{ ;@o;4	;5;6;iì;@;[o;!
+;[o;*	;;F;iì;@;"F../../../../all/themes/albatross/fonts/Copse-Regular-webfont.woff;"url;iì;{ ;@o;!
+;[o;*	;;F;iì;@;"	woff;"format;iì;{ ;@o;4	;5;6;iì;@;[o;!
+;[o;*	;;F;iì;@;"E../../../../all/themes/albatross/fonts/Copse-Regular-webfont.ttf;"url;iì;{ ;@o;!
+;[o;*	;;F;iì;@;"truetype;"format;iì;{ ;@o;4	;5;6;iì;@;[o;!
+;[o;*	;;F;iì;@;"R../../../../all/themes/albatross/fonts/Copse-Regular-webfont.svg#CopseRegular;"url;iì;{ ;@o;!
+;[o;*	;;F;iì;@;"svg;"format;iì;{ ;@o;,;@
+;["font-weight;iî;-;.;/i ;@;	[ ;o;*	;;+;iî;@;"normalo;,;@
+;["font-style;iï;-;.;/i ;@;	[ ;o;*	;;+;iï;@;"normal;["@font-faceo;);[ ;@
+;"font_face_arvo;ió;T;@;	[	o;E;@
+;iò;T;@;	[
+o;,;@
+;["font-family;iô;-;.;/i ;@;	[ ;o;*	;;F;iô;@;"	Arvoo;,;@
+;["src;iö;-;.;/i ;@;	[ ;o;!
+;[o;*	;;F;iö;@;"D../../../../all/themes/albatross/fonts/Arvo-Regular-webfont.eot;"url;iö;{ ;@o;,;@
+;["src;iõ;-;.;/i ;@;	[ ;o;4	;5;G;iõ;@;[	o;4	;5;6;iõ;@;[o;!
+;[o;*	;;F;iõ;@;"K../../../../all/themes/albatross/fonts/Arvo-Regular-webfont.eot?#iefix;"url;iõ;{ ;@o;!
+;[o;*	;;F;iõ;@;"embedded-opentype;"format;iõ;{ ;@o;4	;5;6;iõ;@;[o;!
+;[o;*	;;F;iõ;@;"E../../../../all/themes/albatross/fonts/Arvo-Regular-webfont.woff;"url;iõ;{ ;@o;!
+;[o;*	;;F;iõ;@;"	woff;"format;iõ;{ ;@o;4	;5;6;iõ;@;[o;!
+;[o;*	;;F;iõ;@;"D../../../../all/themes/albatross/fonts/Arvo-Regular-webfont.ttf;"url;iõ;{ ;@o;!
+;[o;*	;;F;iõ;@;"truetype;"format;iõ;{ ;@o;4	;5;6;iõ;@;[o;!
+;[o;*	;;F;iõ;@;"P../../../../all/themes/albatross/fonts/Arvo-Regular-webfont.svg#ArvoRegular;"url;iõ;{ ;@o;!
+;[o;*	;;F;iõ;@;"svg;"format;iõ;{ ;@o;,;@
+;["font-weight;iú;-;.;/i ;@;	[ ;o;*	;;+;iú;@;"normalo;,;@
+;["font-style;iù;-;.;/i ;@;	[ ;o;*	;;+;iù;@;"normal;["@font-faceo;E;@
+;iü;T;@;	[
+o;,;@
+;["font-family;i†;-;.;/i ;@;	[ ;o;*	;;F;i†;@;"	Arvoo;,;@
+;["src;i°;-;.;/i ;@;	[ ;o;!
+;[o;*	;;F;i°;@;"C../../../../all/themes/albatross/fonts/Arvo-Italic-webfont.eot;"url;i°;{ ;@o;,;@
+;["src;i¢;-;.;/i ;@;	[ ;o;4	;5;G;i¢;@;[	o;4	;5;6;i¢;@;[o;!
+;[o;*	;;F;i¢;@;"J../../../../all/themes/albatross/fonts/Arvo-Italic-webfont.eot?#iefix;"url;i¢;{ ;@o;!
+;[o;*	;;F;i¢;@;"embedded-opentype;"format;i¢;{ ;@o;4	;5;6;i¢;@;[o;!
+;[o;*	;;F;i¢;@;"D../../../../all/themes/albatross/fonts/Arvo-Italic-webfont.woff;"url;i¢;{ ;@o;!
+;[o;*	;;F;i¢;@;"	woff;"format;i¢;{ ;@o;4	;5;6;i¢;@;[o;!
+;[o;*	;;F;i¢;@;"C../../../../all/themes/albatross/fonts/Arvo-Italic-webfont.ttf;"url;i¢;{ ;@o;!
+;[o;*	;;F;i¢;@;"truetype;"format;i¢;{ ;@o;4	;5;6;i¢;@;[o;!
+;[o;*	;;F;i¢;@;"N../../../../all/themes/albatross/fonts/Arvo-Italic-webfont.svg#ArvoItalic;"url;i¢;{ ;@o;!
+;[o;*	;;F;i¢;@;"svg;"format;i¢;{ ;@o;,;@
+;["font-weight;i£;-;.;/i ;@;	[ ;o;*	;;+;i£;@;"normalo;,;@
+;["font-style;i§;-;.;/i ;@;	[ ;o;*	;;+;i§;@;"italic;["@font-faceo;E;@
+;i¶;T;@;	[
+o;,;@
+;["font-family;iß;-;.;/i ;@;	[ ;o;*	;;F;iß;@;"	Arvoo;,;@
+;["src;i®;-;.;/i ;@;	[ ;o;!
+;[o;*	;;F;i®;@;"A../../../../all/themes/albatross/fonts/Arvo-Bold-webfont.eot;"url;i®;{ ;@o;,;@
+;["src;i©;-;.;/i ;@;	[ ;o;4	;5;G;i©;@;[	o;4	;5;6;i©;@;[o;!
+;[o;*	;;F;i©;@;"H../../../../all/themes/albatross/fonts/Arvo-Bold-webfont.eot?#iefix;"url;i©;{ ;@o;!
+;[o;*	;;F;i©;@;"embedded-opentype;"format;i©;{ ;@o;4	;5;6;i©;@;[o;!
+;[o;*	;;F;i©;@;"B../../../../all/themes/albatross/fonts/Arvo-Bold-webfont.woff;"url;i©;{ ;@o;!
+;[o;*	;;F;i©;@;"	woff;"format;i©;{ ;@o;4	;5;6;i©;@;[o;!
+;[o;*	;;F;i©;@;"A../../../../all/themes/albatross/fonts/Arvo-Bold-webfont.ttf;"url;i©;{ ;@o;!
+;[o;*	;;F;i©;@;"truetype;"format;i©;{ ;@o;4	;5;6;i©;@;[o;!
+;[o;*	;;F;i©;@;"M../../../../all/themes/albatross/fonts/Arvo-Bold-webfont.svg#ArvoRegular;"url;i©;{ ;@o;!
+;[o;*	;;F;i©;@;"svg;"format;i©;{ ;@o;,;@
+;["font-weight;i™;-;.;/i ;@;	[ ;o;*	;;+;i™;@;"	boldo;,;@
+;["font-style;i´;-;.;/i ;@;	[ ;o;*	;;+;i´;@;"normal;["@font-faceo;E;@
+;i≠;T;@;	[
+o;,;@
+;["font-family;iÆ;-;.;/i ;@;	[ ;o;*	;;F;iÆ;@;"	Arvoo;,;@
+;["src;iØ;-;.;/i ;@;	[ ;o;!
+;[o;*	;;F;iØ;@;"G../../../../all/themes/albatross/fonts/Arvo-BoldItalic-webfont.eot;"url;iØ;{ ;@o;,;@
+;["src;i∞;-;.;/i ;@;	[ ;o;4	;5;G;i∞;@;[	o;4	;5;6;i∞;@;[o;!
+;[o;*	;;F;i∞;@;"N../../../../all/themes/albatross/fonts/Arvo-BoldItalic-webfont.eot?#iefix;"url;i∞;{ ;@o;!
+;[o;*	;;F;i∞;@;"embedded-opentype;"format;i∞;{ ;@o;4	;5;6;i∞;@;[o;!
+;[o;*	;;F;i∞;@;"H../../../../all/themes/albatross/fonts/Arvo-BoldItalic-webfont.woff;"url;i∞;{ ;@o;!
+;[o;*	;;F;i∞;@;"	woff;"format;i∞;{ ;@o;4	;5;6;i∞;@;[o;!
+;[o;*	;;F;i∞;@;"G../../../../all/themes/albatross/fonts/Arvo-BoldItalic-webfont.ttf;"url;i∞;{ ;@o;!
+;[o;*	;;F;i∞;@;"truetype;"format;i∞;{ ;@o;4	;5;6;i∞;@;[o;!
+;[o;*	;;F;i∞;@;"R../../../../all/themes/albatross/fonts/Arvo-BoldItalic-webfont.svg#ArvoItalic;"url;i∞;{ ;@o;!
+;[o;*	;;F;i∞;@;"svg;"format;i∞;{ ;@o;,;@
+;["font-weight;i±;-;.;/i ;@;	[ ;o;*	;;+;i±;@;"	boldo;,;@
+;["font-style;i≤;-;.;/i ;@;	[ ;o;*	;;+;i≤;@;"italic;["@font-faceo;);[ ;@
+;"font_face_comfortaa;i¥;T;@;	[o;E;@
+;iµ;T;@;	[
+o;,;@
+;["font-family;i∂;-;.;/i ;@;	[ ;o;*	;;F;i∂;@;"Comfortaao;,;@
+;["src;i∑;-;.;/i ;@;	[ ;o;!
+;[o;*	;;F;i∑;@;"G../../../../all/themes/albatross/fonts/comfortaa_bold_copy-webfont;"url;i∑;{ ;@o;,;@
+;["src;i∏;-;.;/i ;@;	[ ;o;4	;5;G;i∏;@;[	o;4	;5;6;i∏;@;[o;!
+;[o;*	;;F;i∏;@;"R../../../../all/themes/albatross/fonts/comfortaa_bold_copy-webfont.eot?#iefix;"url;i∏;{ ;@o;!
+;[o;*	;;F;i∏;@;"embedded-opentype;"format;i∏;{ ;@o;4	;5;6;i∏;@;[o;!
+;[o;*	;;F;i∏;@;"L../../../../all/themes/albatross/fonts/comfortaa_bold_copy-webfont.woff;"url;i∏;{ ;@o;!
+;[o;*	;;F;i∏;@;"	woff;"format;i∏;{ ;@o;4	;5;6;i∏;@;[o;!
+;[o;*	;;F;i∏;@;"K../../../../all/themes/albatross/fonts/comfortaa_bold_copy-webfont.ttf;"url;i∏;{ ;@o;!
+;[o;*	;;F;i∏;@;"truetype;"format;i∏;{ ;@o;4	;5;6;i∏;@;[o;!
+;[o;*	;;F;i∏;@;"V../../../../all/themes/albatross/fonts/comfortaa_bold_copy-webfont.svg#ArvoItalic;"url;i∏;{ ;@o;!
+;[o;*	;;F;i∏;@;"svg;"format;i∏;{ ;@o;,;@
+;["font-weight;iπ;-;.;/i ;@;	[ ;o;*	;;+;iπ;@;"normalo;,;@
+;["font-style;i∫;-;.;/i ;@;	[ ;o;*	;;+;i∫;@;"normal;["@font-face

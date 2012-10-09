@@ -1,0 +1,330 @@
+<?php
+/**
+ * @file
+ * Code for the Reach Mailing Analytics feature.
+ */
+
+include_once('reach_mailing_analytics.features.inc');
+
+define('CRM_MAILING_CTR', 'mailing/click');
+define('CRM_MAILING_OPEN', 'mailing/transparent');
+
+/**
+ * Implementation of hook_menu().
+ */
+function reach_mailing_analytics_menu() {
+  $items = array();
+    
+  $items['node/%node/mailing/analytics'] = array(
+    'title' => 'Mailing Analytics',
+    'page callback' => 'reach_mailing_analytics',
+    'page arguments' => array(1),
+    'access callback' => 'node_access',
+    'access arguments' => array('update', 1),
+    'weight' => 3,
+    'type' => MENU_LOCAL_TASK,
+  );
+  $items['node/%/mailing/analytics/json/tooltip/%'] = array(
+    'page callback' => 'reach_mailing_analytics_tooltip_json',
+    'page arguments' => array(6, 1),
+    'access callback' => 'party_access',
+    'access arguments' => array('view', 6),
+    'type' => MENU_CALLBACK,
+  );
+  $items['node/%/mailing/analytics/json/chart'] = array(
+    'page callback' => 'reach_mailing_analytics_chart_json',
+    'page arguments' => array(1),
+    'access callback' => 'node_access',
+    'access arguments' => array('update', 1),
+    'type' => MENU_CALLBACK,
+  );  
+  // TODO: access control with views_access
+  $items['node/%/mailing/analytics/view/%/%/%'] = array(
+    'page callback' => 'reach_mailing_analytics_views_callback',
+    'page arguments' => array(5, 6, 1, 7, 8),
+    'access callback' => 'node_access',
+    'access arguments' => array('update', 1),
+    'type' => MENU_CALLBACK,
+  );  
+  $items[CRM_MAILING_CTR . '/%/%'] = array(
+    'page callback' => 'reach_mailing_analytics_click',
+    'page arguments' => array(2, 3),
+    'access callback' => TRUE,
+    'type' => MENU_CALLBACK,
+  );
+  $items[CRM_MAILING_OPEN . '/%/%'] = array(
+    'page callback' => 'reach_mailing_analytics_open',
+    'page arguments' => array(2, 3),
+    'access callback' => TRUE,
+    'type' => MENU_CALLBACK,
+  );
+  return $items;
+  
+}
+
+
+
+/**
+ * Callback for the click redirect menu item.
+ * Stores CTR tracking info in db and redirects users.
+ */
+function reach_mailing_analytics_click($nid, $pid){
+  $url = $_REQUEST['url'];
+  
+  if (is_numeric($nid) && $nid > 0 && is_numeric($pid) && $pid > 0) {
+    $data = array();
+    $data['field_mailing_click_url'][LANGUAGE_NONE][0] = array(
+      'url' => $url,
+      'title' => NULL,
+    );
+    reach_mailing_create_action('click', $pid, $nid, $data);
+      
+    if (strpos($url, url('', array('absolute' => TRUE)) ) !== FALSE){
+      $user = user_load($uid);
+      $url .= '?uid=' . $uid;
+    }
+  }
+  
+  drupal_goto($url);
+}
+
+
+/**
+ * Callback for the open transparent png redirect.
+ * Stores OPEN tracking info and serves up a 1x1 transparent png.
+ */
+function reach_mailing_analytics_open($nid, $pid){
+  
+  if (is_numeric($nid) && $nid > 0 && is_numeric($pid) && $pid > 0) {
+    reach_mailing_create_action('open', $pid, $nid);
+  }
+
+  drupal_goto(drupal_get_path('module', 'reach_mailing_analytics') . '/images/transparent.png');
+}
+
+
+/**
+ * Page callback for the sent mailing overview page.
+ */
+function reach_mailing_analytics($node) {
+  drupal_add_css(drupal_get_path('module', 'reach_mailing') . '/css/reach-mailing.css');
+  drupal_add_css(drupal_get_path('module', 'reach_mailing_analytics') . '/css/reach-mailing-analytics.css');
+  drupal_add_js(drupal_get_path('module', 'reach_mailing_analytics') . '/js/reach-mailing-analytics-page.js');
+  $js = array(
+    'chart_callback' => url('node/' . $node->nid . '/mailing/analytics/json/chart'),
+    'tooltip_callback' => url('node/' . $node->nid . '/mailing/analytics/json/tooltip/'),
+  );
+  drupal_add_js(array('reach_mailing_analytics' => $js), 'setting');
+  return '<div id="analytics-view-content">' . views_embed_view('mailing_analytics_recipients', 'block_1', $node->nid) . '</div>';
+}
+
+
+/**
+ * Page callback tooltip json.
+ */
+function reach_mailing_analytics_tooltip_json($rid, $nid) {
+  $return = array(
+    'data' => drupal_render(reach_crm_view($rid, 'tooltip')),
+  );
+  drupal_json_output($return);
+  exit;
+}
+
+
+/**
+ * Page callback chart json.
+ */
+function reach_mailing_analytics_chart_json($nid) {
+  $node = node_load($nid);
+   
+  $sets = array('mailing_open', 'mailing_click', 'mailing_bounce', 'mailing_unsubscribe', 'mailing_spam');
+  foreach ($sets as $set) {
+    $labels[$set] = _reach_mailing_analytics_type_to_label($set);
+  }
+  $match = array_flip($sets);
+  $blank = array_fill(0, count($sets)+1, 0);
+  
+  $difference = abs(time() - $node->created) / (24 * 60 * 60); // in days
+
+  if ($difference < 1) {
+    $period = 15 * 60; // 15 mins
+    $mult = 4; // multiplyer that turns period into hours
+    $period_label = 'Per 15-minutes';
+    $haxis_label = 'Hours';
+  } elseif ($difference < 2) {
+    $period = 60 * 60; // 1 hr
+    $tohour = 1; // multiplyer that turns period into hours
+    $period_label = 'Per hour';
+    $haxis_label = 'Hours';
+  } elseif ($difference < 5) {
+    $period = 60 * 60; // 1 hr
+    $tohour = 24; // multiplyer that turns period into hours
+    $period_label = 'Per hour';
+    $haxis_label = 'Days';
+  } else {
+    $period = 24 * 60 * 60; // 1 day
+    $tohour = 1; // multiplyer that turns period into hours
+    $period_label = 'Per day';
+    $haxis_label = 'Days';
+  }  
+  
+  // Create blank array
+  $start = floor($node->created / $period) * $period;
+  $end = ceil(time() / $period) * $period;
+  $data = array();
+  for ($i = $start; $i <= $end; $i += $period) {
+    $data[$i] = $blank;
+    $data[$i][0] = $i;
+  }
+    
+  $query = "SELECT r.relation_type as type, r.created as time, COUNT(*) as count, ROUND(r.created/(:period)) * :period AS timekey
+    FROM {relation} r
+    GROUP BY r.relation_type, timekey
+
+    LIMIT 0, 5000"; //    WHERE type LIKE 'mailing_%'
+  $result = db_query($query, array(':sentdate' => $node->created, ':period' => $period));//':nid' => $node->nid, 
+  
+  foreach ($result as $record) {
+    $key = array_search($record->type, $sets);
+    if ($key) {
+      $record->timekey = (int) $record->timekey;
+      if (is_null($data[$record->timekey])) {
+        $data[$record->timekey] = $blank;
+        $data[$record->timekey][0] = $record->timekey;
+      }
+      $data[$record->timekey][$key] = (int) $record->count;
+    }
+  }
+  
+  $return = array(
+    'labels' => $labels,
+    'data' => array_values($data),
+    'settings' => array( 
+      'title' => t('Actions !period', array('!period' => $period_label)),
+      'haxistitle' => t('!label after sending (!time)', array('!label' => $haxis_label)),
+      'width' => '100%',
+      'height' => '300',
+      'legend' => 'none',
+      'curveType' => 'none',
+      'hAxis' => array('maxAlternation' => 1, 'gridlines' => array('color' => '#fff'), 'slantedText' => FALSE),
+      'vAxis' => array('gridlines' => array('color' => '#fff')),
+    ),
+  );
+
+   // We are returning JSON, so tell the browser.
+  //drupal_add_http_header('Content-Type', 'application/json');
+//dpm($return);
+//return ' ';
+  drupal_json_output($return);
+  exit;
+  
+}
+
+/**
+ * Page callback to display a view.
+ */
+function reach_mailing_analytics_views_callback($name, $display_id = 'default', $nid, $type = 'ajax', $arg = array()) {
+  $output = views_embed_view($name, $display_id, $nid, $arg);
+  if ($type == 'ajax') {
+    $commands = array();
+    $commands[] = ajax_command_html('#analytics-view-content', $output);
+    $page = array('#type' => 'ajax', '#commands' => $commands);
+
+    ajax_deliver($page);
+    exit;
+  } else {
+    return $output;
+  }
+}
+
+
+/********************************** Blocks *************************************
+
+/**
+ * Implements hook_block_info().
+ */
+function reach_mailing_analytics_block_info() {
+  $blocks['chart'] = array(
+    'info' => t('Mailing Analytics Chart'),
+  );
+  $blocks['stats'] = array(
+    'info' => t('Mailing Analytics Statistics'),
+  );
+  return $blocks;
+}
+
+
+/**
+ * Implements hook_block_view().
+ */
+function reach_mailing_analytics_block_view($delta = '') {
+  switch ($delta) {
+    
+    // Build the html/text preview tabs
+    
+    case 'stats':
+      $nid = arg(1); 
+      $query = "SELECT r.relation_type as type, COUNT(*) as count
+        FROM {relation} r
+        GROUP BY r.relation_type;";
+      $result = db_query($query);//':nid' => $node->nid, 
+      $links = array();
+      $url = 'node/' . $nid . '/mailing/analytics/view/';
+      $node = node_load($nid);
+      $links[] = _reach_mailing_analytics_stat('Total Recipients', count($node->field_mailing_recipients[LANGUAGE_NONE]), $url . 'mailing_analytics_recipients/block_1/nojs/');   
+      foreach ($result as $record) {
+        $links[] = _reach_mailing_analytics_stat(_reach_mailing_analytics_type_to_label($record->type), $record->count, $url . 'mailing_analytics_actions/default/nojs/' . $record->type);
+      }
+      drupal_add_library('system', 'drupal.ajax');
+      $block['content'] = theme('links', array('links' => $links));
+
+      break;
+    
+    case 'chart':
+
+      drupal_add_js('http://www.google.com/jsapi', 'external'); 
+      drupal_add_js(drupal_get_path('module', 'reach_mailing_analytics') . '/js/reach-mailing-analytics-chart.js');
+      $block['content'] = '<div id="mailing-analytics-chart"></div>';
+
+      break;
+  }
+  return $block;
+}
+
+
+function _reach_mailing_analytics_stat($label, $value, $url) {
+  return array(
+    'title' => theme('reach_mailing_analytics_stat', array(
+      'label' => $label,
+      'value' => $value,
+    )),
+    'href' => $url,
+    'attributes' => array('class' => 'use-ajax'),
+    'html' => TRUE,
+  );
+}
+
+
+
+function reach_mailing_analytics_theme() {
+  return array(
+    'reach_mailing_analytics_stat' => array(
+      'variables' => array('label' => '', 'value' => ''),
+    ),
+  );
+
+}
+
+
+function theme_reach_mailing_analytics_stat($variables) {
+  return '<span class="field-label">' . $variables['label'] . '</span><span class="field-value">' . $variables['value'] . '</span>';
+}
+
+/**
+ * Helper function converts the type into a nice human-readable label.
+ */
+function _reach_mailing_analytics_type_to_label($type) {
+  return t(ucfirst(str_replace('mailing_', '', $type) . 's'));
+}
+
+

@@ -1,0 +1,222 @@
+<?php
+
+
+
+/**
+ * Implementation of hook_menu().
+ */
+function reach_mailing_critsend_menu() {
+  $items = array();
+  $items['admin/crm/mailing/critsend/check'] = array(
+    'title' => 'reach_mailing_critsend_check',
+    'page callback' => 'reach_mailing_critsend_check',
+    'access arguments' => array('send crm mailing'),
+    'type' => MENU_CALLBACK,
+  );
+  
+  return $items;
+}
+
+/**
+ * Send a mailing with Critsend.
+ **/
+function reach_mailing_critsend_send($node, $recipients, $from_name, $from_mail){
+  // Load API
+  _reach_mailing_critsend_loadapi();
+
+  // Connect
+  $mxm = new MxmConnect();
+
+  // Create tag, if necessary
+  $tag = _reach_mailing_critsend_get_tag($node->nid);
+  if (!in_array($tag, $mxm->listAllTags())){
+    $mxm->createTag($tag);
+    dpm('new tag');
+    watchdog('mailing', t('Created new Critsend tag: !tag', array('!tag' => $tag)));
+  }
+
+  //$text can be empty as shown if you want a pure html email
+  //dpm($node);
+  
+  // Prepare the HTML/text versions
+  // Build the email
+  $content = array(
+    'subject'=> $node->title,
+    'html'=> _reach_mailing_critsend_tokenize($node->html),
+    'text' => _reach_mailing_critsend_tokenize($node->text),
+  );
+  $param = array(
+    'tag'=> array($tag),
+    'mailfrom'=> $from_mail,
+    'mailfrom_friendly'=> $from_name,
+    'replyto'=> $from_mail,
+    'replyto_filtered'=> 'true'
+  );
+  
+  dpm($content);
+  
+  // Prepare the $emails array  
+  $emails = array();
+  foreach ($recipients as &$recipient){
+    $emails[] = array('email' => $recipient->email, 'field1' => $recipient->fname, 'field2' => $recipient->lname, 'field3' => $recipient->id);
+  }
+  //dpm($emails);
+  
+  try {
+	  //I am sending
+	  dpm($mxm->sendCampaign($content, $param, $emails));
+    $msg = t('Mailing !tag sent with Critsend to !num recipients.', array('!tag' => $tag, '!num' => count($emails)));
+ 	  watchdog('mailing', $msg);
+ 	  drupal_set_message($msg);
+  } catch (MxmException $e) {
+    //and I capture potential exceptions here
+    $msg = t('Mailing !tag failed to send with Critsend to !num recipients.', array('!tag' => $tag, '!num' => count($emails)));
+	  watchdog('mailing', $msg, array($e), WATCHDOG_ERROR);
+	  drupal_set_message($msg, 'error');
+  }
+
+  
+  
+}
+
+
+/**
+ * Implementation of hook_cron(). Looks for updates from critsend.
+ */
+function reach_mailing_critsend_cron(){
+  reach_mailing_critsend_check();
+}
+ 
+function reach_mailing_critsend_check() {
+  $time = time();
+  //dpm($time);
+  $time = 1296147885-24*60*60;
+  $result = db_query("SELECT n.nid FROM {node} n
+                      LEFT JOIN {field_revision_field_mailing_sent} sent on n.vid = sent.revision_id
+                      WHERE n.type = 'mailing' AND sent.field_mailing_sent_value > 0
+                        AND (n.created > :day OR (n.created > :week AND n.changed < :twohrs)  OR (n.created > :month AND n.changed < :day))", array(
+    ':day' => $time - 24*60*60,
+    ':week' => $time - 24*60*60*7,
+    ':twohrs' => $time - 2*60*60,
+    ':month' => $time - 24*60*60*31,
+  ));
+  
+  foreach($result->fetchAllAssoc('nid') as $result){
+    $node = node_load($result->nid);
+    reach_mailing_critsend_get_data($node);
+  }
+
+  return ' ';
+}
+
+/**
+ * Retrieve and parse info from a given node from Critsend.
+ **/
+function reach_mailing_critsend_get_data($node){
+  // Load API
+  _reach_mailing_critsend_loadapi();
+
+  $tag = _reach_mailing_critsend_get_tag($node->nid);
+  //dpm($tag);
+  $mxm = new MxmConnect();
+  
+  //$node->field_mailing_critsend_page['und'][0]['value'] = 0;
+  
+  $xml = $mxm->getTagPaginated($tag, $node->field_mailing_critsend_page['und'][0]['value'], 50);
+
+  // Convert this XML into PHP arr
+  $xmlObj = simplexml_load_string($xml);
+  $arrxml = reach_mailing_critsend_objectsIntoArray($xmlObj);
+
+  // Loop through and update the database where necessary
+  $updated = 0;
+  if ($arrxml['@attributes']['tag'] == $tag && isset($arrxml['report'])){
+    foreach ($arrxml['report'] as $report){
+      if (isset($report['status'])){
+        // Sanitize the status report codes for reach_mailing_recipient_update(). sent|open|unsubscribe|bounce|spam
+        switch(strtolower($report['status'])){
+          case 'unsubscribed':
+            $report['status'] = 'unsubscribe';
+          case 'spam report':
+            $report['status'] = 'spam';
+          case 'permanent failure':
+          case 'bounced':
+          case 'unsent':
+            $report['status'] = 'bounce';
+        }
+        reach_mailing_recipient_update($report['status'], $node->nid, $report['@attributes']['address'], time());
+        $updated ++;
+      } elseif (isset($report['action'])){
+        reach_mailing_recipient_update($report['action']['@attributes']['type'], $node->nid, $report['@attributes']['address'], strtotime($report['action']['@attributes']['time']));
+        $updated ++;
+      }
+
+    } // foreach ($arrxml as $key=>$report)
+    
+    // Update the page field in the mailing node.
+    
+    $node->field_mailing_critsend_page['und'][0]['value'] += $updated;
+  } else {
+    $updated = 0;
+  }
+  
+  // Update the mailing node.
+  $node->changed = time();
+  node_save($node);
+  drupal_set_message(t('Critsend mailing list status checked for !title, nid !nid. !records records were updated for a total of !total.', array('!title' => $node->title, '!nid' => $node->nid, '!records' => $updated, '!total' => $updated+$node->field_mailing_critsend_page['und'][0]['value'])));
+}
+
+
+/**
+ * Parse the XML into an array
+ * By Ashok dot 893 at gmail dot com on http://www.php.net/manual/en/function.xml-parse.php
+ **/
+function reach_mailing_critsend_objectsIntoArray($arrObjData, $arrSkipIndices = array())
+{
+    $arrData = array();
+    
+    // if input is object, convert into array
+    if (is_object($arrObjData)) {
+        $arrObjData = get_object_vars($arrObjData);
+    }
+    
+    if (is_array($arrObjData)) {
+        foreach ($arrObjData as $index => $value) {
+            if (is_object($value) || is_array($value)) {
+                $value = reach_mailing_critsend_objectsIntoArray($value, $arrSkipIndices); // recursive call
+            }
+            if (in_array($index, $arrSkipIndices)) {
+                continue;
+            }
+            $arrData[$index] = $value;
+        }
+    }
+    return $arrData;
+}
+
+
+
+/**
+ * Helper function loads the Critsend API.
+ **/
+function _reach_mailing_critsend_loadapi(){
+  include_once 'api/mxmconnect2.php';
+}
+
+/**
+ * Helper function gets a tag name given a $node.
+ **/
+function _reach_mailing_critsend_get_tag($nid){
+  return variable_get('critsend_tag_id', 'Drupal') . '-' . $nid;
+}
+
+/**
+ * Helper function gets a tag name given a $node.
+ **/
+function _reach_mailing_critsend_tokenize($body){
+  return str_replace(array('[fname]', '[lname]', '[unsubscribe_url]', '[id]'), array('<mxm var="field1" />', '<mxm var="field2" />', url(CRM_MAILING_UNSUBSCRIBE, array('absolute' => TRUE)) . '<mxm var="field3" />', '<mxm var="field3" />'), $body);
+}
+
+
+
+

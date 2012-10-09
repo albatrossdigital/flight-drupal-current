@@ -1,0 +1,13 @@
+diff --git a/js/contextual_flyout_links.js b/js/contextual_flyout_links.js
+index ab199a1..895f04d 100644
+--- a/js/contextual_flyout_links.js
++++ b/js/contextual_flyout_links.js
+@@ -60,7 +60,7 @@
+         // Process each instance of a contextual link set
+         $('div.contextual-links-wrapper', context).once('contextual-flyout-links', function () {
+           var $wrapper = $(this);
+-          var $region = $wrapper.closest('div.contextual-links-region');
++          var $region = $wrapper.closest('.contextual-links-region');
+           var $trigger = $('<a>', {
+             href: '#',
+             text: Drupal.t('Configure')

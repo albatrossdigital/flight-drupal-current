@@ -1,0 +1,623 @@
+<?php
+
+// TODO: Share links, always shows all three (no filtering based on checked services).
+
+
+
+/**
+ * Returns the possible links for sharing.
+ *
+ * URLs from http://stackoverflow.com/questions/7157411/adding-a-google-plus-one-or-share-link-to-an-email-newsletter
+ */
+function reach_social_blocks_share_links($url = '', $nid = NULL) {
+  $url = urlencode($url);
+  $links = array();
+  $links['facebook'] = array(
+    'href' => 'https://www.facebook.com/sharer.php?u=' . $url,
+    'title' => t('Share on Facebook'),
+    'attributes' => array('rel' => 'width=640,height=364'), //width=640,height=340
+  );
+  $links['twitter'] = array(
+    'href' => 'http://twitter.com/intent/tweet?source=sharethiscom&url=' . $url, //reach_social_shorten_url($url),
+    'title' => t('Share on Twitter'),
+    'attributes' => array('rel' => 'width=400,height=304'), //width=400,height=280
+  );
+  $links['google'] = array(
+    'href' => 'https://plusone.google.com/_/+1/confirm?hl=en&url=' . $url,
+    'title' => t('Share on Google +'),
+    'attributes' => array('rel' => 'width=450,height=374'), //width=450,height=350
+  );
+
+  //Rewrite url for social_blocks_analytics?
+  if (module_exists('reach_social_blocks_analytics') && $nid) {
+    foreach ($links as $key => $link) {
+      $links[$key]['query'] = array('nid' => $nid, 'url' => $link['href'], 'service' => $key);
+      $links[$key]['href'] = 'social-action/share';
+    }
+  }
+
+  return $links;
+}
+
+/**
+ * Returns the metadata for all of the blocks.
+ */
+function reach_social_blocks_data() {
+  $data = array();
+
+  $data['share'] = array();
+  foreach (reach_social_blocks_share_links() as $key=>$link) {
+    $data['share'][$key] = array(
+      '#type' => 'checkbox',
+      '#title' => t('Add ' . ucfirst($key) . ' share link'),
+      '#default_value' => TRUE,
+    );
+  }
+
+  $data['likebox'] = array(
+    '#title' => t('Like Us'),
+  );
+  $data['likebox']['href'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Facebook page URL'),
+    '#default_value' => '[fburl]',
+    '#description' => t('Example: http://www.facebook.com/AlbatrossDigital. Leave blank to disable this block.'),
+  );
+  $data['likebox']['show-faces'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Show Faces'),
+    '#default_value' => TRUE,
+  );
+  $data['likebox']['width'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Width'),
+    '#default_value' => 292,
+  );
+  $data['likebox']['height'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Height'),
+    '#default_value' => '',
+    '#description' => t('Optional.  Facebook will automatically set this if you leave it blank.'),
+  );
+  $data['likebox']['stream'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Show Stream'),
+    '#default_value' => FALSE,
+  );
+  $data['likebox']['header'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Show Facebook Header'),
+    '#default_value' => FALSE,
+  );
+  $data['likebox']['colorscheme'] = array(
+    '#type' => 'select',
+    '#title' => t('Color Scheme'),
+    '#options' => array(
+      'light' => 'Light',
+      'dark' => 'Dark',
+    ),
+    '#default_value' => 'light',
+  );
+
+
+  $data['like'] = array();
+  $data['like']['href'] = array(
+    '#type' => 'textfield',
+    '#title' => t('URL to Like'),
+    '#description' => t('Leave blank to like the current page. You can also enter a FB profile page, like http://www.facebook.com/AlbatrossDigital.'),
+    '#default_value' => '',
+  );
+  $data['like']['layout'] = array(
+    '#type' => 'select',
+    '#options' => array(
+      'standard' => 'standard',
+      'button_count' => 'button_count',
+      'box_count' => 'box_count',
+    ),
+    '#title' => t('Layout Style'),
+    '#default_value' => TRUE,
+  );
+  $data['like']['send'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Show Send Button'),
+    '#default_value' => TRUE,
+  );
+  $data['like']['show-faces'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Show Faces after page has been liked'),
+    '#default_value' => FALSE,
+  );
+  $data['like']['action'] = array(
+    '#type' => 'select',
+    '#title' => t('Verb to display'),
+    '#options' => array(
+      'like' => 'Like',
+      'recommend' => 'Recommend',
+    ),
+    '#default_value' => 'like',
+  );
+  $data['like']['colorscheme'] = array(
+    '#type' => 'select',
+    '#title' => t('Color Scheme'),
+    '#options' => array(
+      'light' => 'Light',
+      'dark' => 'Dark',
+    ),
+    '#default_value' => 'light',
+  );
+
+
+  $data['twitter'] = array(
+    '#title' => t('Follow'),
+  );
+  $data['twitter']['id'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Account ID'),
+    '#description' => t('Example: AlbatrossDigi. Leave blank to disable this block.'),
+    // TODO: '#default_value' => TRUE,
+  );
+  $data['twitter']['number'] = array(
+    '#type' => 'textfield',
+    '#size' => 2,
+    '#title' => t('Number of posts'),
+    '#default_value' => 1,
+  );
+  $data['twitter']['links'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Show Links to Twitter and profile'),
+    '#default_value' => TRUE,
+  );
+
+
+
+  $data['social_links'] = array();
+  $data['social_links']['twitter'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Twitter'),
+    '#default_value' => 'http://twitter.com',
+  );
+  $data['social_links']['facebook'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Facebook'),
+    '#default_value' => 'http://facebook.com',
+  );
+    $data['social_links']['google'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Google+'),
+    '#default_value' => 'http://plus.google.com',
+  );
+
+  return $data;
+}
+
+/**
+ * Implementation of hook_menu().
+ */
+function reach_social_blocks_menu() {
+  $items['social-action/%'] = array(
+    //'description' => 'Manage settings for the Reach Social Blocks module.',
+    'page callback' => 'reach_social_blocks_action_callback',
+    'page arguments' => array(1),
+    'access callback' => TRUE,
+    'type' => MENU_CALLBACK,
+  );
+  $items['admin/config/reach/social/blocks'] = array(
+    'title' => 'Reach Social Blocks Settings',
+    'description' => 'Manage settings for the Reach Social Blocks module.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('reach_social_blocks_admin_form'),
+    'access callback' => 'user_access',
+    'access arguments' => array('administer site'),  // TODO
+    'file' => 'reach_social_blocks.admin.inc',
+    'type' => MENU_NORMAL_ITEM,
+  );
+  return $items;
+}
+
+
+/**
+ * Call rules to create the relation.
+ */
+function reach_social_blocks_action_callback($action) {
+  $url = $_REQUEST['url'];
+  if (module_exists('reach_crm')) {
+    $nid = $_REQUEST['nid'];
+    $contact = reach_crm_contact_load_cookie();
+    if ($contact) {
+      //rules_invoke_event('reach_webform_submitted', $contact, $url, 5);
+    }
+  }
+
+  drupal_goto($url);
+}
+
+
+
+/**
+ * Implements hook_node_view().
+ *
+ * Add the share links, comment boxes, if necessary.
+ */
+function reach_social_blocks_node_view($node, $view_mode, $langcode) {
+  $url = url('node/' . $node->nid, array('absolute' => TRUE));
+
+  // Add share links
+  $share_modes = variable_get('reach_social_blocks_share_nodes_modes', array());
+  $share_types = variable_get('reach_social_blocks_share_nodes_types', array());
+
+  if ($share_modes[$view_mode] && $share_types[$node->type]) {
+    drupal_add_js(drupal_get_path('module', 'reach_social_blocks') . '/reach-share.js');
+    $node->content['links']['node']['#links'] += _reach_social_blocks_share_links_get($url, 'links', $node->nid);
+  }
+
+  // Add fb comments
+  $fbcomments_types = variable_get('reach_social_blocks_fbcomments_types', array());
+  $fbcomments_modes = variable_get('reach_social_blocks_fbcomments_count', array());
+  if ($fbcomments_types[$node->type]) {
+
+    // TODO: add FB JS
+    $node->content['fbcomments'] = array(
+      '#type' => 'markup',
+      '#markup' => '<div class="fb-comments" id="node-facebook-comments" data-href="' . $url . '" data-num-posts="2" data-width="470"></div>',
+    );
+
+    // TODO: Make this work
+    if ($fbcomments_modes[$view_mode]) {
+      $node->content['links']['node']['#links']['comment_count'] = array(
+        'href' => 'node/' . $node->nid,
+        'title' => t('!comments comments', array('!comments' => '<fb:comments-count href="' . $url . '"></fb:comments-count>')),
+        'html' => TRUE,///array('html' => TRUE),
+        'query' => array('scroll' => 'node-facebook-comments'),
+      );
+
+      //'<fb:comments-count href="' . $url . '"></fb:comments-count> ' . t('comments');
+      //dpm($node);
+      //unset($node->content['links']['node']['#links']['comment_count']);
+    }
+  }
+}
+
+
+/**
+ * Implements hook_ds_fields_info().
+ */
+function reach_social_blocks_ds_fields_info($entity_type) {
+  $fields = array();
+
+  $fields[$entity_type]['reach_social_blocks_fbcomments'] = array(
+    'title' => t('Facebook Comments'),
+    'field_type' => DS_FIELD_TYPE_FUNCTION,
+    'function' => 'reach_social_blocks_fbcomments_ds_view',
+    'properties' => array(
+      'settings' => array(
+        'num_posts' => array('type' => 'textfield'),
+        'width' => array('type' => 'textfield'),
+      ),
+      'default' => array(
+        'num_posts' => 2,
+        'width' => 470,
+      ),
+    ),
+  );
+
+  return $fields;
+}
+
+/**
+ * Implements hook_ds_field_settings_form().
+ */
+function reach_social_blocks_ds_field_settings_form($field) {
+  // Saved formatter settings are on $field['formatter_settings'];
+  $settings = isset($field['formatter_settings']) ? $field['formatter_settings'] : $field['properties']['default'];
+
+  $form['num_posts'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Number of posts to display'),
+    '#default_value' => $settings['num_posts'],
+    '#width' => 2,
+  );
+  $form['width'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Width'),
+    '#default_value' => $settings['width'],
+    '#field_suffix' => 'px',
+    '#width' => 2,
+  );
+  return $form;
+}
+
+
+
+/**
+ * Generates the output for the displaysuite field.
+ */
+function reach_social_blocks_fbcomments_ds_view($field) {
+  $settings = isset($field['formatter_settings']) ? $field['formatter_settings'] : $field['properties']['default'];
+
+  if($field['entity_type'] == 'file' && $field['view_mode'] == 'media_gallery_detail') {
+    $path = $_GET['q'];
+    $url = url($path, array('absolute' => TRUE));
+  }
+  else {
+    $uri = entity_uri($field['entity_type'], $field['entity']);
+    $url = url($uri['path'], array('absolute' => TRUE));
+  }
+
+  // TODO: Fix how we add FB JS
+  drupal_add_js(array('reach_social' => array(
+    'fbkey' => reach_social_get_keys(REACH_CONNECTOR_FB)->key,
+  )), 'setting');
+  drupal_add_library('reach_social', 'fbconnect');
+
+  return '<div class="fb-comments" id="node-facebook-comments" data-href="' . $url . '" data-num-posts="' . $settings['num_posts'] . '" data-width="' . $settings['width'] . '"></div>';
+}
+
+
+
+
+
+/**
+ * Implements hook_block_info().
+ *
+ * This hook declares what blocks are provided by the module.
+ */
+function reach_social_blocks_block_info() {
+  $blocks = array();
+
+  foreach (reach_social_blocks_data() as $key=>$service) {
+    $deltas = variable_get('reach_social_blocks_' . $key . '_deltas', 1);
+    for ($i = 0; $i < $deltas; $i++) {
+      $blocks[$key . '_' . $i] = array(
+        'info' => t('Social Block: ' . ucfirst($key)),
+      );
+      if (($deltas > 1)) {
+        $blocks[$key . '_' . $i]['info'] .= ' ' . $i;
+      }
+    }
+  }
+
+  return $blocks;
+}
+
+/**
+ * Implements hook_block_configure().
+ *
+ * This hook declares configuration options for blocks provided by this module.
+ */
+function reach_social_blocks_block_configure($delta = '') {
+  $form = array();
+
+  foreach (reach_social_blocks_data() as $key=>$service) {
+    if (strpos($delta, $key . '_') !== FALSE) {
+      $form = $service;
+      // Set default values
+      foreach (_reach_social_blocks_get_variables($service, $delta) as $sett‌ing_key=>$value) {
+        $form[$sett‌ing_key]['#default_value'] = variable_get('reach_social_blocks_' . $delta . '_' . $sett‌ing_key, $form[$sett‌ing_key]['#default_value']);
+        switch ($form[$sett‌ing_key]['#default_value']) {
+          case '[fburl]':
+            $fb_return = oauthconnector_endpoint_call_for_user(REACH_FB_API . '/me', array(), REACH_CONNECTOR_FB, $account=NULL, 'GET', $format='JSON');
+            $form[$sett‌ing_key]['#default_value'] = 'http://facebook.com/' . $fb_return['id'];
+            break;
+
+          default:
+
+        } // foreach
+
+      } // if
+    }
+  } // foreach
+
+  return $form;
+}
+
+/**
+ * Implements hook_block_save().
+ *
+ * This hook declares how the configured options for a block
+ * provided by this module are saved.
+ */
+function reach_social_blocks_block_save($delta = '', $edit = array()) {
+  foreach (reach_social_blocks_data() as $key=>$service) {
+    if (strpos($delta, $key . '_') !== FALSE) {
+
+      foreach ($service as $form_name=>$params) {
+        variable_set('reach_social_blocks_' . $delta . '_' . $form_name, $edit[$form_name]);
+      }
+
+    } // if
+  } // foreach
+
+  return;
+}
+
+/**
+ * Implements hook_block_view().
+ *
+ * This hook generates the contents of the blocks themselves.
+ */
+function reach_social_blocks_block_view($delta = '') {
+
+  foreach (reach_social_blocks_data() as $key=>$service) {
+    if (strpos($delta, $key . '_') !== FALSE) {
+
+      if (variable_get('reach_social_blocks_' . $key . '_deltas', 1) > 0) {
+        $variables = _reach_social_blocks_get_variables($service, $delta);
+
+        $block['subject'] = isset($service['#title']) ? $service['#title'] : '';//ucfirst($key);
+        $block['content'] = theme('reach_social_blocks_' . $key, $variables);
+      }
+
+    } // if
+  } // foreach
+
+  return $block;
+}
+
+
+/**
+ * Implements hook_theme().
+ */
+function reach_social_blocks_theme() {
+  return array(
+    'reach_social_blocks_fb' => array(
+      'variables' => array('key' => '', 'class' => '', 'attributes' => array()),
+    ),
+    'reach_social_blocks_twitter_feed_wrapper' => array(
+      'template' => 'reach-social-blocks-twitter-feed-wrapper',
+      'variables' => array('id' => '', 'content' => '', 'links' => TRUE),
+    ),
+    'reach_social_blocks_share' => array(
+      'variables' => array('url' => FALSE, 'facebook' => TRUE, 'twitter' => TRUE, 'google' => TRUE, 'nid' => NULL),
+    ),
+    'reach_social_blocks_likebox' => array(
+      'variables' => array('id' => '', 'faces' => TRUE, 'stream' => FALSE, 'header' => FALSE, 'color' => 'light'),
+    ),
+    'reach_social_blocks_like' => array(
+      'variables' => array('url' => '', 'send' => TRUE, 'action' => 'like', 'color' => 'light'),
+    ),
+    'reach_social_blocks_twitter' => array(
+      'variables' => array('id' => '', 'number' => 1, 'links' => TRUE),
+    ),
+    'reach_social_blocks_social_links' => array(
+      'variables' => array('facebook' => TRUE, 'twitter' => TRUE, 'google' => TRUE),
+    ),
+  );
+}
+
+
+/**
+ * General themes for Facebook.
+ */
+function theme_reach_social_blocks_fb($variables) {
+  // Add JS
+  drupal_add_library('reach_social', 'fbconnect');
+  drupal_add_js(array('reach_social' => array(
+    'fbkey' => reach_social_get_keys(REACH_CONNECTOR_FB)->key,
+  )), 'setting');
+
+  // Buid html tag and return it
+  $return = '<div class="' . $variables['class'] . '"';
+  foreach ($variables['attributes'] as $key=>$value) {
+    if ($value === TRUE || $value === 1) {
+      $value = 'true';
+    } elseif ($value === FALSE || $value === 0) {
+      $value = 'false';
+    }
+    $return .= ' data-' . strtolower($key) . '="' . $value . '"';
+  }
+  $return .= '></div>';
+  //dpm($return);
+  return $return;
+}
+
+
+/**
+ * Themes the share links block.
+ */
+function theme_reach_social_blocks_share($variables) {
+  drupal_add_js(drupal_get_path('module', 'reach_social_blocks') . '/reach-share.js');
+
+  $url = $variables['url'] ? $variables['url'] : url(current_path(), array('absolute' => TRUE));
+  $links = _reach_social_blocks_share_links_get($url, $delta = 'links', $variables['nid']);
+
+  return theme('links', array(
+    'links' => $links,
+    'attributes' => array('class' => 'reach-share-links links'),
+  ));
+
+
+}
+
+/**
+ * Themes the fb like block.
+ */
+function theme_reach_social_blocks_like($variables) {
+  return theme('reach_social_blocks_fb', array(
+    'class' => 'fb-like',
+    'attributes' => $variables,
+  ));
+}
+
+/**
+ * Themes the fb likebox block.
+ */
+function theme_reach_social_blocks_likebox($variables) {
+  if (!$variables['href']) {
+    return;
+  }
+  return theme('reach_social_blocks_fb', array(
+    'class' => 'fb-like-box',
+    'attributes' => $variables,
+  ));
+}
+
+/**
+ * Themes the Twitter feed block.
+ */
+function theme_reach_social_blocks_twitter($variables) {
+  if (!$variables['id']) {
+    return;
+  }
+  if (function_exists('twitter_pull_render') && isset($variables['id'])) {
+    $output .= twitter_pull_render('@' . $variables['id'], l('@' . $variables['id'], 'http://twitter.com/' . $variables['id']), $variables['number']);
+  }
+  else {
+    $output .= t('Twitter not currently available, sorry!  Make sure that the Twitter Pull module is enabled and you have entered your Twitter username on the block configuration page.');
+  }
+  $variables['content'] = $output;
+  return theme('reach_social_blocks_twitter_feed_wrapper', $variables);
+}
+
+/**
+ * Themes the Twitter feed block.
+ */
+function theme_reach_social_blocks_social_links($variables) {
+
+  $links = array();
+  foreach ($variables as $key=>$link) {
+    if(!empty($link)) {
+      $links[$key]['href'] = $link;
+      $links[$key]['title'] = $key;
+      $links[$key]['attributes']['class'] = $key;
+    }
+  }
+  return theme('links', array(
+    'links' => $links,
+    'attributes' => array('class' => 'reach-social-links links'),
+  ));
+}
+
+/**
+ * Helper function: Add fb js.
+ */
+/*function _reach_social_blocks_facebook_js($key = NULL) {
+
+}*/
+
+function _reach_social_blocks_share_links_get($url, $delta = '', $nid) {
+  $links = reach_social_blocks_share_links($url, $nid);
+  foreach ($links as $key=>$link) {
+    $links[$key]['attributes']['class'] = 'share-link';
+  }
+  return $links;
+}
+
+
+/**
+ * Helper function: Get the block settings.
+ */
+function _reach_social_blocks_get_variables($service, $delta = '') {
+  $variables = array();
+  foreach ($service as $form_name=>$params) {
+    $variables[$form_name] = variable_get('reach_social_blocks_' . $delta . '_' . $form_name, $params['#default_value']);
+  }
+
+  // Set the id/href to delta=0 if it isn't set
+  $id_key = !empty($service['href']) ? 'href' : 'id';
+  if (substr($delta, -1) > 0 && empty($variables[$id_key])) {
+    $variables[$id_key] = variable_get('reach_social_blocks_' . substr($delta, 0, -1) . '0_' . $id_key, '');
+
+  }
+
+  return $variables;
+}

@@ -1,0 +1,5 @@
+name = "Reach Social Blocks"
+description = "Adds blocks for all of the social sharing toolz."
+core = 7.x
+;dependencies[] = reach_social
+

@@ -1,0 +1,6 @@
+name = Geofield Images
+description = Provides static map and streetview images for locations via Google's API.
+core = 7.x
+dependencies[] = geofield
+
+

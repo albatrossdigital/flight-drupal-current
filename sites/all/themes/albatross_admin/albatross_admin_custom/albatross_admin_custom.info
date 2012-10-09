@@ -1,0 +1,9 @@
+
+name = Albatross Admin Custom
+description = Site-specific customizations to the Albatross Digital Back-end Theme.
+base theme = albatross_admin
+core = 7.x
+engine = phptemplate
+
+stylesheets[screen][] = css/albatross-admin-custom.css
+

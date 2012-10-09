@@ -1,0 +1,341 @@
+<?php
+
+/*
+define('REACH_FIELDS_FB_API', 'https://graph.facebook.com');
+define('REACH_FIELDS_FB', 'http://facebook.com');
+define('REACH_FIELDS_GOOGLE_API', 'https://graph.facebook.com');
+define('REACH_FIELDS_GOOGLE', 'http://facebook.com');
+define('REACH_FIELDS_TWITTER_API', 'http://api.twitter.com');
+define('REACH_FIELDS_TWITTER', 'http://twitter.com');
+*/
+
+
+/**
+ * Define the reach_social_fields_points field.
+ */
+
+/**
+ * @defgroup reach_social_fields Example: Field Types API
+ * @ingroup examples
+ * @{
+ * Examples using Field Types API.
+ *
+ * This is updated from Barry Jaspan's presentation at Drupalcon Paris,
+ * @link http://acquia.com/community/resources/acquia-tv/intro-field-api-module-developers Video Presentation @endlink
+ *
+ * Providing a field requires:
+ * - Defining a field:
+ *   - hook_field_info()
+ *   - hook_field_schema()
+ *   - hook_field_validate()
+ *   - hook_field_is_empty()
+ *
+ * - Defining a formatter for the field (the portion that outputs the field for
+ *   display):
+ *   - hook_field_formatter_info()
+ *   - hook_field_formatter_view()
+ *
+ * - Defining a widget for the edit form:
+ *   - hook_field_widget_info()
+ *   - hook_field_widget_form()
+ *
+ * Our module defines the field in reach_social_fields_field_info(),
+ * reach_social_fields_field_validate() and reach_social_fields_field_is_empty().
+ * reach_social_fields_field_schema() is implemented in reach_social_fields.install.
+ *
+ * Our module sets up a formatter in reach_social_fields_field_formatter_info() and
+ * reach_social_fields_field_formatter_view(). These are the API hooks that present
+ * formatted and themed output to the user.
+
+ * And finally, our module defines the widet in
+ * reach_social_fields_field_widget_info() and reach_social_fields_field_widget_form().
+ * The widget is the form element used to receive input from the user
+ * when the field is being populated.
+ *
+ * @see field_types
+ * @see field
+ */
+
+/***************************************************************
+ * Field Type API hooks
+ ***************************************************************/
+
+/**
+ * Implements hook_field_info().
+ *
+ * Provides the description of the field.
+ */
+function reach_social_fields_field_info() {
+  return array(
+    // We name our field as the associative name of the array.
+    'reach_social_fields_facebook' => array(
+      'label' => t('Social Reference: Facebook'),
+      'description' => t('Create a connection to a Facebook item.'),
+      'default_widget' => 'reach_social_fields_text',
+      'default_formatter' => 'reach_social_fields_link',
+      'property_type' => 'value',
+      'getter' => 'entity_metadata_field_verbatim_get',
+      'setter' => 'entity_metadata_field_verbatim_set',
+    ),
+    'reach_social_fields_google' => array(
+      'label' => t('Social Reference: Google'),
+      'description' => t('Create a connection to a Google API item.'),
+      'default_widget' => 'reach_social_fields_text',
+      'default_formatter' => 'reach_social_fields_link',
+      'property_type' => 'value',
+      'getter' => 'entity_metadata_field_verbatim_get',
+      'setter' => 'entity_metadata_field_verbatim_set',
+    ),
+    'reach_social_fields_twitter' => array(
+      'label' => t('Social Reference: Twitter'),
+      'description' => t('Create a connection to a Twitter profile or tweet.'),
+      'default_widget' => 'reach_social_fields_text',
+      'default_formatter' => 'reach_social_fields_link',
+      'property_type' => 'value',
+      'getter' => 'entity_metadata_field_verbatim_get',
+      'setter' => 'entity_metadata_field_verbatim_set',
+    ),
+    'reach_social_fields_flickr' => array(
+      'label' => t('Social Reference: Flickr'),
+      'description' => t('Create a connection to a Flickr entity.'),
+      'default_widget' => 'reach_social_fields_text',
+      'default_formatter' => 'reach_social_fields_link',
+      'property_type' => 'value',
+      'getter' => 'entity_metadata_field_verbatim_get',
+      'setter' => 'entity_metadata_field_verbatim_set',
+    ),
+    
+  );
+}
+
+/**
+ * Helper function gets metadata for each field type.
+ */
+function _reach_social_fields_get_types($field_type) {
+  $types = array();
+  switch ($field_type) {
+    case 'reach_social_fields_facebook':
+      $types = array(
+        'profile' => 'Profile',
+        'page' => 'Page',
+        'event' => 'Event',
+        'link' => 'Link',
+      );
+      break;
+    case 'reach_social_fields_google':
+      $types = array(
+        'profile' => 'Profile',
+        'event' => 'Event',
+        'doc' => 'Document',
+        'spreadsheet' => 'Spreadsheet',
+      );
+      break;
+    case 'reach_social_fields_twitter':
+      $types = array(
+        'profile' => 'Profile',
+        'page' => 'Tweet',
+        //'event' => 'Hashtag',
+      );
+      break;
+    case 'reach_social_fields_flickr':
+      $types = array(
+        'profile' => 'Profile',
+        'page' => 'Image',
+      );
+      break;
+  }
+  
+  return $types;
+}
+
+/**
+ * Implements hook_field_widget_settings_form().
+ */
+function reach_social_fields_field_widget_settings_form($field, $instance) {
+  $widget = $instance['widget'];
+  $settings = $widget['settings'];
+  
+  $form['type'] = array(
+    '#type' => 'select', 
+    '#title' => t('Type of Relationship'), 
+    '#default_value' => $settings['size'], 
+    '#options' => _reach_social_fields_get_types($field['type']),
+    '#required' => TRUE,
+  );
+  
+  
+
+  return $form;
+}
+
+
+/**
+ * Implements hook_field_validate().
+ *
+ * This hook gives us a chance to validate content that's in our
+ * field. We're really only interested in the $items parameter, since
+ * it holds arrays representing content in the field we've defined.
+ * We want to verify that the items only contain RGB hex values like
+ * this: #RRGGBB. If the item validates, we do nothing. If it doesn't
+ * validate, we add our own error notification to the $errors parameter.
+ *
+ * @see reach_social_fields_field_widget_error()
+ */
+/*function reach_social_fields_field_validate($entity_type, $entity, $field, $instance, $langcode, $items, &$errors) {
+  foreach ($items as $delta => $item) {
+    if (!empty($item['rgb'])) {
+      if (! preg_match('@^#[0-9a-f]{6}$@', $item['rgb'])) {
+        $errors[$field['field_name']][$langcode][$delta][] = array(
+          'error' => 'reach_social_fields_invalid',
+          'message' => t('Color must be in the HTML format #abcdef.'),
+        );
+      }
+    }
+  }
+}*/
+
+
+/**
+ * Implements hook_field_is_empty().
+ *
+ * hook_field_is_emtpy() is where Drupal asks us if this field is empty.
+ * Return TRUE if it does not contain data, FALSE if it does. This lets
+ * the form API flag an error when required fields are empty.
+ */
+function reach_social_fields_field_is_empty($item, $field) {
+  return empty($item['value']);
+}
+
+/**
+ * Implements hook_field_formatter_info().
+ */
+function reach_social_fields_field_formatter_info() {
+  return array(
+    'reach_social_fields_plain' => array(
+      'label' => t('Display the id as plain text'),
+      'field types' => array('reach_social_fields_facebook', 'reach_social_fields_google', 'reach_social_fields_flickr'),
+    ),
+    'reach_social_fields_link' => array(
+      'label' => t('Display as the title with a link'),
+      'field types' => array('reach_social_fields_facebook', 'reach_social_fields_google', 'reach_social_fields_flickr'),
+    ),
+    'reach_social_fields_url' => array(
+      'label' => t('Display as the plain URL'),
+      'field types' => array('reach_social_fields_facebook', 'reach_social_fields_google', 'reach_social_fields_flickr'),
+    ),
+  );
+}
+
+/**
+ * Implements hook_field_formatter_view().
+ */
+function reach_social_fields_field_formatter_view($entity_type, $entity, $field, $instance, $langcode, $items, $display) {
+  $element = array();
+
+  switch ($display['type']) {
+  
+    case 'reach_social_fields_plain':
+      
+      foreach ($items as $delta => $item) {
+        $element[$delta] = array(
+          '#type' => 'html_tag',
+          '#tag' => 'div',
+          '#value' => $item['id'],
+        );
+      }
+      break;
+      
+    case 'reach_social_fields_link':
+      
+      foreach ($items as $delta => $item) {
+        $element[$delta] = array(
+          '#type' => 'html_tag',
+          '#tag' => 'div',
+          '#value' => l($item['label'] ? $item['label'] : $entity->title, $item['url']),
+        );
+      }
+      break;
+    
+    case 'reach_social_fields_url':
+      
+      foreach ($items as $delta => $item) {
+        $element[$delta] = array(
+          '#type' => 'html_tag',
+          '#tag' => 'div',
+          '#value' => $entity->title, $item['url'],
+        );
+      }
+      break;
+
+  }
+
+  return $element;
+}
+
+/**
+ * Implements hook_field_widget_info().
+ */
+function reach_social_fields_field_widget_info() {
+  return array(
+    'reach_social_fields_text' => array(
+      'label' => t('Textfield'),
+      'field types' => array('reach_social_fields_facebook', 'reach_social_fields_google', 'reach_social_fields_flickr'),
+    ),
+    'reach_social_fields_hidden' => array(
+      'label' => t('Hidden'),
+      'field types' => array('reach_social_fields_facebook', 'reach_social_fields_google', 'reach_social_fields_flickr'),
+    ),
+  );
+}
+
+/**
+ * Implements hook_field_widget_form().
+ */
+function reach_social_fields_field_widget_form(&$form, &$form_state, $field, $instance, $langcode, $items, $delta, $element) {
+  $value = isset($items[$delta]['value']) ? $items[$delta]['value'] : '';
+
+  $widget = $element;
+  $widget['#delta'] = $delta;
+
+  switch ($instance['widget']['type']) {
+
+    case 'reach_social_fields_text':
+      $widget += array(
+        '#type' => 'textfield',
+        '#default_value' => $value,
+      );
+      break;
+      
+    case 'reach_social_fields_hidden':
+      $widget += array(
+        '#type' => 'hidden',
+        '#value' => $value,
+      );
+      break;
+
+  }
+
+  $element['value'] = $widget;
+  return $element;
+}
+
+
+
+/**
+ * Implements hook_field_widget_error().
+ *
+ * hook_field_widget_error() lets us figure out what to do with errors
+ * we might have generated in hook_field_validate(). Generally, we'll just
+ * call form_error().
+ *
+ * @see reach_social_fields_field_validate()
+ * @see form_error()
+ */
+/*function reach_social_fields_field_widget_error($element, $error, $form, &$form_state) {
+  switch ($error['error']) {
+    case 'reach_social_fields_invalid':
+      form_error($element, $error['message']);
+      break;
+  }
+}*/
+

@@ -1,0 +1,8 @@
+;$Id: 
+name = Feeds Media Processor
+description = Allows party contacts to be imported with Feeds.
+package = Feeds
+dependencies[] = feeds
+dependencies[] = crm_party
+core = 7.x
+

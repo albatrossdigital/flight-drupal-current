@@ -1,0 +1,46 @@
+/* line 2, ../sass/media-browser-internet.sass */
+.section-tabs {
+  float: left;
+  margin-top: 2px; }
+  /* line 6, ../sass/media-browser-internet.sass */
+  .section-tabs a {
+    color: black;
+    padding: 3px 1em;
+    background-color: #e6e6e6;
+    border-radius: 4px;
+    text-decoration: none !important;
+    margin-right: 0.4em; }
+    /* line 14, ../sass/media-browser-internet.sass */
+    .section-tabs a.selected {
+      background-color: #666666;
+      color: white; }
+
+/* line 18, ../sass/media-browser-internet.sass */
+.media-thumbnail .media-thumbnail-item {
+  width: 100px;
+  height: 100px;
+  background-repeat: none;
+  background-position: center; }
+
+/* line 26, ../sass/media-browser-internet.sass */
+#media-internet-form input, #media-internet-form select {
+  margin-right: 5px;
+  max-width: 135px;
+  font-size: 0.9em; }
+/* line 31, ../sass/media-browser-internet.sass */
+#media-internet-form .media-browser-form-submit {
+  padding: 3px 10px;
+  margin-right: 0;
+  background-color: #666666;
+  color: white; }
+
+/* line 37, ../sass/media-browser-internet.sass */
+.media-browser-internet-connect {
+  margin-top: 2em;
+  text-align: center; }
+  /* line 41, ../sass/media-browser-internet.sass */
+  .media-browser-internet-connect .form-submit {
+    position: relative !important; }
+  /* line 44, ../sass/media-browser-internet.sass */
+  .media-browser-internet-connect .need-to-connect {
+    font-size: 1.2em; }

@@ -1,0 +1,6 @@
+core = "7.x"
+dependencies[] = "views_bulk_operations"
+dependencies[] = "reach_mailing"  
+description = "CRM mass mailing sender CritSend Plugin"
+name = "reach_mailing_critsend"
+package = "CRM"

@@ -1,0 +1,264 @@
+<?php
+
+/**
+ * Implements hook_permission().
+ */
+function single_page_website_permission() {
+  return array(
+    'administer single page' => array(
+      'title' => t('Administer single page'), 
+      'description' => t('Configure Single Page Website settings.'),
+    ),
+  );
+}
+
+/**
+ * Implements hook_menu().
+ */
+function single_page_website_menu() {
+  $items = array();
+  /*$items['single_page'] = array(
+    'title' => '', 
+    'page callback' => 'single_page_website_front_page',
+    'access callback' => TRUE,
+  );*/
+  $items['single_page'] = array(
+    'title' => '', 
+    'page callback' => 'single_page_website_front_pager',
+    'access callback' => TRUE,
+  );
+  $items['admin/config/system/single-page'] = array(
+    'title' => 'Single Page Settings',
+    'description' => 'Configure theme and easing of the single page etc.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('single_page_website_settings_form'),
+    'access arguments' => array('administer single page'),
+    'file' => 'single_page_website.admin.inc',
+  );
+  return $items;
+}
+
+/*function single_page_website_preprocess_page(&$vars) {
+  require(DRUPAL_ROOT . '/sites/all/libraries/phpQuery/phpQuery-onefile.php');
+  $single_page_counter = 0;
+  foreach (menu_tree(drupal_substr(variable_get('single_page_website_menu', '#main-menu'), 1)) as $item) {  
+    if (isset($item['#title']) ) {
+      $href = ($item['#href'] == '<front>') ? '' : $item['#href'];
+      dpm($href);
+      $page_callback_result = menu_execute_active_handler($href, FALSE);
+      //dpm($page_callback_result);
+      //$content = drupal_render_page($page_callback_result);
+      //dpm('yuper');
+      //dpm('asda12');
+      //$document = phpQuery::newDocument($content);
+      //dpm($document);
+      //$output .= $document->find(variable_get('single_page_website_content', '#content .content'))->html();
+	  $single_page_counter++;
+    }  
+  }
+}*/
+
+/**
+ * Page Callback inserts active menu items into the page content
+ */
+function single_page_website_front_pager() {
+  global $base_url;
+  //check a theme is selected
+  if (variable_get('single_page_website_theme') != variable_get('theme_default')) {
+    return "Please visit " . l("Single Page Website Configuration Page", "admin/config/system/single-page") . " to edit and save module settings.";
+  }
+  // add all necessary JS
+  $path = libraries_get_path('jquery.easing') . '/jquery.easing.js';
+  if (file_exists($path) && !module_exists('colorbox')) {
+    drupal_add_js($path);  
+    $easing = variable_get('single_page_website_easing', 'jswing'); 	
+  } 
+  else {
+    $easing = 'none';
+    drupal_add_js(array('single_page' => array('easing' => 'none'))); 	  
+  }  
+  drupal_add_js(array('single_page' => array('header_element' => variable_get('single_page_website_header', '#header'),
+  'easing' => $easing,
+  'footer_element' => variable_get('single_page_website_footer', '#footer-wrapper'), 'content_element' => variable_get('single_page_website_content', '#content .content'), 
+  'menu_element' => variable_get('single_page_website_menu', '#main-menu'))), 'setting');
+  drupal_add_js(drupal_get_path('module', 'single_page_website') . '/js/' . variable_get('single_page_website_sub_theme', 'bartik') . '.js');
+  drupal_add_js(drupal_get_path('module', 'single_page_website') . '/js/scroll.js');
+  
+  // begin page output
+  $output = '';
+  $output .= '<div id="single_page_wrapper">';
+  // get menu structure
+  $menu = menu_tree_all_data(drupal_substr(variable_get('single_page_website_menu', '#main-menu'), 1));
+  // call page output compiler 
+  $result = single_page_website_process_menu_set($menu, array('content' => $output,'count' => 0));
+  // did we recieve any active menu page content?
+  if($result['count'] > 0) {
+    $output .= $result['content'];
+  }
+  $output .= '</div>';
+  // Set page title
+  if (variable_get('site_slogan')) {
+    drupal_set_title(trim(drupal_html_to_text(variable_get('site_slogan'))));
+  }
+  else {
+    drupal_set_title(t(''));
+  }
+  // call anchor function
+  $path = libraries_get_path('jquery.autoanchor') . '/jquery.autoanchor.js';
+  if (file_exists($path)) {
+    drupal_add_js($path);  
+    drupal_add_js('
+	  (function($){
+        $(document).ready(function(){
+          $("a[name]").addanchors();
+	    });
+      })(jQuery);
+	', 'inline');
+  }
+  return  $output;
+}
+
+/**
+ * Recursive function to add all children of menu
+ * $menu is a list of menu links
+ * $content_arr is an array with the form:
+ *    $content_arr['content'] = html output string
+ *    $content_arr['count'] = int counting inserted pages
+ */
+function single_page_website_process_menu_set($menu, $content_arr) {
+  //run thorugh menu items
+  foreach ($menu as $item) {
+    //if the item returned any content
+    if($output = single_page_website_process_menu_item($item['link'])) {
+      $title = '';
+      // do we have a menu title?
+      if(!empty($item['link']['title'])) {
+        $title = '<h1 class="single_page_title">' . $item['link']['title'] . '</h1>';
+      }
+      $output = '<a name="single_page_anchor_' . $content_arr['count'] . '"></a><div id="single_page_anchor_' . $content_arr['count'] . '" class="single_page_wrapper">' . $title . '<div class="single_page">' . $output . '</div></div>';
+      // add the output to the array
+      $content_arr['content'] .=  $output;
+      // increase the count
+      $content_arr['count'] = $content_arr['count'] + 1;
+    }
+    //if the menu has children
+    if (!empty($item['link']['has_children']) && !empty($item['below'])) {
+      //recursively call function with children list
+      $content_arr = single_page_website_process_menu_set($item['below'], $content_arr);
+    }
+  }
+  return $content_arr;
+}
+
+/**
+ * Helper function to process menu item content
+ */
+function single_page_website_process_menu_item($item) {
+  if(empty($item['hidden'])) {
+    $href = ($item['href'] == '<front>') ? '' : $item['href'];
+    $page_callback_result = menu_execute_active_handler($href, FALSE);
+    // we have some page result
+    if(!empty($page_callback_result)) {
+      //if its an array handle
+      if(is_array($page_callback_result)) {
+        //if its a node page, we know to render
+        if(isset($page_callback_result['nodes'])) {
+          return theme('node', array_shift($page_callback_result['nodes']));
+        }
+        //@TODO handle other potential returns
+        else {
+          return false;
+        }
+      }
+      //else just return
+      return $page_callback_result;
+    }
+  }
+  return false;
+}
+
+
+
+function single_page_website_front_page() {
+  global $base_url;
+  require(DRUPAL_ROOT . '/sites/all/libraries/phpQuery/phpQuery-onefile.php');
+  if (variable_get('single_page_website_theme') != variable_get('theme_default')) {
+    return "Please visit " . l("Single Page Website Configuration Page", "admin/config/system/single-page") . " to edit and save module settings.";
+  }
+  $path = libraries_get_path('jquery.easing') . '/jquery.easing.js';
+  if (file_exists($path) && !module_exists('colorbox')) {
+    drupal_add_js($path);  
+    $easing = variable_get('single_page_website_easing', 'jswing'); 	
+  } 
+  else {
+    $easing = 'none';
+    drupal_add_js(array('single_page' => array('easing' => 'none'))); 	  
+  }  
+  drupal_add_js(array('single_page' => array('header_element' => variable_get('single_page_website_header', '#header'),
+  'easing' => $easing,
+  'footer_element' => variable_get('single_page_website_footer', '#footer-wrapper'), 'content_element' => variable_get('single_page_website_content', '#content .content'), 
+  'menu_element' => variable_get('single_page_website_menu', '#main-menu'))), 'setting');
+  drupal_add_js(drupal_get_path('module', 'single_page_website') . '/js/' . variable_get('single_page_website_sub_theme', 'bartik') . '.js');
+  drupal_add_js(drupal_get_path('module', 'single_page_website') . '/js/scroll.js');
+//  if (module_exists('colorbox'))
+//    drupal_add_js(drupal_get_path('module', 'single_page_website') . '/js/colorbox_fix.js');
+  $output = '';
+  $output .= '<div id="single_page_wrapper">';
+  $single_page_counter = 0;
+  foreach (menu_tree(drupal_substr(variable_get('single_page_website_menu', '#main-menu'), 1)) as $item) {  
+    if (isset($item['#title']) ) {
+      $output .= '<a name="single_page_anchor_' . $single_page_counter . '"></a><div id="single_page_anchor_' . $single_page_counter . '" class="single_page_wrapper"><div class="single_page">';
+      $href = ($item['#href'] == '<front>') ? '' : $item['#href'];
+      $page_callback_result = menu_execute_active_handler($href, FALSE);
+      $content = drupal_render_page($page_callback_result);
+      $document = phpQuery::newDocument($content);
+      $output .= $document->find(variable_get('single_page_website_content', '#content .content'))->html();
+      $output .= '</div></div>';
+	  $single_page_counter++;
+    }  
+  }
+  $output .= '</div>';
+  if (variable_get('site_slogan')) {
+    drupal_set_title(trim(drupal_html_to_text(variable_get('site_slogan'))));
+  }
+  else {
+    drupal_set_title(t(''));
+  }
+  $path = libraries_get_path('jquery.autoanchor') . '/jquery.autoanchor.js';
+  if (file_exists($path)) {
+    drupal_add_js($path);  
+    drupal_add_js('
+	  (function($){
+        $(document).ready(function(){
+          $("a[name]").addanchors();
+	    });
+      })(jQuery);
+	', 'inline');
+  }
+  return  theme_status_messages();
+}
+
+/**
+ * Implements hook_init().
+ */
+function single_page_website_init() {
+  global $base_path;
+  drupal_add_js(array('single_page' => array('menu_element' => variable_get('single_page_website_menu', '#main-menu'), 'base_path' => $base_path)), 'setting');
+  drupal_add_js(drupal_get_path('module', 'single_page_website') . '/js/menu.js');
+}
+
+/**
+ * Implements form_alter().
+ */
+function single_page_website_form_alter(&$form, &$form_state, $form_id) {
+  if ($form_id != 'search_block_form' && $form_id != 'update_script_selection_form') { // some forms that shold not leave user on the single page
+    if ((variable_get('site_frontpage') == 'single_page' && (drupal_is_front_page())) || arg(0) == 'single_page') {
+      $form['#action'] = 'single_page#' . $form_state['build_info']['args'][0]->title;
+      $form['#submit'][] = 'single_page_website_go_back';
+    }
+  }
+}
+
+function single_page_website_go_back() {
+    drupal_goto('single_page');  
+}

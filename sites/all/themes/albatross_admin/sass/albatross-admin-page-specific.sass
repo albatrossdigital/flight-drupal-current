@@ -1,0 +1,308 @@
+@import compass/css3
+@import _mixins.sass
+@import ../../albatross/sass/_mixins.sass
+@import _variables.sass
+
++fontawe-init()
+
+/**  ICONS
+
+
+li a.create-blog
+  //background-image: url(../images/icons/blog.png)
+  +fontawe_s(edit, 28px, #0F6C00)
+
+li a.create-page
+  //background-image: url(../images/icons/page.gif)
+  +fontawe_s(file, 28px, #6C0B00)
+  
+
+li a.create-form,
+li a.create-webform,
+.action-item-form-submission
+  //background-image: url(../images/icons/form.png)
+  +fontawe_s(tasks, 28px, #000A6C)
+
+li a.create-mailing
+  //background-image: url(../images/icons/mailing.png)
+  +fontawe_s(envelope-alt, 28px, #005E6C)
+
+li a.create-donation,
+.action-item-donation
+  //background-image: url(../images/icons/donation.png)
+  +fontawe_s(gift, 28px, #C61C3D)
+  
+
+li a.create-issue
+  //background-image: url(../images/icons/issue.gif)
+  +fontawe_s(bullhorn, 28px, #E6660F)
+
+li a.create-contact
+  //background-image: url(../images/icons/person.gif)
+  +fontawe_s(group, 28px, #9D0086)
+  
+
+.action-item-share
+  //background-image: url(../images/icons/share.png)
+  +fontawe_s(group, 28px, #344F88)
+  
+  
+.action-item-Download,
+.action-item-download
+  +fontawe_s(download-alt, 28px, #00BD00)
+  
+.action-item-User,
+.action-item-user-login
+  +fontawe_s(key, 28px, #DDA400)
+  
+li a.create-research_nonprofit,
+li a.create-research_political
+  +fontawe_s(briefcase, 28px, #C61C3D)
+  
+
+  
+ 
+
+/* DASHBOARD
+
+.item-list.create
+  margin: 0
+  padding: 0
+  height: 80px
+  text-align: center
+  position: relative
+
+  li
+    margin: 0
+    padding: 0
+    float: left
+    list-style: none
+
+    a
+      width: 80px
+      display: block
+
+      &.create-contact
+        position: absolute
+        right: 0
+        
+      &:before
+        height: 30px
+        padding-top: 10px
+        width: 100%
+
+
+
+/* activity feeds
+.view.reach-actions
+  .views-row
+    padding: 3px 5px 3px 0
+    background-repeat: no-repeat
+    background-position: 5px center
+    min-height: 40px
+    clear: both
+    
+    &:before
+      float: left
+      padding-left: 5px
+      line-height: 40px
+    
+    .views-field
+      margin-left: 45px
+
+    .entity-action
+      float: left
+
+    .views-field-field-action-points
+      color: $orange
+      text-align: right
+
+    .action-link a,
+    .views-field-created
+      color: $gray_text
+      font-size: .9em
+
+    .action-link a
+      text-decoration: underline
+
+  .views-field-created
+    text-align: right
+
+.field-name-redhen-contact-activity
+  clear: both
+
+
+/* activity overview
+#block-reach-crm-overview,
+.pane-reach-crm-overview
+  min-height: 100px
+
+  .reach-stat
+    float: left
+    width: 140px
+    margin-right: 20px
+    background-color: $dark_blue
+    color: $white
+    height: 70px
+    position: relative
+
+    span
+      display: block
+      padding: 5px 0
+      text-align: center
+      font-weight: bold
+
+      &.reach-label
+        background-color: $dark_blue
+        height: 20px
+        line-height: 20px
+        border-bottom: 2px solid #fff
+
+      &.reach-value
+        background-color: $blue
+        font-size: 1.7em
+        height: 40px
+        line-height: 40px
+
+    &.reach-stat-total-points
+
+      span
+        &.reach-label
+          background-color: $dark_orange
+
+        &.reach-value
+          background-color: $orange
+
+/** REACH SEARCH *
+.page-admin-contacts
+
+  #block-reach-crm-overview
+    float: right
+
+  .view-reach-search
+    position: relative
+    clear: both
+
+    .form-text, .form-select
+      max-width: 150px
+
+    .form-text#edit-zip
+      width: 80px
+
+    .feed-icon
+      position: absolute
+      top: 35px
+      right: 0
+
+
+/* Redhen Contact Page
+.page-redhen-contact
+
+  .tabs-secondary
+    position: absolute
+    right: 0
+    z-index: 10
+    
+  #content
+    margin-top: 30px
+
+  #block-views-reach-redhen-contact-info-block
+    margin-top: 100px
+
+  .view-reach-redhen-contact-info
+    .views-row
+      position: relative
+
+      .views-field
+        position: relative
+        padding: .2em 0
+        border-top: 2px solid $light_gray
+        min-height: 2em
+
+        .views-label
+          position: absolute
+          left: 0
+          width: 100px
+          font-weight: bold
+          color: $gray_text
+          line-height: 1.5em
+
+        .field-content
+          margin-left: 100px
+
+        &.views-field-field-picture,
+        &.views-field-field-location
+          position: absolute
+          padding-top: .5em
+          right: 5px
+
+          img
+            width: 60px
+
+        &.views-field-last-name,
+        &.views-field-created,
+        &.views-field-field-picture,
+        &.views-field-field-location
+          border-top: none
+
+        &.views-field-created
+          height: 3em
+
+        &.views-field-field-address
+          min-height: 65px
+
+
+/* PARTY PAGE
+  .page-party
+
+    #block-views-reach-actions-party-block
+      width: 65%
+      float: left
+      margin-top: 120px
+
+    #block-reach-crm-overview
+      margin-left: 35%
+      position: absolute
+
+    .entity-party
+      position: relative
+      color: #fff
+      float: left
+      width: 35%
+
+      .field
+        color: #000
+
+      .field-label
+        width: 10em
+        font-size: .9em
+        color: #666
+        text-align: right
+        margin-right: .2em
+
+      .field-name-field-photo
+        +sprite-block(150px, 150px, 0, 0, url(../images/default-person.png))
+        margin-left: 50px
+        margin-bottom: 1em
+
+/* PARTY EDIT PAGE
+
+#redhen-contact-edit-form
+  padding-left: 150px
+  .field-name-field-photo
+    top: 0
+    left: 0
+    position: absolute
+    width: 150px
+
+
+
+
+/* Fix issue with editor border from seven
+.cke_dialog tr td:last-child
+  border-right: none !important
+
+
+
+/* move to mod
+

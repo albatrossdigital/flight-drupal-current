@@ -1,0 +1,5 @@
+name = "Reach Social Fields"
+description = "Creates fields to link entities to Facebook, Flickr and Google entities."
+core = 7.x
+;dependencies[] = oauth_common
+

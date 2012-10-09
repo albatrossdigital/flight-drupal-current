@@ -1,0 +1,755 @@
+<?php
+/**
+ * @file
+ */
+
+/**
+ * Returns the mapping array.
+ */
+function reach_webform_mapping() {
+  $mapping = array(
+    'first_name' => array(
+      '#field' => 'field_first_name',
+      '#key'   => 'value',
+      '#label' => t('First Name'),
+      '#type'  => 'textfield',
+      '#fb'    => 'first_name',
+      '#extra' => array('width' => 20),
+    ),
+    'last_name' => array(
+      '#field' => 'field_last_name',
+      '#key'   => 'value',
+      '#label' => t('Last Name'),
+      '#type'  => 'textfield',
+      '#fb'    => 'last_name',
+      '#extra' => array('width' => 20),
+    ),
+    'email' => array(
+      '#field' => 'field_email',
+      '#key'   => 'email',
+      '#label' => t('Email Address'),
+      '#type'  => 'email',
+      '#fb'    => 'email',
+    ),
+    'phone' => array(
+      '#field' => 'field_phone',
+      '#key'   => 'value',
+      '#label' => t('Phone Number'),
+      '#type'  => 'textfield',
+      '#extra' => array('width' => 20),
+      // TODO: '#validate'  => '',
+    ),
+    'address_street' => array(
+      '#field' => 'field_address',
+      '#key'   => 'thoroughfare',
+      '#label' => t('Address: Street Address'),
+      '#type'  => 'textfield',
+    ),
+    'address_street2' => array(
+      '#field' => 'field_address',
+      '#key'   => 'premise',
+      '#label' => t('Address: Street Address 2'),
+      '#type'  => 'textfield',
+    ),
+    'address_city' => array(
+      '#field' => 'field_address',
+      '#key'   => 'locality',
+      '#label' => t('Address: City'),
+      '#type'  => 'textfield',
+      //'#fb'    => TRUE,
+    ),
+    'address_state' => array(
+      '#field' => 'field_address',
+      '#key'   => 'administrative_area',
+      '#label' => t('Address: State'),
+      '#type'  => 'textfield',
+      //'#fb'    => TRUE,
+    ),
+    'address_zip' => array(
+      '#field' => 'field_address',
+      '#key'   => 'postal_code',
+      '#label' => t('Address: Zip Code'),
+      '#type'  => 'textfield',
+      //'#fb'    => TRUE,
+    ),
+    'donation' => array(
+      '#field' => 'field_donation',
+      '#key'   => 'postal_code',
+      '#label' => t('Donation'),
+      '#type'  => 'stripe',
+      //'#fb'    => TRUE,
+    ),
+  );
+
+  return $mapping;
+}
+
+
+
+/**
+ * Implementatation of hook_entity_insert.
+ *
+ * Once the webform_submission_entity has been saved, update the party and invoke rules.
+ */
+function reach_webform_entity_insert($entity, $entity_type) {
+  if ($entity_type == 'webform_submission_entity') {
+    $node = node_load($entity->nid);
+    $points = $node->reach_webform['points'];
+
+    $values = array();
+    $cookie = array();
+    //$entity = webform_submission_entity_load_sid($entity->nid, $entity->sid);
+    //if (!$entity->data) {
+    //  $entity->data = webform_menu_submission_load($entity->sid, $entity->nid)->data;
+    //}
+
+    // Update the user data cookie
+    foreach($entity->data as $cid => $component) {
+      $form_key = $node->webform['components'][$cid]['form_key'];
+      dpm($form_key);
+      if ($metadata  = _reach_webform_get_field($form_key)) {
+        dpm($metadata);
+        $values[$metadata['#field']][$node->language][0][$metadata['#key']] = $component[0];
+        $cookie[$form_key] = $component[0];
+      }
+    } // foreach
+
+    if (count($values)) {
+      $contact = reach_crm_contact_save_update($values, variable_get('reach_default_contact_type', 'supporter'), $_REQUEST['reach_save_cookie'], $points);
+    }
+    $contact = is_object($contact) ? $contact : new stdClass;
+    $points = $node->reach_webform['points'];
+
+    // Save the cookie (if they want us to)
+    if ($_REQUEST['reach_save_cookie'] && variable_get('reach_crm_cookie', TRUE) && !empty($contact)) {
+      $cookie['contact_id'] = reach_crm_contact_id($contact);
+      $old_cookie = drupal_json_decode($_COOKIE[REACH_CRM_COOKIE . '_data']);
+      $old_cookie = is_array($old_cookie) ? $old_cookie : array();
+      $cookie = array_merge($old_cookie, $cookie);
+      dpm($cookie);
+      setcookie(REACH_CRM_COOKIE . '_data', drupal_json_encode($cookie), time() + REACH_CRM_COOKIE_EXPIRES);
+    }
+
+    // Invoke the Drupal hook and rules event
+    module_invoke_all('reach_webform_submitted', $contact, $node, $entity, $points);
+    rules_invoke_event('reach_webform_submitted', $contact, $node, $entity, $points);
+  }
+}
+
+
+
+/**
+ * Implementatation of hook_form_alter.
+ *
+ * Customize webforms, webform node_add form.
+ */
+function reach_webform_form_alter(&$form, &$form_state, $form_id) {
+
+  // Customize a webform, adding default values, fb mapping info.
+  if (strpos($form_id, 'webform_client_form_') !== FALSE) {
+
+    // Add extra classes to each form item
+    // TODO: make this work.
+    /*$i = 0;
+    foreach ($form['submitted'] as $key => &$field) {
+      if (is_array($form['submitted'][$key])) {
+        $i++;
+        $form['submitted'][$key]['#attributes']['class'][] = drupal_clean_css_identifier('field-' . $key);  // Add field-specific key
+        $form['submitted'][$key]['#attributes']['class'][] = ($i % 2 == 1) ? 'field-odd' : 'field-even'; // Add striping
+      }
+    } // Foreach*/
+
+    if (!$form_state['submitted'] && !isset($_GET['clear'])) {
+
+      // If cookie saved, grab info from cookie
+      // NOW DONE ON FRONT-END
+      /*if(variable_get('reach_cookie', TRUE) && $form['#node']->reach_webform['cookie'] && $_COOKIE[REACH_CRM_COOKIE]) {
+        $mapping = reach_webform_mapping();
+        $party = party_load($_COOKIE[REACH_CRM_COOKIE]);
+
+        foreach ($form['submitted'] as $key => &$field) {
+          if (isset($mapping[$key])) {
+
+            $value = $party->{$mapping[$key]['#field']}['und'][0][$mapping[$key]['#key']];
+            if (isset($value)) {
+              $form['submitted'][$key]['#default_value'] = $value;
+            }
+          }
+
+        } // Foreach
+
+      }*/
+      // Add the cookie-reading JS code
+      //TODO: Attach this better?
+      drupal_add_js(drupal_get_path('module', 'reach_webform') . '/theme/reach-webform-cookie.js');
+      drupal_add_library('system', 'jquery.cookie');
+
+      // Add the FB connect JS code
+      // TODO: remove
+      $form['#node']->reach_webform['fbconnect'] = TRUE;
+      if (module_exists('reach_social') && variable_get('reach_webform_fbconnect', TRUE) && $form['#node']->reach_webform['fbconnect'] && drupal_get_library('reach_social', 'fbconnect')) {
+        reach_social_webform_fbconnect($form);
+      }
+
+      // Add the 'save info' checkbox
+      if (variable_get('reach_cookie', TRUE) && $form['#node']->reach_webform['cookie'] == 1) {
+        $form['reach_save_cookie'] = array(
+          '#type' => 'checkbox',
+          '#title' => t('Save this information so I don\'t have to enter it again. !not_you', array('!not_you' => '<a href="?clear=1">' . t('Not you') . '</a>?')),
+          '#default_value' => TRUE,
+          '#weight' => 100,
+        );
+      }
+
+
+    } // if
+
+  } // if
+
+
+  // Add per-webform settings to node edit page
+  if (isset($form['webform']) && isset($form['#node_edit_form'])) {
+    $form['reach_webform'] = array(
+      '#type' => 'fieldset',
+      '#title' => t('Form Settings'),
+      '#collapsible' => TRUE,
+      '#collapsed' => FALSE,
+      '#tree' => TRUE,
+      '#group' => 'additional_settings',
+      '#weight' => -10,
+    );
+
+    // Reach webform settings
+    if ($form['#node_edit_form'] && in_array($form['#node']->type, variable_get('webform_node_types', array()))) {
+      module_load_include('inc', 'reach_crm', 'reach_crm.admin');
+      $form['reach_webform'] += _reach_crm_admin_form_fields($form['#node']->reach_webform);
+      $form['reach_webform']['fbconnect']['#title'] = t('Enable Facebook Connect on this form');
+      $form['reach_webform']['points']['#title'] = t('Point value');
+      //$form['reach_webform']['reach_webform_points']['#description'] = t('How many Activity Points should we add for each form submission?');
+    }
+
+    // Move the webform template settings into the Reach webform fieldset
+    if ($form['webform_template']) {
+      $form['reach_webform']['webform_template'] = $form['webform_template']['source'];
+      $form['reach_webform']['webform_template']['#title'] = t('Template');
+      $form['reach_webform']['webform_template']['#weight'] = -10;
+      $form['#validate'][] = 'reach_webform_form_template_validate';
+      unset($form['webform_template']);
+    }
+
+    // Move the Webform Beautifier tab up.
+    $form['webform_beautifier']['#weight'] = -9;
+
+  } // if
+}
+
+/**
+ * Adds FB connect code to webforms.
+ * TODO: move to reach_social
+ */
+function reach_social_webform_fbconnect(&$form) {
+  $mapping = reach_webform_mapping();
+
+  $fbconnect = FALSE;
+  $fbmapping = array();
+
+  // Call recursive function to see if mappings exist
+  _reach_social_webform_fbconnect_mapping($form['submitted'], $fbconnect, $fbmapping, $mapping);
+
+  if ($fbconnect) {
+    reach_social_fbconnect($form, $fbmapping, -10);
+  }
+}
+
+
+/**
+ * Helper recursive function searches through fields to see if there are an FB-mapped fields
+ * Made recursive to accomodate webform fieldsets
+ * TODO: move to reach_social
+ */
+function _reach_social_webform_fbconnect_mapping($fields, &$fbconnect, &$fbmapping, $mapping) {
+  foreach ($fields as $key => &$field) {
+    if (isset($mapping[$key]) && $mapping[$key]['#fb']) {
+      $form['submitted'][$key]['#attributes']['class'][] = 'fbconnect-value';
+      $fbconnect = TRUE;
+      $fbmapping[$mapping[$key]['#fb']] = $key;
+    } elseif ($field['#type'] == 'fieldset') {
+      _reach_social_webform_fbconnect_mapping($field, $fbconnect, $fbmapping, $mapping);
+    }
+  } // Foreach
+}
+
+
+
+
+
+/**
+ * Form submit function to re-arrange the $form_state array for the webform_template changes above.
+ */
+function reach_webform_form_template_validate(&$form, &$form_state) {
+  $form_state['complete form']['webform_template']['source'] = $form_state['complete form']['reach_webform']['webform_template'];
+}
+
+
+/**
+ * Implementatation of hook_node_load.
+ *
+ * Add the reach_webform info to $node.
+ */
+function reach_webform_node_load($nodes, $types) {
+
+  // Quick check to see if we need to do anything at all for these nodes.
+  $webform_types = webform_variable_get('webform_node_types');
+  if (count(array_intersect($types, $webform_types)) == 0) {
+    return;
+  }
+
+  // Select all reach_webform entries that match these node IDs.
+  $result = db_select('reach_webform')
+    ->fields('reach_webform')
+    ->condition('nid', array_keys($nodes), 'IN')
+    ->execute()
+    ->fetchAllAssoc('nid', PDO::FETCH_ASSOC);
+
+  foreach ($result as $nid => $settings) {
+    // Load the basic information for each node.
+    $nodes[$nid]->reach_webform = $settings;
+    $nodes[$nid]->reach_webform['record_exists'] = TRUE;
+  }
+
+}
+
+/**
+ * Implementatation of hook_node_update.
+ */
+function reach_webform_node_update($node) {
+  if (isset($node->reach_webform)) {
+    if (!$node->original->reach_webform['record_exists']) {
+      reach_webform_node_insert($node);
+    } else {
+      db_update('reach_webform')->fields(_reach_webform_prepare_fields($node))->condition('nid', $node->nid)->execute();
+    }
+  }
+}
+
+/**
+ * Implementatation of hook_node_insert.
+ */
+function reach_webform_node_insert($node) {
+  if (isset($node->reach_webform)) {
+    $fields = _reach_webform_prepare_fields($node);
+    $fields['nid'] = $node->nid;
+    db_insert('reach_webform')->fields($fields)->execute();
+  }
+}
+
+/**
+ * Helper function prepares the $fields array for hook_node_update and hook_node_insert.
+ */
+function _reach_webform_prepare_fields($node) {
+  $fields = array();
+  $fields['cookie'] = $node->reach_webform['cookie'];
+  $fields['fbconnect'] = $node->reach_webform['fbconnect'];
+  $fields['points'] = $node->reach_webform['points'];
+  return $fields;
+}
+
+
+/**
+ * Implementatation of hook_form_alter.
+ *
+ * Customize the webform add components form.
+ */
+function reach_webform_form_webform_components_form_alter(&$form, &$form_state, $form_id) {
+  // Edit the Other add row
+  // TODO: Put this in its own fxn?
+  $arr = array_reverse($form['add']['type']['#options'], true);
+  $form['add']['type']['#options'][''] = t('Select a type');
+  array_reverse($form['add']['type']['#options'], true);
+  $form['add']['type']['#default_value'] = '';
+  unset($form['add']['add']);
+
+  // Add the reach add row
+  $form['reach_add'] = $form['add'];
+  $form['reach_add']['type']['#options'] = _reach_webform_get_options($form);
+
+  // Add the add template row
+  if (module_exists('webform_template')) {
+    $form['reach_template'] = $form['add'];
+    unset($form['reach_template']['name'], $form['reach_template']['mandatory']);
+    $tpl_src = array_filter(variable_get('webform_template_src', array()));
+    $tpl_dest = array_filter(variable_get('webform_template_dest', array()));
+    $form['reach_template']['type']['#options'] = _webform_template_templates($tpl_src, $tpl_dest);
+    $form['reach_template']['type']['#options'][0] = t('Select a Template');
+  }
+
+  $form['#theme'] = array('reach_webform_components_form');
+  array_unshift($form['#validate'], 'reach_webform_components_form_validate');
+  $form['#submit'][] = 'reach_webform_components_form_submit';
+
+  $form['submit'] = array(
+    '#type' => 'submit',
+    '#value' => 'Save',
+  );
+
+
+  //$party = party_load(1);
+}
+
+
+/**
+ * Implementatation of hook_form_validate.
+ *
+ * Customize the webform add components form.
+ */
+function reach_webform_components_form_validate(&$form, &$form_state) {
+  if ($form_state['values']['reach_add']['type'] != '' && $form_state['values']['add']['type'] != '') {
+    form_error($form['add']['type'], t('You can only add one field at a time.'));
+  }
+
+  // Little hack to let normal _submit() function work properly
+  if ($form_state['values']['add']['type'] != '') {
+    $_POST['op'] = t('Add');
+  }
+}
+
+
+/**
+ * Implementatation of hook_form_submit.
+ *
+ * Customize the webform add components form.
+ */
+function reach_webform_components_form_submit($form, &$form_state) {
+  if ($form_state['values']['reach_add']['type'] != '') {
+    $component = $form_state['values']['reach_add'];
+    $metadata = _reach_webform_get_field($component['type']);
+    $form_state['redirect'] = array('node/' . $form['#node']->nid . '/webform/components/new/' . $metadata['#type'], array('query' => array('reach_key' => $component['type'], 'name' => $component['name'], 'mandatory' => $component['mandatory'], 'pid' => $component['pid'], 'weight' => $component['weight'])));
+  }
+
+  if ($form_state['values']['reach_template']['type'] != '') {
+    $node = node_load($form_state['values']['nid']);
+    $template = node_load($form_state['values']['reach_template']['type']);
+    _reach_webform_template_attach($node, $template);
+  }
+}
+
+/**
+ * Modified from webform_template.module.
+ * Adds webform template fields to a node
+ * Modified so that it doesn't delete exising fields, looks for dupes.
+ */
+function _reach_webform_template_attach($node, $template) {
+
+  $webform = $template->webform;
+
+  module_load_include('inc', 'webform', 'includes/webform.components');
+  module_load_include('inc', 'webform', 'includes/webform.emails');
+
+  //$node->webform = $webform;
+  //$node->webform['nid'] = $node->nid;
+  //$node->webform['record_exists'] = (bool) drupal_write_record('webform', $node->webform);
+
+  // Insert the components into the database.
+  $counter = 0;
+  if (isset($template->webform['components']) && !empty($template->webform['components'])) {
+    foreach ($template->webform['components'] as $cid => $component) {
+      // Dup checking
+      $insert = TRUE;
+      foreach ($node->webform['components'] as $existing_component) {
+        if ($existing_component['form_key'] == $component['form_key']) {
+          $insert = FALSE;
+          drupal_set_message(t('Could not add !name (!key) because it has already been added to this form.', array('!name' => $component['name'], '!key' => $component['form_key'])), 'error');
+        }
+      }
+      if ($insert) {
+        $component['nid'] = $node->nid;
+        unset($component['cid']);
+        webform_component_insert($component);
+        $counter ++;
+      }
+    }
+  }
+
+  // Insert emails.  TODO: Do we want this?
+  /*if (isset($template->webform['emails']) && !empty($template->webform['emails'])) {
+    foreach ($template->webform['emails'] as $eid => $email) {
+      $email['nid'] = $node->nid;
+      webform_email_insert($email);
+    }
+  }*/
+
+  if ($counter) {
+    drupal_set_message(t('Successfully added !num fields.', array('!num' => $counter)));
+  }
+
+}
+
+
+/**
+ * Modified from webform.module.
+ * Theme the node components form. Use a table to organize the components.
+ *
+ * @param $form
+ *   The form array.
+ * @return
+ *   Formatted HTML form, ready for display.
+ */
+function theme_reach_webform_components_form($variables) {
+  $form = $variables['form'];
+  $form['components']['#attached']['library'][] = array('webform', 'admin');
+
+  // TODO: Attach these. See http://drupal.org/node/732022.
+  drupal_add_tabledrag('webform-components', 'order', 'sibling', 'webform-weight');
+  drupal_add_tabledrag('webform-components', 'match', 'parent', 'webform-pid', 'webform-pid', 'webform-cid');
+
+  $node = $form['#node'];
+
+  $header = array(t('Type'), t('Label'), t('Value'), t('Mandatory'), t('Weight'), array('data' => t('Operations'), 'colspan' => 3));
+  $rows = array();
+
+  // Add a row containing form elements for a new item.
+  unset($form['add']['name']['#title'], $form['add_type']['#description']);
+  $form['add']['type']['#title'] = t('Add Other Field');
+  $form['add']['name']['#title'] = '&nbsp;';
+  $form['add']['name']['#attributes']['rel'] = t('New component name');
+  $form['add']['name']['#attributes']['class'] = array('webform-default-value');
+  $form['add']['cid']['#attributes']['class'] = array('webform-cid');
+  $form['add']['pid']['#attributes']['class'] = array('webform-pid');
+  $form['add']['weight']['#attributes']['class'] = array('webform-weight');
+  $row_data = array(
+    drupal_render($form['add']['type']),
+    drupal_render($form['add']['name']),
+    '',
+    drupal_render($form['add']['mandatory']),
+    drupal_render($form['add']['cid']) . drupal_render($form['add']['pid']) . drupal_render($form['add']['weight']),
+    array('colspan' => 3, 'data' => NULL), //drupal_render($form['add']['add'])),
+  );
+  $add_form = array('data' => $row_data, 'class' => array('draggable', 'webform-add-form'));
+
+  unset($form['reach_add']['name']['#title'], $form['reach_add_type']['#description']);
+  $form['reach_add']['type']['#title'] = t('Add a Reach Field');
+  $form['reach_add']['name']['#title'] = '&nbsp;';
+  $form['reach_add']['name']['#attributes']['rel'] = t('Select a field');
+  $form['reach_add']['name']['#attributes']['class'] = array('webform-default-value');
+  $form['reach_add']['cid']['#attributes']['class'] = array('webform-cid');
+  $form['reach_add']['pid']['#attributes']['class'] = array('webform-pid');
+  $form['reach_add']['weight']['#attributes']['class'] = array('webform-weight');
+  $row_data = array(
+    drupal_render($form['reach_add']['type']),
+    drupal_render($form['reach_add']['name']),
+    '',
+    drupal_render($form['reach_add']['mandatory']),
+    drupal_render($form['reach_add']['cid']) . drupal_render($form['reach_add']['pid']) . drupal_render($form['reach_add']['weight']),
+    array('colspan' => 3, 'data' => NULL), //drupal_render($form['reach_add']['add'])),
+  );
+  $reach_add_form = array('data' => $row_data, 'class' => array('draggable', 'webform-reach_add-form'));
+
+  $form['reach_template']['type']['#title'] = t('Add fields from a template');
+  $form['reach_template']['cid']['#attributes']['class'] = array('webform-cid');
+  $form['reach_template']['pid']['#attributes']['class'] = array('webform-pid');
+  $form['reach_template']['weight']['#attributes']['class'] = array('webform-weight');
+  $row_data = array(
+    drupal_render($form['reach_template']['type']),
+    '',//drupal_render($form['reach_template']['name']),
+    '',
+    '',//drupal_render($form['reach_template']['mandatory']),
+    drupal_render($form['reach_template']['cid']) . drupal_render($form['reach_template']['pid']) . drupal_render($form['reach_template']['weight']),
+    array('colspan' => 3, 'data' => NULL), //drupal_render($form['reach_template']['add'])),
+  );
+  $reach_template_form = array('data' => $row_data, 'class' => array('draggable', 'webform-reach_template-form'));
+
+  $form_rendered = FALSE;
+
+  if (!empty($node->webform['components'])) {
+    $component_tree = array();
+    $page_count = 1;
+    _webform_components_tree_build($node->webform['components'], $component_tree, 0, $page_count);
+    $component_tree = _webform_components_tree_sort($component_tree);
+    // Build the table rows.
+    function _webform_components_form_rows($node, $cid, $component, $level, &$form, &$rows, &$add_form) {
+      // Create presentable values.
+      if (drupal_strlen($component['value']) > 30) {
+        $component['value'] = drupal_substr($component['value'], 0, 30);
+        $component['value'] .= '...';
+      }
+      $component['value'] = check_plain($component['value']);
+
+      // Remove individual titles from the mandatory and weight fields.
+      unset($form['components'][$cid]['mandatory']['#title']);
+      unset($form['components'][$cid]['pid']['#title']);
+      unset($form['components'][$cid]['weight']['#title']);
+
+      // Add special classes for weight and parent fields.
+      $form['components'][$cid]['cid']['#attributes']['class'] = array('webform-cid');
+      $form['components'][$cid]['pid']['#attributes']['class'] = array('webform-pid');
+      $form['components'][$cid]['weight']['#attributes']['class'] = array('webform-weight');
+
+      // Build indentation for this row.
+      $indents = '';
+      for ($n = 1; $n <= $level; $n++) {
+        $indents .= '<div class="indentation">&nbsp;</div>';
+      }
+
+      // If necessary, update change the type to the Reach field
+      if ($mapping = _reach_webform_get_field($component['form_key'])) {
+        $component['type'] = theme('reach_webform_wrap', array('html' => $mapping['#label'], 'field' => $mapping));
+      }
+
+      // Add each component to a table row.
+      $row_data = array(
+        $indents . t($component['type']),
+        filter_xss($component['name']),
+        ($component['value'] == '') ? '-' : $component['value'],
+        drupal_render($form['components'][$cid]['mandatory']),
+        drupal_render($form['components'][$cid]['cid']) . drupal_render($form['components'][$cid]['pid']) . drupal_render($form['components'][$cid]['weight']),
+        l(t('Edit'), 'node/' . $node->nid . '/webform/components/' . $cid, array('query' => drupal_get_destination())),
+        l(t('Clone'), 'node/' . $node->nid . '/webform/components/' . $cid . '/clone', array('query' => drupal_get_destination())),
+        l(t('Delete'), 'node/' . $node->nid . '/webform/components/' . $cid . '/delete', array('query' => drupal_get_destination())),
+      );
+      $row_class = array('draggable');
+      if (!webform_component_feature($component['type'], 'group')) {
+        $row_class[] = 'tabledrag-leaf';
+      }
+      if ($component['type'] == 'pagebreak') {
+        $row_class[] = 'tabledrag-root';
+        $row_class[] = 'webform-pagebreak';
+        $row_data[0] = array('class' => array('webform-pagebreak'), 'data' => $row_data[0]);
+      }
+      $rows[] = array('data' => $row_data, 'class' => $row_class);
+      if (isset($component['children']) && is_array($component['children'])) {
+        foreach ($component['children'] as $cid => $component) {
+          _webform_components_form_rows($node, $cid, $component, $level + 1, $form, $rows, $add_form);
+        }
+      }
+
+      // Add the add form if this was the last edited component.
+      /*if (isset($_GET['cid']) && $component['cid'] == $_GET['cid'] && $add_form) {
+        $add_form['data'][0] = $indents . $reach_add_form['data'][0];
+        $rows[] = $reach_add_form;
+        $add_form['data'][0] = $indents . $add_form['data'][0];
+        $rows[] = $add_form;
+        $add_form = FALSE;
+      }*/
+    }
+    foreach ($component_tree['children'] as $cid => $component) {
+      _webform_components_form_rows($node, $cid, $component, 0, $form, $rows, $add_form);
+    }
+  }
+  else {
+    $rows[] = array(array('data' => t('No Components, add a component below.'), 'colspan' => 9));
+  }
+
+  // Append the add form if not already printed.
+  if ($reach_template_form) {
+    $rows[] = $reach_template_form;
+  }
+  if ($reach_add_form) {
+    $rows[] = $reach_add_form;
+  }
+  if ($add_form) {
+    $rows[] = $add_form;
+  }
+
+
+  $output = '';
+  $output .= theme('table', array('header' => $header, 'rows' => $rows, 'attributes' => array('id' => 'webform-components')));
+  $output .= drupal_render_children($form);
+
+  // Add reach_webform css/js
+  drupal_add_css(drupal_get_path('module', 'reach_webform') . '/theme/reach-webform-admin.css');
+  drupal_add_js(drupal_get_path('module', 'reach_webform') . '/theme/reach-webform-admin.js');
+
+  return $output;
+}
+
+
+/**
+ * Implementatation of hook_form_alter.
+ *
+ * Customize the add component form, adding default fields from our mapping array.
+ */
+function reach_webform_form_webform_component_edit_form_alter(&$form, &$form_state, $form_id) {
+  $reach_name = ($_REQUEST['reach_key']) ? $_REQUEST['reach_key'] : $form['form_key']['#default_value'];
+  if ($metadata = _reach_webform_get_field($reach_name)) {
+
+    $form['name']['#default_value'] = ($form['name']['#default_value']) ? $form['name']['#default_value'] : $metadata['#label'];
+    $form['form_key']['#default_value'] = $reach_name;
+    $form['form_key']['#attributes'] = array('disabled' => TRUE);
+    $form['form_key']['#description'] = t('The Field Key is automatically set by Reach.');
+    $form['form_key']['#field_prefix'] = theme('reach_webform_wrap', array('field' => $metadata, 'element' => 'div'));
+
+    if ($metadata['#extra']) {
+      foreach ($metadata['#extra'] as $key => $value) {
+        $form['extra'][$key]['#default_value'] = $value;
+      }
+    }
+
+    // Collapse some of the fieldsets to keep things simple
+    $form['display']['#validation'] = TRUE;
+    $form['display']['#collapsed'] = TRUE;
+
+    $form['#attached']['css'][] = drupal_get_path('module', 'reach_webform') . '/theme/reach-webform-admin.css';
+  }
+}
+
+
+/**
+ * Helper function.
+ *
+ * Get an array of Reach fields to use as #options in the select.
+ */
+function _reach_webform_get_options($form) {
+  $options = array('' => t('Please select a field'));
+  foreach (reach_webform_mapping() as $key => $config) {
+    $options[$key] = $config['#label'];
+  }
+  // TODO: Exclude fields that have already been added
+  foreach ($form['components'] as $cid => $component) {
+    $form_key = $form['#node']->webform['components'][$cid]['form_key'];
+    unset ($options[$form_key]);
+  }
+  return $options;
+}
+
+
+/**
+ * Helper function.
+ *
+ * Get a specific field's mapping array.
+ */
+function _reach_webform_get_field($key) {
+  $mappings = reach_webform_mapping();
+  return $mappings[$key];
+}
+
+
+/**
+ * Implements hook_theme().
+ */
+function reach_webform_theme() {
+  $theme = array(
+    'reach_webform_components_form' => array(
+      'render element' => 'form',
+    ),
+    'reach_webform_wrap' => array(
+      'variables' => array('html' => '', 'field' => array(), 'element' => 'span'),
+    ),
+  );
+  return $theme;
+}
+
+/**
+ * Theme callback.
+ *
+ * Wraps html with the appropriate <div> to add the reach and facebook icons.
+ */
+function theme_reach_webform_wrap($variables) {
+  $classes = array('field-reach');
+  $return = $variables['html'];
+  if ($variables['field']['#fb']) {
+    $return = '<'. $variables['element'] .' class="field-reach-fb">'. $return .'</'. $variables['element'] .'>';
+  }
+  return '<'. $variables['element'] .' class="field-reach">'. $return .'</'. $variables['element'] .'>';
+}
+
+

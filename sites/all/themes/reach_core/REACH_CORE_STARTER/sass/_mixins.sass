@@ -1,0 +1,284 @@
+@import ../../../../all/themes/reach_core/sass/_mixins.sass
+@import _variables.sass
+
+//************************************
+// Mixins from reach core
+//************************************
+
+// @mixin borderbox($dimensions, $padding: false, $border: false) 
+// 
+//    +borderbox() provides IE friend;y box border stlyes
+
+// @mixin rounded($r, $pie: true)
+//
+//    rounded corners 
+//    $pie->true for htc IE support
+
+// @mixin alternate-font($set: true, $f_weight: $font_alt_weight)
+//
+//    sets alternate font
+//    uses variables: $font_alt, $font_alt_weight, $font_alt_spacing
+//    $set->false for font only
+
+// @mixin normal-font($set: true, $f_weight: $font_normal_weight)
+//
+//    sets normal font
+//    uses variables: $font_normal, $font_normal_weight
+//    $set->false for font only
+
+// @mixin border-override($c: transparent)
+//
+//    manual override for border colors that are stubborn
+//    $c = color
+
+// @mixin block-link($w, $h, $f: 1em, $alt: true, $display: block)
+//
+//    make a link in block form
+//    $alt->true for alternate font.  Only sets font
+
+// @mixin buttonize-link($w, $h, $f: 1.4em, $back_c: $b_back_color, $alt: true, $display: block)
+//
+//    sets a link to use button stlye
+//    uses variables: $b_back_color, $color1_font
+//    $alt->true for alternate font.  Only sets font
+  
+// @mixin simple-grad-top($c, $c2: false)
+//
+//    Simple gradient from top
+//    $c2-> a color otherwise just uses darken
+
+// @mixin simple-grad-bottom($c, $c2: false)
+//
+//    Simple gradient from bottom
+//    $c2-> a color otherwise just uses darken
+
+// @mixin old-sprite($left, $top, $img: "sprite.png", $repeat: no-repeat)
+//
+//    sets background image
+
+// @mixin sprite-block($width, $height, $left, $top, $img: "sprite.png", $repeat: no-repeat)
+//
+//  sets background image with text-indent
+
+// @mixin fixed-background($img: "bg.jpg", $color: #fff)
+//
+//  sets fixed background image
+
+// @mixin fade-background($start, $stop, $position: top)
+//
+//  sets fixed background image
+
+// @mixin @mixin auto-fade-background($color, $position: top)
+//
+//  sets fixed background image
+
+// @mixin auto-fade-background-hover($color)
+//
+//  sets fixed background image
+
+// @mixin link-clear($color)
+//
+//  clears a link color
+
+// @mixin list-clear
+//
+//  clears a ul + li set
+
+// @mixin list-float($float: left, $margin-horizontal: 10px, $margin-vertical: 0)
+//
+//  clears a ul + li set and floats
+
+
+//************************************
+// Using the compass image sprite 
+//************************************
+
+
+// Sprite creation
+//@import "compass/utilities/sprites/base"
+//$icons-spacing: 60px
+//$icon-layout:horizontal;
+//@import "icons/*.png"
+//$disable-magic-sprite-selectors:true
+//@include all-icons-sprites
+
+// Usage in files
+// +{foldername}-sprite({name}, false, x-offset, y-offset)
+// EX: +icons-sprite(everything_tab, false, center-x(60px, everything_tab), center-y(50px, everything_tab))
+
+// Sprite mixins
+@function center-y($y, $item)
+  $h: icons-sprite-height($item)
+  @return (($y - $h) / 2)
+  
+@function center-x($x, $item)
+  $w: icons-sprite-width($item)
+  @return (($x - $w) / 2)
+
+/* Main sprite function assumes text is being replaced 
+  @mixin sprit($item, $x, $y, $item2: false, $center-x: true, $center-y: true)
+    display: block
+    height: $y
+    text-indent: -9000px
+    width: $x
+    
+    $xval: $x
+    @if $center-x == true
+      $xval: center-x($x, $item)
+      
+    $yval: $y   
+    @if $center-y == true
+      $yval: center-y($y, $item)
+      
+    +icons-sprite($item, false, $xval, $yval)
+    
+    @if $item2 != false
+      &:hover
+        $xval: $x
+        @if $center-x == true
+          $xval: center-x($x, $item2)
+          
+        $yval: $y   
+        @if $center-y == true
+          $yval: center-y($y, $item2)
+          
+        +icons-sprite($item2, false, $xval, $yval)
+
+/* Helper sprite does background position 
+  @mixin spriter($item, $x, $y, $item2: false, $center-x: true, $center-y: true)
+    $xval: $x
+    @if $center-x == true
+      $xval: center-x($x, $item)
+      
+    $yval: $y   
+    @if $center-y == true
+      $yval: center-y($y, $item)
+      
+    +icons-sprite($item, false, $xval, $yval)
+    
+    @if $item2 != false
+      &:hover
+        $xval: $x
+        @if $center-x == true
+          $xval: center-x($x, $item2)
+          
+        $yval: $y   
+        @if $center-y == true
+          $yval: center-y($y, $item2)
+          
+        +icons-sprite($item2, false, $xval, $yval)
+
+
+//************************************
+// Extendables
+//************************************
+%hide
+  display: none
+
+%font_alt
+  font-family: $font_alt
+  
+%font_normal
+  font-family: $font_normal
+
+// fonts 
+%font_upper
+  @extend %font_alt
+  font-weight: bold
+  text-transform: uppercase
+  text-decoration: none
+
+// general extend
+@mixin s($extend)
+  @extend %#{$extend}
+  
+// extend for font styles
+@mixin f($extend)
+  @extend %font_#{$extend}
+  
+
+
+//************************************
+// Custom mixins
+//************************************
+
+@function gut($n)
+  @return ($n * $col_margin)
+  
+@function gw($n, $left: false, $right: false)
+  @return grid-width($n, $left, $right)
+
+@mixin mobile-only
+  @media (max-width : $mq-mobile)
+    @content
+    
+@mixin glass-grad($c)
+  +background-image(linear-gradient(color-stops(lighten($c, 1%) 46%, $c 50%, darken($c, 1%) 51%, darken($c, 5%) 100%)))    
+    
+@mixin simple-grad($c)
+  +simple-grad-top(lighten($c, 5%), darken($c, 5%))
+  
+@mixin grad($c)
+  +background-image(linear-gradient(color-stops(lighten($c, 5%) 0%, $c 50%, darken($c, 8%) 100%)))    
+
+@mixin buttonize($w: auto, $h: auto, $f: 1em, $back_c: $b_back_color, $bor_c: darken($back_c, 20%), $hover: true)
+  +buttonize-link($w, $h, $f, $back_c, true, block, false)
+  border: 1px solid $bor_c
+  color: $text_color_alt
+  +simple-grad($back_c)
+  +rounded(3px, false)
+  
+  @if $hover == true
+    &:hover
+      background: $back_c
+
+      
+//************************************
+// Fontawesome extras
+//************************************
+
+@mixin fontawe_buttonize($icon, $font: inherit, $color: false, $hover: false, $back_c: $b_back_color, $bor_c: darken($back_c, 30%), $hover_back: false)
+  @if $hover_back == true
+    &:hover
+      &:before
+        background: $back_c
+        
+  
+  &:before
+    +buttonize($font, $font, $font, $back_c, $hover_back)
+    display: inline-block
+    padding: .3em
+    $modify: $font / 6
+    line-height: $font + $modify
+    margin-top: -$modify
+    margin-right: $font + $modify
+    +box-shadow($bor_c 0px 0px 0px 1px)
+   
+  +fontawe_s($icon, $font, $color, $hover) 
+    
+    
+@mixin fontawe_buttonize_r($icon, $w, $h: $w, $font: inherit, $color: false, $hover: false, $back_c: $b_back_color, $bor_c: darken($back_c, 30%), $hover_back: false)
+  $h: $h - 2px
+  $w: $w - 2px
+  
+  height: $h + 1px
+  display: inline-block
+  overflow: hidden
+  padding: 1px 0 0 1px
+  width: $w + 1px
+  
+  @if $hover_back == true
+    &:hover
+      &:before
+        background: $back_c
+  
+  &:before
+    +buttonize($w, $h, $font, $back_c, $hover_back)
+    display: inline-block
+    $modify: $h / 6
+    line-height: $h + $modify
+    margin-right: $w + $modify
+    +box-shadow($bor_c 0px 0px 0px 1px)
+  
+  +fontawe_s($icon, $font, $color, $hover)
+

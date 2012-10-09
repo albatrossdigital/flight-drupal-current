@@ -1,0 +1,45 @@
+<?php
+/**
+ * @file
+ * Install, update, and uninstall functions for the field_example module.
+ */
+
+/**
+ * Implements hook_field_schema().
+ *
+ * Defines the database schema of the field, using the format used by the
+ * Schema API.
+ *
+ * The data we will store here is just one 7-character element, even
+ * though the widget presents the three portions separately.
+ *
+ * All implementations of hook_field_schema() must be in the module's
+ * .install file.
+ *
+ * @see http://drupal.org/node/146939
+ * @see schemaapi
+ * @see hook_field_schema()
+ * @ingroup field_example
+ */
+function reach_crm_field_schema($field) {
+  $columns = array(
+    'value' => array('type' => 'int', 'not null' => FALSE),
+  );
+  $indexes = array(
+    'value' => array('value'),
+  );
+  return array(
+    'columns' => $columns,
+    'indexes' => $indexes,
+  );
+}
+
+
+/**
+ * Implements hook_install().
+ */
+function reach_crm_install() {
+  // TODO: These should get set by Strongarm, but they aren't
+  variable_set('party_name_label_plugin', 'reach_crm_party_label');
+}
+

@@ -1,0 +1,58 @@
+<?php
+/**
+ * @file
+ * Install, update, and uninstall functions for the field_example module.
+ */
+
+/**
+ * Implements hook_field_schema().
+ *
+ * Defines the database schema of the field, using the format used by the
+ * Schema API.
+ *
+ * The data we will store here is just one 7-character element, even
+ * though the widget presents the three portions separately.
+ *
+ * All implementations of hook_field_schema() must be in the module's
+ * .install file.
+ *
+ * @see http://drupal.org/node/146939
+ * @see schemaapi
+ * @see hook_field_schema()
+ * @ingroup field_example
+ */
+function reach_social_field_field_schema($field) {
+  
+  $columns = array(
+    'service' => array('type' => 'varchar', 'length' => 32, 'not null' => TRUE),
+    'type' => array('type' => 'varchar', 'length' => 32, 'not null' => TRUE),
+    'id' => array('type' => 'varchar', 'length' => 255, 'not null' => TRUE),
+    'label' => array('type' => 'varchar', 'length' => 255, 'not null' => FALSE),
+    'uri' => array('type' => 'varchar', 'length' => 255, 'not null' => FALSE),
+    'api_uri' => array('type' => 'varchar', 'length' => 255, 'not null' => FALSE),
+  );
+  $indexes = array(
+    'service' => array('service'),
+    'type' => array('type'),
+    'id' => array('id'),
+  );
+  
+  switch ($field['type']) {
+  
+    case 'reach_social_field':
+      return array(
+        'columns' => $columns,
+        'indexes' => $indexes,
+      );
+      break;
+  }
+
+}
+
+
+/**
+ * Implements hook_install().
+ */
+/*function reach_social_fields_install() {
+}*/
+

@@ -1,0 +1,544 @@
+@import _mixins.sass
+
+/**************************
+/*  BODY
+/**************************/
+
+/* Handy font size definitions 
+  font-size: .625em   16px x .625   = 10px 
+  font-size: .6875em  16px x .6875  = 11px 
+  font-size: .75em    16px x .75    = 12px 
+  font-size: .8125em  16px x .8125  = 13px 
+  font-size: .875em   16px x .875   = 14px
+  font-size: .9375em  16px x .9375  = 15px
+  font-size: 1.0625em 16px x 1.0625 = 17px
+  font-size: 1.5em    16px x 1.5    = 24px
+
+
+body
+  font: 0.875em/1.75em $font_normal
+  
+
+/**************************
+/*  LINKS
+/**************************/
+
+a
+  &:link, &:visited
+    color: $link
+    text-decoration: none
+
+a
+  &:hover, &:active
+    color: darken($link, 10%)
+    text-decoration: none
+
+
+/**************************
+/*  TEXT
+/**************************/
+.section-header .block p,
+.section-footer .block p 
+  margin: 0
+
+
+/**************************
+/*  PAGE ELEMENTS
+/**************************/
+
+.page-element
+  position: relative
+  z-index: 1
+
+  /* logo
+  &.logo-wrapper
+
+        
+  /* site name + slogan
+  &.site-name-wrapper,
+  &.site-slogan-wrapper
+
+    
+  /* site name
+  &.site-name-wrapper
+
+    
+    #site-name
+      a
+        &:hover
+    
+  /* site slogan
+  &.site-slogan-wrapper
+    
+    #site-slogan
+
+  
+  /*page title  
+  &.page-title-wrapper
+    
+    #page-title
+
+      
+
+/**************************
+/*  TITLES
+/**************************/
+
+h1, h2, h3, h4, h5, h6
+  line-height: 1.3em
+
+h1
+  font-size: 2.2em
+  padding: 0
+  margin: 0
+  
+  a,
+  a:hover
+    text-decoration: none
+
+h2
+  font-size: 1.7em
+  margin-bottom: 0.5em
+
+h3
+  font-size: 1.2em
+  margin-bottom: 1em
+
+h4
+  font-size: 1.2em
+  margin-bottom: 0.8em
+
+h5
+  font-size: 1.1em
+  font-weight: 600
+  margin-bottom: 0
+
+h6
+  font-size: 1em
+  font-weight: bold
+  
+  
+/*-------------------------
+/*  Block title
+/*-------------------------
+
+h2.block-title
+  
+  a
+  
+/**************************
+/*  LISTS
+/**************************/
+  
+ul,
+ol
+  #block-system-main &,
+  .node &
+    padding-left: 2em
+  
+  
+/**************************
+/* RESPONSIVE MEDIA
+/**************************/
+
+.field-type-media,
+.field-type-text-with-summary
+  img
+    height: auto
+    max-width: 100%
+
+/**************************
+/*  FORMS
+/**************************/
+
+textarea,
+select,
+input[type="date"],
+input[type="datetime"],
+input[type="datetime-local"],
+input[type="email"],
+input[type="month"],
+input[type="number"],
+input[type="password"],
+input[type="search"],
+input[type="tel"],
+input[type="text"],
+input[type="time"],
+input[type="url"],
+input[type="week"]
+  //-webkit-appearance: none
+  -moz-border-radius: 0
+  -webkit-border-radius: 0
+  border-radius: 0
+  -webkit-box-sizing: border-box
+  -moz-box-sizing: border-box
+  box-sizing: border-box
+  -moz-background-clip: padding
+  -webkit-background-clip: padding
+  background-clip: padding-box
+  border: $input_b solid $grey
+  font-size: 1.1em
+  background: #fff
+  +rounded(3px, false)
+
+input.form-text
+  +box-sizing(border-box)
+  height: $input_h
+  padding: 10px
+
+select
+  background-color: #fff
+  height: 24px
+  +rounded(2px)
+  width: 100%
+  
+/* submits
+button,
+input[type="reset"],
+input[type="submit"],
+input[type="button"]
+  border: 0
+  cursor: pointer
+  padding: 0 15px
+  +buttonize-link(auto, 35px, 20px)
+  float: right
+
+form
+
+  label
+    font-weight: normal
+  
+  // from seven 
+  fieldset 
+    border: 1px solid #ccc
+    padding: 2.5em 0 0 0
+    position: relative
+    margin: 1em 0
+    
+    .fieldset-legend
+      margin-top: 0.5em
+      padding-left: 15px
+      position: absolute
+      text-transform: uppercase
+      top: 0
+    
+    .fieldset-wrapper 
+      padding: 0 13px 13px 15px
+    
+    &.collapsed 
+      background-color: transparent
+    
+      html.js &
+        border-width: 1px
+        height: auto
+    
+    fieldset 
+      background-color: #fff
+    
+    fieldset fieldset 
+      background-color: #f8f8f8
+    
+    
+  /*
+    a.fieldset-link
+      position: absolute
+      margin-top: 1em
+      right: 10px
+    fieldset
+      background-color: $grey_light
+      +border-radius(6px)
+      margin-top: 80px
+      padding: 20px 25px
+      position: relative
+      
+      legend
+        font-size: 1.8em
+        position: absolute
+        top: -40px
+      
+  .form-item, 
+  .form-actions
+    margin-top: 0.5em
+    margin-bottom: 0.5em
+      
+  /* infield labels
+  &.infieldlabels
+    label.processed
+      font-style: italic
+      line-height: $input_h
+      font-size: $input_font
+      padding: 0 (11px + ($input_b * 2))
+      
+  .webform-container-inline
+    label
+      margin-left: 0.5em
+      margin-right: 0.5em
+      
+  /* horizontal styles
+  &.webform-horizontal 
+    .webform-component,
+    .webform-component:nth-child(even),
+    .webform-component:nth-child(odd)
+      float: none
+      max-width: 100%
+      margin-right: 0
+      width: 100%
+
+    .form-actions
+      float: right
+      
+  /* fb connect
+  
+  &.fbconnect-form
+    position: relative
+    padding-top: 24px
+    
+          
+  .fbconnect-wrapper
+    right: 14px
+    position: absolute
+    top: 0
+    
+    
+    a
+      margin-left: 10px
+      float: left
+    
+    a.fbconnect
+      //+sprite-block(20px, 20px, 0, -910px, 'socialbuttonsprite.png')
+      +fontawe_r(facebook-sign, 24px, 24px, $facebook, darken($facebook, 10%))
+      display: none
+      
+        
+    a.fbconnect-tooltip
+      //+sprite-block(20px, 20px, 0, -950px, 'socialbuttonsprite.png')
+      display: none
+      +fontawe_r(info-sign, 24px, 24px, $grey, darken($grey, 10%))
+      border-bottom: 0
+      
+
+/**************************
+/*  MESSAGES
+/**************************/
+#messages
+  margin: 0 30px 15px 30px 
+  //width: 900px
+
+
+/**************************
+/*  SYSTEM TABS
+/**************************/
+
+.tabs
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif
+  margin-bottom: 20px
+
+  &:empty
+    display: none
+
+.tabs ul.primary 
+  padding: 0 3px
+  margin: 0
+  overflow: hidden
+  border: none
+  background: transparent url(../images/tabs-border.png) repeat-x left bottom
+
+.tabs ul.primary li 
+  display: block
+  float: left
+  vertical-align: bottom
+  margin: 0 5px 0 0
+
+.tabs ul.primary li.active a 
+  border-bottom: 1px solid #ffffff
+
+.tabs ul.primary li a 
+  color: #000
+  background-color: #ededed
+  height: 1.8em
+  line-height: 1.9
+  display: block
+  font-size: 0.929em
+  float: left /* not LTR */
+  padding: 0 10px 3px
+  margin: 0
+  text-shadow: 0 1px 0 #fff
+  -khtml-border-radius-topleft: 6px
+  -moz-border-radius-topleft: 6px
+  -webkit-border-top-left-radius: 6px
+  border-top-left-radius: 6px
+  -khtml-border-radius-topright: 6px
+  -moz-border-radius-topright: 6px
+  -webkit-border-top-right-radius: 6px
+  border-top-right-radius: 6px
+
+.tabs ul.primary li.active a 
+  background-color: #ffffff
+
+.tabs ul.secondary 
+  border-bottom: none
+  padding: 0.5em 0
+
+.tabs ul.secondary li 
+  display: block
+  float: left
+
+.tabs ul.secondary li:last-child 
+  border-right: none
+
+.tabs ul.secondary li:first-child 
+  padding-left: 0
+
+.tabs ul.secondary li a 
+  padding: 0.25em 0.5em
+
+.tabs ul.secondary li a.active 
+  background: #f2f2f2
+  border-bottom: none
+  -moz-border-radius: 5px
+  -webkit-border-radius: 5px
+  -khtml-border-radius: 5px
+  border-radius: 5px
+
+ul.action-links 
+  list-style: none
+  margin: 5px
+  padding: 0.5em 1em
+
+ul.action-links li 
+  display: inline-block
+  margin-left: 10px
+
+ul.action-links li a 
+  padding-left: 15px
+  background: url(../images/add.png) no-repeat left center
+  margin: 0 10px 0 0
+  
+          
+        
+/**************************
+/*  TABLES
+/**************************/
+table
+  width: 100%
+  font-size: 0.923em
+  margin: 0 0 10px
+  border: 1px solid #bebfb9
+
+table td,
+table th 
+  vertical-align: middle
+  padding: 8px 10px
+  border: 0
+  color: #000
+
+tr.even,
+tr.odd 
+  border-width: 0 1px 0 1px
+  border-style: solid
+  border-color: #bebfb9
+  background: #f3f4ee
+
+tr.odd 
+  background: #fff
+
+tr.drag 
+  background: #fe7
+
+tr.drag-previous 
+  background: #ffb
+
+table th 
+  text-transform: uppercase
+  background: #e1e2dc
+  font-weight: normal
+  border-width: 1px
+  border-style: solid
+  border-color: #bebfb9
+  padding: 3px 10px
+
+table th.active 
+  background: #bdbeb9
+
+table th a 
+  display: block
+  position: relative
+
+table th.active a 
+  padding: 0 25px 0 0
+
+table th.active img 
+  position: absolute
+  top: 3px
+  right: 3px
+
+table td.active 
+  background: #e9e9dd
+
+table tr.odd td.active 
+  background: #f3f4ee
+
+table tr.selected td.active,
+table tr.selected td 
+  background: #ffc
+  border-color: #eeb
+
+table.system-status-report tr 
+  border-bottom: 1px solid #ccc
+
+table.system-status-report tr.ok 
+  color: #255b1e
+  background-color: #e5ffe2
+
+table.system-status-report tr.info Lifecycle
+  color: #040f37
+  background-color: #bdf
+
+table.system-status-report tr.warning 
+  color: #840
+  background-color: #fffce5
+
+table.system-status-report tr.error 
+  color: #8c2e0b
+  background-color: #fef5f1
+
+/**
+ * Exception for webkit bug with the right border of the last cell
+ * in some tables, since it's webkit only, we can use :last-child
+ */
+tr td:last-child 
+  border-right: 1px solid #bebfb9
+        
+
+/**************************
+/*  HELPER CLASSES
+/**************************/
+
+
+
+/**************************
+/*  QTIP
+/**************************/
+
+.ui-tooltip
+  font-size: 1em
+  line-height: 1.1em
+  
+  &.ui-tooltip-blue .ui-tooltip-titlebar, 
+  &.ui-tooltip-blue .ui-tooltip-content
+    color: #333
+
+/*
+  span.ext,
+  span.mailto
+    display: none
+    
+ 
+img.typekit-badge,
+.typekit-badge
+  max-height: none!important
+  min-height: none!important
+  height: 0!important
+  display: none!important
+
+

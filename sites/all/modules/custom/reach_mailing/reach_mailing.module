@@ -1,0 +1,1116 @@
+<?php
+
+include_once('reach_mailing.features.inc');
+
+define('CRM_MAILING_UNSUBSCRIBE', 'mailing/unsubscribe');
+define('CRM_MAILING_QUEUE_SIZE', 5); //200?
+define('CRM_MAILING_QUEUE_CRON_PROCESS', 5); //200?
+define('CRM_MAILING_MAILER_CLASS', 'SendgridMailer');  //TODO: Expose this as a variable w/ a ui? Look into mailsystem module.
+
+define('REACH_MAILING_STATUS_DRAFT', -1);
+define('REACH_MAILING_STATUS_SCHEDULED', 0);
+define('REACH_MAILING_STATUS_SENDING', 1);
+define('REACH_MAILING_STATUS_SENT', 2);
+
+//define('CRM_MAILING_NEW', 'admin/crm/mailing/new-mailing');
+
+/**
+ * Implementation of hook_permission().
+ */
+function reach_mailing_permission() {
+  return array(
+    /*'reach mailing send' => array(
+      'title' => t('Send mailing'),
+      'description' => t('Send a mailing to contacts in the CRM.'),
+    ),*/
+    'view crm mailing reports' => array(
+      'title' => t('View mailing reports'),
+      'description' => t('View the reports for a CRM mailing.'),
+    ),
+  );
+}
+
+/**
+ * Implementation of hook_menu().
+ */
+function reach_mailing_menu() {
+  $items = array();
+  /*$items[CRM_MAILING_NEW . '/%'] = array(
+    'title' => 'reach_mailing_new_mailing',
+    'page callback' => 'reach_mailing_new_mailing',
+    'page arguments' => array(4),
+    'access arguments' => array('send crm mailing'),
+    'type' => MENU_CALLBACK,
+  );*/
+  $items['node/%node/mailing'] = array(
+    'title' => 'Mailing',
+    'page callback' => 'reach_mailing_redirect',
+    'page arguments' => array(1),
+    'access callback' => 'reach_mailing_access',
+    'access arguments' => array('update', 1),
+    //'file' => 'includes/webform.components.inc',
+    'weight' => 1,
+    'type' => MENU_LOCAL_TASK,
+  );
+
+  $items['node/%node/mailing/overview'] = array(
+    'title' => 'Mailing Overview',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('reach_mailing_overview_unsent_form', 1),
+    'access callback' => 'reach_mailing_access',
+    'access arguments' => array('update', 1),
+    'weight' => -1,
+    'type' => MENU_LOCAL_TASK,
+  );
+
+  $items['mailing-test/send'] = array(
+    'page callback' => 'reach_mailing_queue_process',
+    'access callback' => TRUE,
+    'type' => MENU_CALLBACK,
+  );
+  $items[CRM_MAILING_UNSUBSCRIBE . '/%'] = array(
+    'title' => 'Unsubscribe',
+    'page callback' => 'reach_mailing_unsubscribe',
+    'page arguments' => array(3),
+    'access callback' => TRUE,
+    'type' => MENU_CALLBACK,
+  );
+  $items['node/%node/mailing/add-recipients'] = array(
+    'type' => MENU_LOCAL_TASK,
+    'title' => 'Add Recipients',
+    'access callback' => 'reach_mailing_access',
+    'access arguments' => array('update', 1),
+    'page callback' => 'reach_mailing_add_recipients_callback',
+    'page arguments' => array(1),
+    'weight' => 2,
+  );
+  $items['node/%node/mailing/recipient/%/remove'] = array(
+    'type' => MENU_CALLBACK,
+    'access callback' => 'reach_mailing_access',
+    'access arguments' => array('update', 1),
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('reach_mailing_recipient_remove_confirm_form', 1, 4),
+  );
+
+  return $items;
+
+}
+
+
+/**
+ * Access callback to make sure that mailing tab only shows up for mailing nodes.
+ */
+function reach_mailing_access($action, $node) {
+  return ($node->type == 'mailing' && node_access($action, $node)) ? TRUE : FALSE;
+}
+
+
+
+
+/**
+ * Implements hook_menu_local_tasks_alter().
+ * Removes the View tab.
+ * TODO: find more elegant way to do this? Does it even matter?
+ * TODO: MAKE WOrK!!!
+ */
+function reach_mailing_menu_local_tasks_alter($data, $router_item, $root_path) {
+  if ($data['tabs'][0]['output'][0]['#link']['path'] == 'node/%/view') {
+    $node = node_load(arg(1));
+    if ($node->type == 'mailing') {
+      unset($data['tabs'][0]['output'][0]);
+      $data['tabs'][0]['count']--;
+    }
+  }
+
+  return;
+}
+
+
+/**
+ * Implements hook_admin_paths().
+ */
+function reach_mailing_admin_paths() {
+  $paths = array(
+    'node/*/mailing' => TRUE,
+    'node/*/mailing/*' => TRUE,
+  );
+  return $paths;
+}
+
+/**
+ * Callback for the crm/mailing/redirect/% menu item.
+ */
+/*function reach_mailing_new_mailing($timestamp){
+  $result = db_query("SELECT nid FROM {node} WHERE created = :created", array(
+    ':created' => $timestamp,
+  ))->fetch();
+
+  drupal_get_messages();
+  drupal_goto('node/' . $result->nid .'/edit');
+}*/
+
+
+/********************************** Page Callbacks ********************************
+
+
+/**
+ * Page callback for the mailing overview page.
+ * Two different displays depending on whether the mailing is sent or not.
+ */
+function reach_mailing_redirect($node) {
+  if (!$node->status) {
+    //$return = drupal_render(drupal_get_form('reach_mailing_overview_unsent_form')); //reach_mailing_overview_unsent($node);
+    //dpm($return);
+    $goto = 'overview';
+  } else {
+    $goto = 'analytics';
+  }
+  drupal_goto('node/' . $node->nid . '/mailing/' . $goto);
+}
+
+
+
+/**
+ * Form callback for the unsent mailing overview page.
+ */
+function reach_mailing_overview_unsent_form($form, $form_state, $node) {
+
+  $form['nid'] = array(
+    '#type' => 'value',
+    '#value' => $node->nid,
+  );
+  $form['actions'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('What would you like to do?'),
+    '#collapsible' => FALSE,
+    '#group' => 'additional_settings',
+  );
+  $form['actions']['action'] = array(
+    '#type' => 'radios',
+    //'#title' => t('What would you like to do?'),
+    '#options' => array(
+      'save' => t('Leave as draft'),
+      'test' => t('Send a test email'),
+      'schedule' => t('Schedule a date and time to send the mailing'),
+      'send' => t('Send now!'),
+     ),
+     '#default_value' => !empty($node->publish_on) ? 'schedule' : 'save',
+  );
+
+  global $user;
+  $form['actions']['test_email_fieldset'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Test Email Information'),
+    '#group' => 'additional_settings',
+    //'#states' => array(
+    //  'invisible' => array(
+    //    ':input[name="action"][value="test"]' => array('checked' => FALSE),
+    //  ),
+    //)
+  );
+  $form['actions']['test_email_fieldset']['test_email'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Send a test email to'),
+    '#description' => t('Separate multiple email addresses with a comma.'),
+    '#default_value' => $form_state['values']['test_email'] ? $form_state['values']['test_email'] : $user->mail,
+  );
+  $form['actions']['test_email_fieldset']['test_fname'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Test First Name'),
+    '#default_value' => $form_state['values']['test_fname'] ? $form_state['values']['test_fname'] : $user->field_fname['und'][0]['safe_value'],
+  );
+  $form['actions']['test_email_fieldset']['test_lname'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Test Last Name'),
+    '#default_value' => $form_state['values']['test_lname'] ? $form_state['values']['test_lname'] : $user->field_lname['und'][0]['safe_value'],
+  );
+
+
+
+  // Dirty: call a hook_form_alter() in scheduler.module to add to $form
+  $scheduling_form = array(
+    '#node_edit_form' => TRUE,
+    'type' => array('#value' => 'mailing'),
+    '#node' => $node,
+  );
+  scheduler_form_alter($scheduling_form, $form_state);
+
+  $scheduler_settings = $scheduling_form['scheduler_settings'];
+  $scheduler_settings['#collapsible'] = FALSE;
+  //$scheduler_settings['publish_on']['#date_format'] = t('m/d/Y h:ia'); // Get rid of seconds
+  $scheduler_settings['publish_on']['#title'] = t('Send on');
+  dpm($scheduler_settings);
+  $form['actions']['scheduler_settings'] = $scheduler_settings;
+
+  $form['#attached'] = array(
+    'js' => array(
+      drupal_get_path('module', 'reach_mailing') . '/js/crm-mailing-send-form.js',
+    ),
+    'css' => array(
+      drupal_add_css(drupal_get_path('module', 'reach_mailing') . '/css/reach-mailing.css'),
+    ),
+  );
+
+  $form['submit'] = array('#type' => 'submit', '#value' => t('Save changes'));
+  return $form;
+}
+
+
+/**
+ * Form validate for the unsent mailing overview page.
+ */
+function reach_mailing_overview_unsent_form_validate($form, $form_state) {
+
+  switch ($form_state['values']['action']) {
+
+    case 'test':
+      if (!valid_email_address($form_state['values']['test_email'])) {
+        form_set_error('test_email', t('Please enter a valid email address'));
+      }
+      break;
+
+    case 'schedule':
+      if (!$form_state['values']['publish_on']) {
+        form_set_error('publish_on', t('You must enter a date and time to schedule your mailing'));
+      } else {
+        $node = node_load($form_state['values']['nid']);
+        $node->publish_on = $form_state['values']['publish_on'];
+        scheduler_node_validate($node, $form);
+      }
+      break;
+  }
+
+}
+
+
+/**
+ * Form submit callback for the unsent mailing overview page.
+ */
+function reach_mailing_overview_unsent_form_submit($form, $form_state) {
+  switch ($form_state['values']['action']) {
+
+    case 'save':
+      drupal_set_message('Your changes have been saved.');
+      break;
+
+    case 'test':
+      $recipient = array(
+        'id' => 0,
+        'mid' => 0,
+        'email' => $form_state['values']['test_email'],
+        'fname' => $form_state['values']['test_fname'],
+        'lname' => $form_state['values']['test_lname'],
+      );
+      $recipient['name'] = $recipient['fname'] || $recipient['lname'] ? $recipient['fname'] . ' ' . $recipient['lname'] : t('Supporter');
+
+      $node = node_load($form_state['values']['nid']);
+      if (reach_mailing_send($node, array($recipient))) {
+        drupal_set_message(t('A test email was sent to !email.', array('!email' => $recipient['email'])));
+      } else {
+        drupal_set_message(t('Sorry, there was a problem sending your test email to !email.', array('!email' => $recipient['email'])), 'error');
+        watchdog('reach_mailing', 'Error sending test mailing <pre>!node !recipient</pre>', array('!node' => print_r($node, 1), '!recipient' => print_r($recipient, 1)), WATCHDOG_ERROR);
+      }
+      break;
+
+    case 'schedule':
+      $node = node_load($form_state['values']['nid']);
+      $node->publish_on = $form_state['values']['publish_on'];
+      // Set the mailing status to scheduled
+      $node->field_mailing_status[LANGUAGE_NONE][0]['value'] = REACH_MAILING_STATUS_SCHEDULED;
+      node_save($node);
+
+      drupal_get_messages('status');
+      drupal_set_message(t('Your mailing will be sent in !time.', array('!time' => format_interval(_scheduler_strtotime($form_state['values']['publish_on']) - time(), 1) )));
+      break;
+
+    case 'send':
+      reach_mailing_queue($form_state['values']['nid']);
+      drupal_set_message('Your mailing has been queued for sending and begin sending in the next couple minutes.');
+      break;
+  }
+}
+
+
+/**
+ * Implements hook_scheduler_api().
+ * Queue the mailing when it is published via scheduler.module.
+ */
+function reach_mailing_scheduler_api($node, $action) {
+  if ($action == 'publish') {
+    reach_mailing_queue($node->nid);
+    watchdog('reach_mailing', 'queued mailing <pre>!node</pre>', array('!node' => print_r($node, 1)));
+  }
+}
+
+
+
+/**
+ * Callback for unsubscribe menu item.
+ */
+function reach_mailing_unsubscribe($recipient_nid){
+  $recipient = node_load($recipient_nid);
+  $account = user_load($recipient->uid);
+
+  // Update the $user
+  user_save($account, array(
+    'field_mailing_list_status' => array(
+      'und' => array(
+        0 => array('value' => -1),
+      )
+    ),
+  ));
+
+  // Update the recipient node
+  reach_mailing_recipient_update('unsubscribe', $recipient->nid, $account->mail, time());
+  drupal_set_title('Unsubscribe');
+  return t('Your email address <strong>!mail</strong> has been successfully removed from our mailing list.', array('!mail' => $account->mail));
+}
+
+
+/**
+ * Page callback wrapper for add recipients view.
+ * Returns arg to exclude pids that have already been added.
+ */
+function reach_mailing_add_recipients_callback($node) {
+  $arg = array();
+  if (isset($node->field_mailing_recipients[LANGUAGE_NONE])) {
+    foreach ($node->field_mailing_recipients[LANGUAGE_NONE] as $delta) {
+      $arg[] = $delta['target_id'];
+    }
+  }
+  $arg = implode('+', $arg);
+  return views_embed_view('mailing_add_recipients', 'default', $arg);
+}
+
+
+/**
+ * Remove recipient from mailing confirm form
+ */
+/*function reach_mailing_recipient_remove_confirm_form($form, $form_state, $node, $target_id) {
+
+  //you can pass variables here if need be
+  $form['target_id'] = array(
+    '#type' => 'value',
+    '#value' => 'asdf',
+  );
+
+  //you can set a redirect if needed
+  $form['#redirect'] = 'user';
+
+  return confirm_form($form,
+    t('Are you sure you want to do something?'), //message title
+    isset($_GET['destination']) ? $_GET['destination'] : 'user', //redirect if cancelled
+    t('Only say yes if you are really sure.'), //message description
+    t('Lets Do it!'), //confirm button text
+    t('Cancel') //cancel button text
+  );
+}*/
+
+/**
+ * Remove recipient from mailing confirm form submit
+ */
+/*function reach_mailing_recipient_remove_confirm_form_submit($form, &$form_state) {
+	//verify that the form was confirmed
+  if ($form_state['values']['confirm']) {
+    //Do something here
+
+    //set a message
+    drupal_set_message('You did something!');
+
+  }
+}*/
+
+
+
+
+// ***************************** Form, node alters *****************************
+
+function reach_mailing_form_mailing_node_form_alter(&$form, &$form_state, $form_id){
+
+  if (is_null($form['nid']['#value'])) {
+    drupal_goto('admin/content/mailing/start');
+  }
+
+  if ($form['#node']->status) {
+    unset ($$form['actions']);
+    drupal_set_message(t('This message has already been sent and cannot be edited.  If you would like to send a similar mailing, !cloning.', array('!cloning' => l('try cloning this mailing', ''))), 'error');
+    reach_mailing_redirect($form['#node']->nid);
+  }
+
+  unset ($form['field_mailing_sent']);
+  unset ($form['field_mailing_status']);
+  unset ($form['field_mailing_recipients']);
+
+  unset($form['actions']['preview']);
+  unset($form['actions']['delete']);
+  $form['actions']['submit']['#label'] = t('Save and Send');
+
+  $form['footer'] = array(
+    '#type' => 'markup',
+    '#markup' => t('You can send your mailing on the next page'),
+    '#weight' => 1000,
+  );
+
+  $form['#attached'] = array(
+    'js' => array(
+      drupal_get_path('module', 'reach_mailing') . '/js/crm-mailing-edit-form.js' => array('weight' => 1000),
+    ),
+    'css' => array(
+      drupal_get_path('module', 'reach_mailing') . '/css/reach-mailing.css',
+    ),
+  );
+
+  // Add the jsHtmlToText library for nice html -> text conversion
+  if ($path = libraries_get_path('jsHtmlToText')) {
+    $form['#attached']['js'][] = $path . '/jsHtmlToText.js';
+  }
+
+}
+
+/**
+ * Implements hook_node_view().
+ * Redirect/display message.
+ */
+function reach_mailing_node_view($node, $view_mode, $langcode) {
+  if ($node->type == 'mailing' && $view_mode == 'full' && node_is_page($node)) {
+    if (!$node->status) {
+      reach_mailing_redirect($node);
+    } else {
+      drupal_set_message(t('This is the publically-available version of this mailing.  To view statistics, click on the !tab.', array('!tab' => l('mailing tab', 'node/' . $node->nid . '/mailing'))));
+    }
+  }
+}
+
+/**
+ * Implements hook_node_presave().
+ * Generate the text version from the HTML version, if necessary.
+ */
+function reach_mailing_node_presave($node) {
+  if ($node->type == 'mailing' && $node->field_mailing_auto_text_version[LANGUAGE_NONE]) {
+    $node->field_body_plain[LANGUAGE_NONE][0]['value'] = drupal_html_to_text($node->body[LANGUAGE_NONE][0]['value'], $allowed_tags = NULL);
+  }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+/**
+ * Callback for mailing reports page.
+ */
+/*function reach_mailing_report($node){
+  //dpm($node);
+
+  $root_url = '?[id]#quicktabs-reach_mailing_report';
+  $categories = array(
+    //'sent' => array('title' => t('Received'), 'url' => '0'),
+    'opened' => array('title' => t('Opened'), 'url' => '1'),
+    'unsubscribed' => array('title' => t('Unsubscribed'), 'url' => '3'),
+    'bounced' => array('title' => t('Bounced'), 'url' => '4'),
+    'spam' => array('title' => t('Marked as SPAM'), 'url' => '5'),
+  );
+
+  $values = array();
+  $i = 0;
+  foreach ($categories as $key=>$data){
+    $result = db_query("SELECT COUNT(*) AS result
+                        FROM {node} n
+                        LEFT JOIN {field_data_field_recipient_mailing_nid} m on n.vid = m.revision_id
+                        LEFT JOIN {field_data_field_recipient_" .$key. "} action on n.vid = action.revision_id
+                        WHERE m.field_recipient_mailing_nid_nid = :mailing_nid AND NOT ISNULL(field_recipient_". $key ."_value);",
+                      array(
+      ':mailing_nid' => $node->nid,
+    ))->fetch();
+
+    if ($result->result > 0){
+      $result->result = l($result->result, '', array());
+    }
+
+    if ($key == 'unsubscribed'){
+      $i++;
+    }
+    $values[$i] = array(
+      'value' => $result->result,
+      'url' => $data['url'],
+      'title' => $data['title'],
+    );
+    $i++;
+  }
+
+  // Add in the mailing list clicks
+  $result = db_query("SELECT COUNT(*) AS result
+                      FROM {field_data_field_clicks_nid} r
+                      LEFT JOIN {field_data_field_recipient_mailing_nid} m on r.field_clicks_nid_nid = m.entity_id
+                      WHERE m.field_recipient_mailing_nid_nid = :mailing_nid;",
+                    array(
+    ':mailing_nid' => $node->nid,
+  ))->fetch();
+
+  $values[2] = array(
+    'value' => $result->result,
+    'url' => 2,
+    'title' =>t('Clicks'),
+  );
+  //$values = sort($values);
+
+
+  //return theme('crm_stats', array('values' => $values, 'quicktabs_name' => 'quicktabs-reach_mailing_report'));
+
+}*/
+
+
+/********************************** Blocks *************************************
+
+/**
+ * Implements hook_block_info().
+ */
+function reach_mailing_block_info() {
+  $blocks['mailing_preview'] = array(
+    'info' => t('Preview Mailing'),
+  );
+  return $blocks;
+}
+
+
+/**
+ * Implements hook_block_view().
+ */
+function reach_mailing_block_view($delta = '') {
+  switch ($delta) {
+
+    // Build the html/text preview tabs
+    case 'mailing_preview':
+
+      drupal_add_library('system', 'ui.tabs');
+      drupal_add_js(drupal_get_path('module', 'reach_mailing') . '/js/crm-mailing-preview.js');
+
+      $mailer = reach_mailing_get_mailer(CRM_MAILING_MAILER_CLASS);
+      $node = node_load(arg(1));
+      $body = _reach_mailing_prepare_body($node, $mailer);
+
+      $html = array();
+      $html[] = array('title' => t('HTML Version Preview'), 'content' => $body['html'] );
+      $html[] = array('title' => t('Plain-text Preview'), 'content' => '<pre>' . $body['text'] . '</pre>' );
+
+      $block['title'] = t('Preview');
+      $block['content'] = theme('reach_mailing_preview_tabs', array('html' => $html, 'nid' => $node->nid));
+
+      break;
+  }
+  return $block;
+}
+
+
+
+
+
+/********************************** VBO Actions ********************************
+
+/**
+ * Implementation of hook_action_info().
+ */
+function reach_mailing_action_info() {
+  $actions = array();
+
+  // Add VBO's own programmatic action.
+  $actions['reach_mailing_send_action'] = array(
+    'label' => t('Send Newsletter'),
+    'type' => 'entity',
+    'configurable' => FALSE,
+    'aggregate' => TRUE,
+    /*'permissions' => 'send crm mailing',*/
+  );
+
+  // Add VBO's own programmatic action.
+  $actions['reach_mailing_add_recipients_action'] = array(
+    'label' => t('Add Recipients'),
+    'type' => 'entity',
+    'configurable' => FALSE,
+    'aggregate' => TRUE,
+    /*'permissions' => 'send crm mailing',*/
+  );
+
+  // Add VBO's own programmatic action.
+  $actions['reach_mailing_remove_recipients_action'] = array(
+    'label' => t('Remove Recipients'),
+    'type' => 'entity',
+    'configurable' => FALSE,
+    'aggregate' => TRUE,
+    /*'permissions' => 'send crm mailing',*/
+  );
+
+  return $actions;
+}
+
+/**
+ * Execution function for reach_mailing_send_action action.
+ * Prepares the mailing_recipient nodes.
+ */
+function reach_mailing_send_action(&$object, $context) {
+  global $user;
+  $node = new stdClass();
+  $node->type = 'mailing';
+  $node->uid = $user->uid;
+  node_object_prepare($node);
+  $node->status = FALSE;
+  $node->title = t('Mailing created on !date', array('!date' => format_date(time(), $type = 'medium', $format = '', $timezone = NULL, $langcode = NULL)));
+
+  // Add recipients and save node
+  reach_mailing_add_recipients($node, $object);
+
+  drupal_goto('node/' . $node->nid . '/edit');
+}
+
+/**
+ * Execution function for reach_mailing_add_recipients_action action.
+ */
+function reach_mailing_add_recipients_action(&$object, $context) {
+  $node = node_load(arg(1));
+  reach_mailing_add_recipients($node, $object);
+}
+
+/**
+ * Execution function for reach_mailing_remove_recipients_action action.
+ */
+function reach_mailing_remove_recipients_action(&$object, $context) {
+  $node = node_load(arg(1));
+  reach_mailing_remove_recipients($node, $object);
+}
+
+
+
+
+/**
+ * Recipient CRUD. Add recipients.
+ */
+function reach_mailing_add_recipients($node, $entities) {
+  foreach ($entities as $entity) {
+    if (is_object($entity)) {
+      $id = reach_crm_contact_id($entity);
+    }
+    $node->field_mailing_recipients[LANGUAGE_NONE][]['target_id'] = $id;
+  }
+
+  if ($node->type != 'mailing') {
+    drupal_set_message('You need to select a valid mailing to add recipients to.', 'error');
+    return FALSE;
+  }
+  node_save($node);
+  return $node;
+}
+
+/**
+ * Recipient CRUD. Add recipients.
+ */
+function reach_mailing_remove_recipients($node, $entities) {
+  foreach ($entities as $entity) {
+    $id = reach_crm_contact_id($entity);
+    foreach ($node->field_mailing_recipients[LANGUAGE_NONE] as $key => $delta) {
+      if ($delta['target_id'] == $id) {
+        unset ($node->field_mailing_recipients[LANGUAGE_NONE][$id]);
+      }
+    }
+  }
+  return node_save($node);
+}
+
+
+/**
+ * Implementation of hook_node_presave().
+ * Sends the mailing by looping through the mailing_recipient nodes.
+ */
+/*function reach_mailing_node_presave($node) {
+
+  if ($node->type == 'mailing'){
+    if (!$node->is_new && !$node->field_mailing_sent['und'][0]['value'] && $node->status == 1){
+      dpm('tt');
+      $query = "SELECT n.nid as id, n.title as email, fname.field_fname_value as fname, lname.field_lname_value as lname FROM {node} n
+                left join {field_data_field_recipient_uid} u on u.revision_id = n.vid
+                left join {field_data_field_recipient_mailing_nid} m on m.revision_id = n.vid
+                left join {field_data_field_fname} fname on u.field_recipient_uid_uid = fname.entity_id
+                left join {field_data_field_lname} lname on u.field_recipient_uid_uid = lname.entity_id
+                where type = 'mailing_recipient' and m.field_recipient_mailing_nid_nid=:mailing_nid";
+      $recipients = db_query($query, array(':mailing_nid' => $node->nid))->fetchAllAssoc('id');
+
+      reach_mailing_send($node, $recipients);
+      //reach_mailing_critsend_get_data($node);
+      //$node->field_mailing_sent['und'][0]['value'] ->
+    }
+  }
+}*/
+
+
+
+/********************************** Queue and Send *****************************
+
+/**
+ * Queues the mailing for sending.
+ */
+function reach_mailing_queue($nid) {
+
+  $queue = DrupalQueue::get('reach_mailing');
+  $node = node_load($nid);
+  $deltas = count($node->field_mailing_recipients['und']);
+
+  $batches = 0;
+  for ($i = 0; $i < $deltas; $i += CRM_MAILING_QUEUE_SIZE) {
+    $item = array(
+      'nid' => $node->nid,
+      'deltas' => $deltas,
+      'delta' => 0,
+      'queue_size' => CRM_MAILING_QUEUE_SIZE,
+    );
+    if ($i >= $deltas - CRM_MAILING_QUEUE_SIZE) {
+      $item['last_batch'] = TRUE;
+    }
+    $queue->createItem($item);
+    $batches ++;
+  }
+
+  // Update the mailing status to sending
+  $node->field_mailing_status[LANGUAGE_NONE][0]['value'] = REACH_MAILING_STATUS_SENDING;
+  node_save($node);
+
+  watchdog('reach_mailing', 'Mailing !nid queued to be sent to !recipients recipients in !batches batches.', array('!nid' => $node->nid, '!recipients'=> $deltas, '!batches' => $batches));
+
+}
+
+
+/**
+ * Implementation of hook_cron().
+ */
+function reach_mailing_cron() {
+  reach_mailing_queue_process();
+}
+
+
+/**
+ * Queues the mailing for sending.
+ */
+function reach_mailing_queue_process() {
+
+  $queue = DrupalQueue::get('reach_mailing');
+
+  $num = $queue->numberOfItems();
+  $num = CRM_MAILING_QUEUE_CRON_PROCESS < $num ? CRM_MAILING_QUEUE_CRON_PROCESS : $num;
+
+  for ($q = 0; $q < $num; $q++) {
+
+    $item = $queue->claimItem(3600);
+    if ($item) {
+
+      $node = node_load($item->data['nid']);
+
+      $count = $count_recipients = 0;
+      $recipients = array();
+      $max = ($item->data['deltas'] < $item->data['delta'] + $item->data['queue_size']) ? count($node->field_mailing_recipients[LANGUAGE_NONE]) : $item->data['delta'] + $item->data['queue_size'];
+      for ($i = $item->data['delta']; $i < $max; $i++) {
+        $id = $node->field_mailing_recipients[LANGUAGE_NONE][$i]['target_id'];
+        $contact = reach_crm_load($id);
+        $recipient = array(
+          'id' => $id,
+          'email' => reach_crm_contact_email($contact),
+          'fname' => $contact->field_first_name[LANGUAGE_NONE][0]['safe_value'],
+          'lname' => $contact->field_last_name[LANGUAGE_NONE][0]['safe_value'],
+        );
+        $recipient['name'] = $recipient['fname'] || $recipient['lname'] ? $recipient['fname'] . ' ' . $recipient['lname'] : t('Supporter');
+        $recipients[] = $recipient;
+      } //for
+
+      reach_mailing_send($node, $recipients);
+      $count ++;
+      $count_recipients += count($recipients);
+
+      // Update the mailing status to sent
+      if ($item->data['last_batch'] == TRUE) {
+        $node->field_mailing_status[LANGUAGE_NONE][0]['value'] = REACH_MAILING_STATUS_SENT;
+        $node->status = 1;
+        node_save($node);
+      }
+
+      //$queue->releaseItem($item);
+      $queue->deleteItem($item);
+
+     } //if (item)
+  } //for
+
+  watchdog('reach_mailing', 'Mailing queue processed. !count batches sent to a total of !recipients recipients.', array('!count' => $count, '!recipients' => $count_recipients));
+
+  return ' ';
+
+}
+
+/**
+ * Sends the mailing.
+ */
+function reach_mailing_send($node, $recipients, $test = FALSE){
+
+  $mailer = reach_mailing_get_mailer(CRM_MAILING_MAILER_CLASS);
+  $from = variable_get('site_name', '') . ' <' . variable_get('site_mail', '') . '>';
+
+  $message = array(
+    'body' => array(),
+    'from' => $from,
+    'to' => $from,
+    'recipients' => $recipients,
+    'subject' => $node->field_subject[LANGUAGE_NONE][0]['value'],
+    'category' => variable_get('site_mail', '') . '_' . $node->nid,
+    // TODO: headers (reply-to)?
+  );
+
+  $message['body'] = _reach_mailing_prepare_body($node, $mailer);
+
+  $mailer->mail($message);
+  watchdog('reach_mailing', 'Sent mailing batch: <pre>!message !node</pre>', array('!node' => print_r($node, 1), '!message' => print_r($message, 1)));
+  return ' ';
+
+
+  /*
+
+
+  dpm('mailing sent');
+  reach_mailing_critsend_send($node, $recipients, $from_name = variable_get('site_name', 'Drupal'), $from_mail = variable_get('site_mail', ini_get('sendmail_from')));
+
+  if (!$test){
+    $node->field_mailing_sent['und'][0]['value'] = 1;
+  } else {
+    $node->status = 0;
+  }
+  node_save($node);
+  */
+}
+
+/*
+ * Helper function
+ * Theme the html/text bodies so they are ready to be sent or previewed.
+ */
+function _reach_mailing_prepare_body($node, $mailer, $recipient = NULL) {
+  $body = array();
+  $body['html'] = theme('reach_mailing_template_html', array('html_message' => $node->body[LANGUAGE_NONE][0]['value']));
+  $body['html'] = $mailer->tokenize(check_markup($body['html'], 'mailing_html_message', '', FALSE), 'html', $recipient);
+  $body['html'] = str_replace('[nid]', $node->nid, $body['html']);
+  // Add the open tracker transparent png to HTML version
+  if (module_exists('reach_mailing_analytics')) {
+    $body['html'] .= '<img src="' . url(CRM_MAILING_OPEN . '/' . $node->nid . '/' . $recipient['id'], array('absolute' => TRUE)) . '" width="1px" height="1px" alt="Placehodler" />';
+  }
+  $body['text'] = theme('reach_mailing_template_text', array('text_message' => $node->field_body_plain[LANGUAGE_NONE][0]['value']));
+  $body['text'] = $mailer->tokenize(check_markup($body['text'], 'mailing_text_message', '', FALSE), 'text', $recipient);
+  $body['text'] = str_replace('[nid]', $node->nid, $body['text']);
+  return $body;
+}
+
+
+/*
+ * Get the mailer class we are using.
+ * TODO: implement as a ctools plugin?
+ */
+function reach_mailing_get_mailer($mailer_name = CRM_MAILING_MAILER_CLASS) {
+  module_load_include('inc', 'reach_mailing', 'reach_mailing.mail');
+  module_invoke_all('reach_mailing_load_mailer', $mailer_name);
+  return new $mailer_name;
+}
+
+/**
+ * Implementation of hook_node_view().
+ * If mailing is sent, redirect to report pg, otherwise redirect to edit page (unless view is specified).
+ * TODO: Polish up logic here
+ */
+/*function reach_mailing_node_view($node, $view_mode, $langcode){
+  if ($node->type == 'mailing'){
+    if (!$node->field_mailing_sent || !$node->field_mailing_sent['und'][0]['value']){
+      drupal_goto('node/' . $node->nid . '/edit');
+    } else {
+      $node->content['report']['#markup'] = reach_mailing_report($node);
+    }
+  }
+}*/
+
+
+
+/**
+ * An API function for the different mailers to call to update a recipient node.
+ *  @action = sent|open|unsubscribe|bounce|spam
+ */
+function reach_mailing_create_action($type, $pid, $mailing_nid, $data = array()){
+
+  $endpoints = array(
+    array('type' => 'party', 'id' => $pid),
+    array('type' => 'node', 'id' => $mailing_nid),
+  );
+
+  $points = $node->reach_webform['points'] * $donation['amount'];
+
+  $type = 'mailing_' . $type;
+
+  return TRUE;//reach_crm_save_relation($type, $endpoints, $points, $data);
+
+
+  //$data['field_amount'][LANGUAGE_NONE][0]['value'] = $donation['amount'];
+}
+
+
+
+
+
+
+
+
+
+/**
+ * Helper function grabs an ISO date to save in Drupal fields.
+ */
+function _reach_mailing_prepare_date($timestamp){
+  return format_date($timestamp, $type = 'custom', $format = 'Y-m-d\TH:i:s', $timezone = 'UTC', $langcode = NULL);
+}
+
+
+/********************************** Theme implementations **********************
+
+/**
+ * Implementation of hook_theme().
+ */
+function reach_mailing_theme() {
+
+  $module_path = drupal_get_path('module', 'reach_mailing');
+
+  $base = array(
+    'path' => "$module_path/theme",
+  );
+  return array(
+    'reach_mailing_template_html' => array(
+       'template' => 'email-template-html',
+       'variables' => array('html_message' => NULL),
+     ),
+     'reach_mailing_template_text' => array(
+       'template' => 'email-template-text',
+       'variables' => array('text_message' => NULL),
+     ),
+     'reach_mailing_preview_tabs' => array('html' => array(), 'nid' => NULL),
+  );
+}
+
+
+/**
+ * Theme callback to display tab html.
+ */
+function theme_reach_mailing_preview_tabs($variables) {
+  $links = '';
+  $content = '';
+  foreach ($variables['html'] as $key => $tab){
+    $key = 'event-tab-' . $key;
+    $links .= '<li><a href="#' .$key. '">' . t($tab['title']) .'</a></li>';
+    $content .= '<div id="' . $key . '">' . $tab['content'] . '</div>';
+  }
+  $links = '<ul>' . $links . '</ul>';
+  $edit = l('Edit Message', 'node/' . $variables['nid'] . '/edit', array('attributes' =>array('class' => array('preview-edit-link'))));
+  return '<div id="mailing-preview">' . $links . $edit . $content . '</div>';
+}
+
+
+/********************************** CTools hook implementations ****************
+
+/**
+ * Implements hook_ctools_plugin_type().
+ *
+ * Declare the plugin types we invent.
+ */
+function reach_mailing_ctools_plugin_type() {
+  // Party name label plugins provide ways to generate a party name label
+  // from a party.
+  $plugins['reach_mailing_mailer'] = array(
+  );
+
+  return $plugins;
+}
+
+/**
+ * Implements hook_ctools_plugin_directory().
+ */
+function reach_mailing_ctools_plugin_directory($owner, $plugin_type) {
+  if ($plugin_type == 'reach_mailing_mailer') {
+    return 'plugins/reach_mailing_mailer';
+  }
+}
+
+
+/**
+ * Retrieve object of main class of operation.
+ *
+ * @param type $id
+ * @param type $number_a
+ * @param type $number_b
+ * @return class
+ */
+function _reach_mailing_get_mailer() {
+  //$instances = &drupal_static(__FUNCTION__);
+
+  //if (!isset($instances[$id])) {
+    ctools_include('plugins');
+    $sender_name = variable_get('reach_mailing_mailer', 'sendgrid');
+    $sender = ctools_get_plugins('reach_mailing', 'reach_mailing_mailer', $sender_name);
+    return ctools_plugin_get_class($plugin, 'handler');
+
+
+    // Check that plugin class has ingerited proper 'example_operation' class.
+
+  //}
+
+}
+
+
+/********************************** Text Filters ********************************
+
+
+/**
+ * Implements hook_filter_info().
+ */
+function reach_mailing_filter_info() {
+  $filters['reach_mailing_html_url'] = array(
+    'title' => t('Mailing HTML link converter'),
+    'description' => t('Replaces URLS for links and text to a re-written URL for tracking'),
+    'process callback' => 'reach_mailing_filter_html_url_filter_process',
+  );
+  $filters['reach_mailing_text_url'] = array(
+    'title' => t('Mailing text URL converter'),
+    'description' => t('Replaces URLS for links and text to a re-written URL for tracking'),
+    'process callback' => 'reach_mailing_filter_text_url_filter_process',
+  );
+  return $filters;
+}
+
+/**
+ * Filter process callback for reach_mailing_html_url filter.
+ */
+function reach_mailing_filter_html_url_filter_process($text) {
+  if (module_exists('reach_mailing_analytics')) {
+    return  preg_replace_callback('/(href=["|\'])(.*?)(["|\'])/i', 'reach_mailing_filter_html_url_filter_replace', $text);
+  } else {
+    return $text;
+  }
+}
+function reach_mailing_filter_html_url_filter_replace($matches){
+  return $matches[1] . url(CRM_MAILING_CTR, array('absolute' => TRUE)) . '/[nid]/[id]?url=' . urlencode($matches[2]) . $matches[3];
+}
+
+/**
+ * Filter process callback for reach_mailing_text_url filter.
+ */
+function reach_mailing_filter_text_url_filter_process($text) {
+  if (module_exists('reach_mailing_analytics')) {
+    return preg_replace_callback('@(https?://([-\w\.]+)+(:\d+)?(/([\w/_\.]*(\?\S+)?)?)?)@', 'reach_mailing_filter_text_url_filter_replace', $text);
+  } else {
+    return $text;
+  }
+}
+function reach_mailing_filter_text_url_filter_replace($matches){
+  return url(CRM_MAILING_CTR, array('absolute' => TRUE)) . '/[nid]/[id]?url=' . urlencode($matches[0]);
+}
+
+

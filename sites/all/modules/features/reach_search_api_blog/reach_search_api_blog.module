@@ -1,0 +1,7 @@
+<?php
+/**
+ * @file
+ * Code for the Reach Search API Blog feature.
+ */
+
+include_once 'reach_search_api_blog.features.inc';

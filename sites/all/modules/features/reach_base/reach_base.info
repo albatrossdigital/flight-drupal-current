@@ -1,0 +1,24 @@
+name = "Reach Core"
+description = "Installs the base Reach install modules and features"
+core = "7.x"
+package = "Reach"
+
+; Reach crm core (with Redhen)
+dependencies[] = redhen
+dependencies[] = reach_crm
+dependencies[] = reach_crm_redhen
+
+; Reach features
+dependencies[] = reach_form
+dependencies[] = reach_page
+;dependencies[] = reach_donation
+dependencies[] = reach_social
+dependencies[] = reach_social_blocks
+
+; Oauth (for fb connect)
+dependencies[] = oauth2_common
+dependencies[] = connector
+dependencies[] = oauthconnector
+
+; Reach content
+;dependencies[] = reach_default_content

@@ -1,0 +1,350 @@
+@import _mixins.sass
+
+/**************************
+/*  BODY
+/**************************/
+
+/* Handy font size definitions
+  font-size: .625em;   16px x .625   = 10px
+  font-size: .6875em;  16px x .6875  = 11px
+  font-size: .75em;    16px x .75    = 12px
+  font-size: .8125em;  16px x .8125  = 13px
+  font-size: .875em;   16px x .875   = 14px
+  font-size: .9375em;  16px x .9375  = 15px
+  font-size: 1.0625em; 16px x 1.0625 = 17px
+  font-size: 1.5em;    16px x 1.5    = 24px
+
+
+body
+  font-size: .875em
+  
+  #page
+    font-family: $font_normal
+    line-height: 1.9em
+    
+    &.clearfix
+      &:after
+        display: none
+        
+
+/* Font Awsome import
++fontawe-init()
+
+
+/**************************
+/*  LINKS
+/**************************/
+
+a
+  &:link, &:visited
+    color: $link
+
+a
+  &:hover, &:active
+
+
+/**************************
+/*  TEXT
+/**************************/
+.section-header .block p,
+.section-footer .block p
+
+
+/**************************
+/*  PAGE ELEMENTS
+/**************************/
+
+.page-element
+
+  /* logo
+  &.logo-wrapper
+
+    a
+
+  /* site name + slogan
+  &.site-name-wrapper,
+  &.site-slogan-wrapper
+
+  /* site name
+  &.site-name-wrapper
+
+
+    #site-name
+
+
+      a
+
+        &:hover
+
+
+  /* site slogan
+  &.site-slogan-wrapper
+
+    #site-slogan
+
+
+  /*page title
+  &.page-title-wrapper
+
+    #page-title
+
+
+
+
+/**************************
+/*  TITLES
+/**************************/
+
+h1, h2, h3, h4, h5, h6
+  line-height: 1.3em
+
+h1
+  font-size: 2.2em
+  padding: 0
+  margin: 0
+
+  a,
+  a:hover
+    text-decoration: none
+
+h2
+  font-size: 1.7em
+  margin-bottom: 0.5em
+
+h3
+  font-size: 1.2em
+  margin-bottom: 1em
+
+h4
+  font-size: 1.2em
+  margin-bottom: 0.8em
+
+h5
+  font-size: 1.1em
+  font-weight: 600
+  margin-bottom: 0
+
+h6
+  font-size: 1em
+  font-weight: bold
+
+
+/*-------------------------
+/*  Block title
+/*-------------------------
+
+h2.block-title
+
+  a
+
+/**************************
+/*  LISTS
+/**************************/
+
+.node ol,
+.node ul
+  padding-left: 2em
+
+
+/**************************
+/*  IMGS + MEDIA
+/**************************/
+img
+  height: auto
+  max-width: 100%
+  
+  .field-type-media &,
+  .pane-node-field-content-media &
+    margin-bottom: 20px
+
+
+
+/**************************
+/*  FORMS
+/**************************/
+
+textarea,
+select,
+input[type="date"],
+input[type="datetime"],
+input[type="datetime-local"],
+input[type="email"],
+input[type="month"],
+input[type="number"],
+input[type="password"],
+input[type="search"],
+input[type="tel"],
+input[type="text"],
+input[type="time"],
+input[type="url"],
+input[type="week"]
+
+
+input.form-text
+  html.js &
+    &.form-autocomplete
+      +old-sprite(99%, (($input_h - 13)/2), "throbber-inactive.gif")
+
+    &.throbbing
+      +old-sprite(99%, (($input_h - 13)/2), "throbber-active.gif")
+
+
+select
+
+select,
+input.form-text
+  height: $input_h
+  padding: 4px 10px
+  margin: 0
+
+
+/* submits
+button,
+input[type="reset"],
+input[type="submit"],
+input[type="button"],
+a.buttonize,
+.buttonize .pane-content a
+  +buttonize(auto, $b_link_h)
+
+
+form
+
+  label
+
+  a.fieldset-link
+
+  fieldset
+
+    legend
+
+  .form-item,
+  .form-actions
+
+  /* infield labels
+  &.infieldlabels
+    label.processed
+
+  .webform-container-inline
+    label
+
+  /* horizontal styles
+  &.webform-horizontal
+    .webform-component,
+    .webform-component:nth-child(even),
+    .webform-component:nth-child(odd)
+
+    .form-actions
+
+  /* fb connect
+
+  &.fbconnect-form
+
+
+  .fbconnect-wrapper
+
+
+    a
+
+
+    a.fbconnect
+
+      &:hover
+
+    a.fbconnect-tooltip
+
+      &:hover
+      
+
+/**************************
+/*  MESSAGES
+/**************************/
+#messages
+
+
+/**************************
+/*  Reach Social
+/**************************/
+ul.links
+  li
+    &.facebook,
+    &.twitter,
+    &.google
+      
+      a
+        +f(alt)
+        display: inline-block
+        
+        &:before
+          padding-right: 10px
+          
+        
+
+    &.facebook
+      a
+        +fontawe(facebook-sign, 24px, $facebook, darken($facebook, 10%))
+        
+    &.twitter
+      a
+        +fontawe(twitter-sign, 24px, $twitter, darken($twitter, 10%))
+
+    &.google
+      a
+        +fontawe(google-plus-sign, 24px, $google, darken($google, 10%))
+        
+
+/**************************
+/*  PAGER
+/**************************/
+.item-list ul.pager
+  float: right
+  +list_float()
+  
+  #page &
+    margin-top: 35px
+  
+  li
+    font-weight: normal
+    margin: 0 0 5px $col_margin
+    padding: 0
+    
+    a
+      display: block
+      color: $text_color
+      
+    &.pager-item,
+    &.pager-current
+      +buttonize(30px, 30px, 1em, $pager_light)
+    
+    &.pager-current
+      background: $pager
+      color: $text_color
+    
+    &.pager-next,
+    &.pager-previous
+
+    &.pager-next
+      a
+        +fontawe_buttonize_r(chevron-right, 32px, 32px, 15px, #fff, false, $pager_darkest, darken($pager_darkest, 15%), true)
+      
+    &.pager-previous
+      a
+        +fontawe_buttonize_r(chevron-left, 32px, 32px, 15px, #fff, false, $pager_darkest, darken($pager_darkest, 15%), true)
+    
+    &.pager-first,  
+    &.pager-last,
+    &.pager-ellipsis
+      +s(hide)
+
+
+/**************************
+/*  QTIP
+/**************************/
+
+.ui-tooltip
+
+  &.ui-tooltip-blue .ui-tooltip-titlebar,
+  &.ui-tooltip-blue .ui-tooltip-content
+
+
+

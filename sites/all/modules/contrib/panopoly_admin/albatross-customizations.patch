@@ -1,0 +1,5 @@
+comment out lines:
+
+82: unset($form['path']['#type']); // remove the fieldset
+107: $form['options']['promote']['#access'] = FALSE; (comment out)
+108: $form['options']['sticky']['#access'] = FALSE; (comment out)

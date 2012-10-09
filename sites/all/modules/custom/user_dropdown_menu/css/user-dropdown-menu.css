@@ -1,0 +1,23 @@
+/* line 6, ../sass/user-dropdown-menu.sass */
+#block-user_dropdown_menu-dropdown {
+  position: relative; }
+  /* line 9, ../sass/user-dropdown-menu.sass */
+  #block-user_dropdown_menu-dropdown,
+  #block-user_dropdown_menu-dropdown a,
+  #block-user_dropdown_menu-dropdown menu li a {
+    color: white; }
+  /* line 14, ../sass/user-dropdown-menu.sass */
+  #block-user_dropdown_menu-dropdown .block-title {
+    font-size: 1em;
+    padding: 5px 30px 5px 10px;
+    background: black url(../images/arrow-line.png) right center no-repeat; }
+  /* line 19, ../sass/user-dropdown-menu.sass */
+  #block-user_dropdown_menu-dropdown .content {
+    background-color: black;
+    min-width: 100px;
+    padding: 5px 10px;
+    right: 0; }
+
+/* line 26, ../sass/user-dropdown-menu.sass */
+#block-user_dropdown_menu-dropdown.open .block-title {
+  background-color: #333333; }

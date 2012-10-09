@@ -1,0 +1,2 @@
+dasfdfasdfs
+<?php print $link; ?>

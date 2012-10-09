@@ -1,0 +1,221 @@
+/* Albatross Mixins
+ * @mixin sprite($left, $top, $url: url(../images/sprite.png))
+ * @mixin sprite-block($width, $height, $left, $top, $url: url(../images/sprite.png?a))
+ * @mixin fixed-background($image: url(../images/bg.jpg), $color: #fff)
+ * @mixin fade-background($start, $stop, $position: top)
+ * @mixin auto-fade-background($color, $position: top)
+ * @mixin auto-fade-background-hover($color)
+ * @mixin link-clear($color)
+ * @mixin list-clear
+ * @mixin list-float($float: left, $margin-horizontal: 10px, $margin-vertical: 0) */
+/**********************************
+ * FONT MIXINS
+ ********************************** */
+/* line 6, ../sass/albatross-admin.sass */
+.block, .item-list, .help-items ul, .form-item, .confirmation ul, .admin-list, .node-type-list, .admin-panel {
+  border: none; }
+
+/* Toolbar */
+/* line 13, ../sass/albatross-admin.sass */
+#toolbar a {
+  font-size: 1em; }
+/* line 17, ../sass/albatross-admin.sass */
+#toolbar div.toolbar-menu ul li a.active:hover,
+#toolbar div.toolbar-menu ul li a.active:active,
+#toolbar div.toolbar-menu ul li a.active, #toolbar div.toolbar-menu ul li.active-trail a {
+  background: #00456a; }
+
+/* Branding for full-page view */
+/* line 25, ../sass/albatross-admin.sass */
+#branding {
+  background-color: #23baeb;
+  font-family: "Lucida Grande", "Lucida Sans Unicode", sans-serif; }
+  /* line 29, ../sass/albatross-admin.sass */
+  #branding .page-title {
+    text-transform: uppercase;
+    padding: 0 10px; }
+  /* line 33, ../sass/albatross-admin.sass */
+  #branding h1.page-title {
+    padding: 0; }
+  /* line 37, ../sass/albatross-admin.sass */
+  #branding .breadcrumb,
+  #branding .breadcrumb a {
+    color: #333333; }
+
+/* Overlay */
+/* line 42, ../sass/albatross-admin.sass */
+#overlay {
+  padding-right: 0;
+  padding-left: 0; }
+  /* line 46, ../sass/albatross-admin.sass */
+  #overlay #branding div.breadcrumb {
+    font-size: 1.1em; }
+
+/* line 49, ../sass/albatross-admin.sass */
+#overlay-content {
+  padding-top: 85px; }
+
+/* line 53, ../sass/albatross-admin.sass */
+#overlay-titlebar {
+  position: absolute;
+  padding: 0;
+  width: 100%; }
+  /* line 58, ../sass/albatross-admin.sass */
+  #overlay-titlebar #overlay-title-wrapper {
+    height: 50px;
+    line-height: 50px;
+    margin: 20px;
+    background-color: #23baeb;
+    font-family: "Lucida Grande", "Lucida Sans Unicode", sans-serif;
+    text-transform: uppercase;
+    padding: 0 10px; }
+    /* line 67, ../sass/albatross-admin.sass */
+    #overlay-titlebar #overlay-title-wrapper h1#overlay-title {
+      padding: 0; }
+  /* line 70, ../sass/albatross-admin.sass */
+  #overlay-titlebar .add-or-remove-shortcuts {
+    padding-top: 1.5em; }
+  /* line 73, ../sass/albatross-admin.sass */
+  #overlay-titlebar #overlay-tabs {
+    bottom: 18px;
+    right: 30px; }
+  /* line 78, ../sass/albatross-admin.sass */
+  #overlay-titlebar #overlay-close-wrapper {
+    top: 0; }
+    /* line 81, ../sass/albatross-admin.sass */
+    #overlay-titlebar #overlay-close-wrapper li {
+      margin: 0 2px; }
+
+/* Tabs */
+/* line 87, ../sass/albatross-admin.sass */
+ul.tabs.primary li a,
+ul.tabs.primary li a:hover,
+ul.tabs.primary li a:visited,
+#overlay-tabs li a,
+#overlay-tabs li a:hover,
+#overlay-tabs li a:visited {
+  background-color: #e3e3e3;
+  margin: 0 3px !important;
+  text-transform: none;
+  font-weight: normal;
+  font-size: 13px;
+  -moz-border-radius-topleft: 4px;
+  -webkit-border-top-left-radius: 4px;
+  border-top-left-radius: 4px;
+  -moz-border-radius-topright: 4px;
+  -webkit-border-top-right-radius: 4px;
+  border-top-right-radius: 4px;
+  border: none; }
+  /* line 98, ../sass/albatross-admin.sass */
+  ul.tabs.primary li a:hover,
+  ul.tabs.primary li a:hover:hover,
+  ul.tabs.primary li a:visited:hover,
+  #overlay-tabs li a:hover,
+  #overlay-tabs li a:hover:hover,
+  #overlay-tabs li a:visited:hover {
+    background-color: #ebebeb;
+    color: black; }
+    /* line 102, ../sass/albatross-admin.sass */
+    ul.tabs.primary li a:hover.active,
+    ul.tabs.primary li a:hover:hover.active,
+    ul.tabs.primary li a:visited:hover.active,
+    #overlay-tabs li a:hover.active,
+    #overlay-tabs li a:hover:hover.active,
+    #overlay-tabs li a:visited:hover.active {
+      background-color: white !important; }
+
+/* Page */
+/* line 106, ../sass/albatross-admin.sass */
+#page {
+  padding: 20px; }
+
+/* Display suite layouts */
+/* line 112, ../sass/albatross-admin.sass */
+.ds-2col .group-left {
+  width: 64%;
+  margin-right: 4%; }
+/* line 116, ../sass/albatross-admin.sass */
+.ds-2col .group-right {
+  width: 32%; }
+
+/* Blocks */
+/* line 20, ../sass/_mixins.sass */
+.block h2,
+.block .fieldset-legend,
+.panel-pane h2,
+.panel-pane .fieldset-legend,
+#dashboard .dashboard-region div.block h2,
+#dashboard .dashboard-region div.block .fieldset-legend {
+  color: #00456a;
+  margin: 0;
+  font-size: 1em;
+  padding: 0 10px;
+  line-height: 2em;
+  display: block; }
+/* line 30, ../sass/_mixins.sass */
+.block h2,
+.panel-pane h2,
+#dashboard .dashboard-region div.block h2 {
+  background: #f3f4ee; }
+
+/* Forms */
+/* line 129, ../sass/albatross-admin.sass */
+.vertical-tabs .form-type-textfield input {
+  width: auto; }
+/* line 132, ../sass/albatross-admin.sass */
+.vertical-tabs .form-type-textfield .form-select {
+  width: 250px; }
+
+/* line 136, ../sass/albatross-admin.sass */
+.div.vertical-tabs {
+  background-color: #dfdfdf; }
+
+/* line 139, ../sass/albatross-admin.sass */
+#views-ajax-pad form {
+  padding: 3px 10px; }
+
+/* line 143, ../sass/albatross-admin.sass */
+form#views-ui-add-item-form .form-item label {
+  color: black !important; }
+/* line 145, ../sass/albatross-admin.sass */
+form#views-ui-add-item-form .form-item .description {
+  color: #dddddd !important; }
+
+/* line 148, ../sass/albatross-admin.sass */
+iframe.media-modal-frame {
+  padding: 0 !important; }
+
+/* line 151, ../sass/albatross-admin.sass */
+input.form-submit, a.button {
+  border-radius: 6px !important;
+  background-color: white !important; }
+
+/* line 155, ../sass/albatross-admin.sass */
+input.form-submit:hover, a.button:hover {
+  border-top: 1px solid #b4b4b4;
+  border-bottom: 1px solid #e4e4e4; }
+
+/* line 160, ../sass/albatross-admin.sass */
+form.node-form #edit-actions #edit-submit {
+  background: #00456a !important;
+  color: #f3f4ee; }
+/* line 164, ../sass/albatross-admin.sass */
+form.node-form #edit-actions #edit-draft {
+  background: #3a6f8f !important;
+  color: #f3f4ee; }
+
+/* line 168, ../sass/albatross-admin.sass */
+img.typekit-badge,
+.typekit-badge {
+  max-height: none !important;
+  min-height: none !important;
+  height: 0 !important;
+  display: none !important; }
+
+/* Views */
+/* line 179, ../sass/albatross-admin.sass */
+.view .views-row {
+  padding: 2px 5px; }
+  /* line 182, ../sass/albatross-admin.sass */
+  .view .views-row.views-row-even {
+    background-color: #f3f4ee; }

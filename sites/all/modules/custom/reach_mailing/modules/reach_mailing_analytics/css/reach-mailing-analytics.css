@@ -1,0 +1,28 @@
+/* line 1, ../sass/reach-mailing-analytics.sass */
+#block-reach-mailing-analytics-stats {
+  position: absolute;
+  width: 250px;
+}
+/* line 5, ../sass/reach-mailing-analytics.sass */
+#block-reach-mailing-analytics-stats a {
+  display: block;
+  padding: 5px;
+  font-size: 1.2em;
+  position: relative;
+}
+/* line 11, ../sass/reach-mailing-analytics.sass */
+#block-reach-mailing-analytics-stats a:hover, #block-reach-mailing-analytics-stats a.active {
+  text-decoration: none;
+  background-color: #eeeeee;
+}
+/* line 16, ../sass/reach-mailing-analytics.sass */
+#block-reach-mailing-analytics-stats a .field-value {
+  position: absolute;
+  right: 5px;
+}
+
+/* line 20, ../sass/reach-mailing-analytics.sass */
+#block-reach-mailing-analytics-chart,
+#analytics-view-content {
+  margin-left: 260px;
+}

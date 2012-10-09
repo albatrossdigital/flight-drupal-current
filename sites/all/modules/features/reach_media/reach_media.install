@@ -1,0 +1,22 @@
+<?php
+/**
+ * @file
+ */
+
+
+/**
+ * Implements hook_install().
+ */
+function reach_media_install() {
+  // TODO: These should get set by Strongarm, but they aren't
+  variable_set('default_oembedcore_provider', array(
+    'flickr' => '',
+    'youtube' => '',
+    'vimeo' => '',
+    'oembedembedly_youtube' => 1,
+    'oembedembedly_flickr' => 1,
+    'oembedembedly_vimeo' => 1,
+  ));
+  
+}
+

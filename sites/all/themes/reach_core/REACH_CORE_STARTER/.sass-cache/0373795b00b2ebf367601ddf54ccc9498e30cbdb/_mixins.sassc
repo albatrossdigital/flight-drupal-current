@@ -1,0 +1,2022 @@
+3.1.18 (Brainy Betty)
+4afac5fd2471222a70ea18c71731fd2056d2f49f
+o:Sass::Tree::RootNode	:@has_childrenT:@template"A9@import _variables.sass
+
+// Sprite creation
+@import "compass/utilities/sprites/base"
+$icons-spacing: 60px
+@import "icons/*.png"
+$disable-magic-sprite-selectors:true
+@include all-icons-sprites
+
+
+// Sprite mixins
+
+@function center-y($y, $item)
+  $h: icons-sprite-height($item)
+  @return (($y - $h) / 2)
+  
+@function center-x($x, $item)
+  $w: icons-sprite-width($item)
+  @return (($x - $w) / 2)
+  
+  
+
+//****
+// FONTs
+
+@mixin adelle($alt: normal)
+  font-family: $font_adelle
+  @if $alt == italic
+    font-style: italic
+  @else if $alt == bold
+    font-weight: bold
+  @else if $alt == bolditalic
+    font-style: italic
+    font-weight: bold
+  
+@mixin leaguegothic()
+  font-weight: normal
+  font-family: $font_league
+
+// Borderbox mixin
+// Use box-sizing: border-box; with impunity
+// Borderbox outputs equivalent CSS in <IE8
+
+// Set to true if you prefer declaring a global box-sizing prop.
+//
+// Ex:
+// $global-border-box: true;
+// 
+// * {
+//     @include box-sizing(border-box);
+// }
+
+$global-border-box: false !default
+
+@mixin borderbox($dimensions, $padding: false, $border: false) 
+  @if not $global-border-box 
+    @include box-sizing(border-box)
+  
+
+  // Extract width/height values
+  $width: nth($dimensions, 1)
+  $height: false
+
+  @if length($dimensions) == 2 
+    $height: nth($dimensions, 2)
+  
+
+  // Extract padding values
+  $padding-length: length($padding)
+  $padding-y: 0
+  $padding-x: 0
+
+  @if $padding 
+    padding: $padding
+
+    @if $padding-length == 4 
+      $padding-y: nth($padding, 1) + nth($padding, 3)
+      $padding-x: nth($padding, 2) + nth($padding, 4)
+    @else if $padding-length == 3 
+      $padding-y: nth($padding, 1) + nth($padding, 3)
+      $padding-x: nth($padding, 2) * 2
+    @else if $padding-length == 2 
+      $padding-y: nth($padding, 1) * 2
+      $padding-x: nth($padding, 2) * 2
+    @else if $padding-length == 1 
+      $padding-y: $padding * 2
+      $padding-x: $padding * 2
+    
+  
+
+  // Extract border values
+  $use-border-shorthand: false
+  $border-width: false
+
+  @each $unit in $border 
+    @if type-of($unit) == number 
+      @if $border-width 
+        $border-width: append($border-width, $unit)
+      @else 
+        $border-width: $unit
+      
+    @else 
+      $use-border-shorthand: true
+    
+  
+
+  $border-length: length($border-width)
+  $border-y: 0
+  $border-x: 0
+
+  @if $border 
+    @if $use-border-shorthand 
+      border: $border
+    @else 
+      border-width: $border-width
+    
+
+    @if $border-length == 4 
+      $border-y: nth($border-width, 1) + nth($border-width, 3)
+      $border-x: nth($border-width, 2) + nth($border-width, 4)
+    @else if $border-length == 3 
+      $border-y: nth($border-width, 1) + nth($border-width, 3)
+      $border-x: nth($border-width, 2) * 2
+    @else if $border-length == 2 
+      $border-y: nth($border-width, 1) * 2
+      $border-x: nth($border-width, 2) * 2
+    @else if $border-length == 1 
+      $border-y: $border-width * 2
+      $border-x: $border-width * 2
+  
+
+  // Set width value
+  @if $width 
+    @if $width == auto 
+      width: $width
+    @else 
+      width: $width
+      @if $legacy-support-for-ie 
+        *width: $width - $padding-x - $border-x
+      
+    
+  
+
+  // Set height value
+  @if $height 
+    @if $height == auto 
+      height: $height 
+    @else
+      height: $height
+      @if $legacy-support-for-ie
+        *height: $height - $padding-y - $border-y
+
+@function grid-width($n, $left_outer: false, $right_outer: false)
+  @if $n == false
+    @return auto
+  @else
+    $width: ($n * $col_width) + (2 * $col_margin * ($n - 1))
+    @if $left_outer == true
+      $width: $width + $col_margin_outer
+    @if $right_outer == true
+      $width: $width + $col_margin_outer
+    @return $width
+    
+@mixin rounded($r)
+  +border-radius($r)
+  border-radius: $r
+  behavior: url(/sites/all/libraries/css3pie/PIE.htc)
+
+// Utilize the themes alternate text in style
+@mixin alternate-font($set: true, $f_weight: $font_alt_weight)
+  +leaguegothic()
+  @if $set == true
+    font-style: normal
+    letter-spacing: $font_league_spacing
+    text-transform: uppercase
+  
+@mixin normal-font($set: true, $f_weight: normal)
+  font-family: $font_normal
+  @if $set == true
+    font-weight: $f_weight
+    text-transform: none
+
+@mixin box-border($w, $h, $b)
+  +box-sizing(border-box)
+  border: $b solid
+  //if height is auto
+  @if $h == auto
+    height: $h
+  @else 
+    height: $h
+    *height: $h - (2 * $b)
+  //if width is auto
+  @if $w == auto 
+    width: $w
+  @else
+    width: $w
+    *width: $w - (2 * $b)
+    
+@mixin border-override($c: transparent)
+  border-bottom-color: $c
+  border-left-color: $c
+  border-right-color: $c
+  border-top-color: $c
+
+@mixin block-link($w, $h, $f: 1em, $alt: true, $display: block)
+  display: $display
+  height: $h
+  font-size: $f
+  @if $h == auto
+    line-height: 1em
+  @else  
+    line-height: $h
+  @if $alt == true
+    +alternate-font()
+  text-decoration: none
+  width: $w
+  
+  &:hover
+    text-decoration: none
+  
+//Make link into button style
+@mixin buttonize-link($w, $h, $f: 1.4em, $back_c: $b_back_color, $alt: true, $display: block)
+  +block-link($w, $h, $f, $alt, $display)
+  background: $b_back_color
+  border-bottom: 2px solid darken($back_c, 20%)
+  color: $color1_font
+  +rounded(2px)
+  text-align: center
+  
+  &:hover
+    background: lighten($back_c, 5%)
+  
+
+//cross browser top facing fade
+@mixin simple-grad-top($c, $c2: false)
+  background-color: $c
+  $experimental-support-for-svg: true
+  //if no second color, just use lighten
+  @if $c2 == false
+    @include filter-gradient(lighten($c, 5%), $c)
+    +background-image(linear-gradient(color-stops(lighten($c, 5%), $c 50%, $c 100%)))
+  @else
+    @include filter-gradient($c, $c2)
+    +background-image(linear-gradient(color-stops($c, $c2 50%, $c2 100%)))  
+  
+//cross browser bottom facing fade
+@mixin simple-grad-bottom($c, $c2: false)
+  background-color: $c
+  //if no second color, just use darken
+  @if $c2 == false
+    @include filter-gradient($c, darken($c, 5%))
+    $experimental-support-for-svg: true
+    +background-image(linear-gradient(color-stops($c, $c 50%, darken($c, 5%) 100%)))
+  @else
+    @include filter-gradient($c, $c2)
+    $experimental-support-for-svg: true
+    +background-image(linear-gradient(color-stops($c, $c 50%, $c2)))
+  
+@mixin square-button-link($n: false, $h: $square_block_h, $font_s: $square_block_font)
+  $w: grid-width($n)
+  display: block
+  font-size: 1em
+  height: $h
+  position: relative
+  width: $w
+  
+  span
+    @if $w == auto
+      +block-link($w, auto, $font_s)
+    @else
+      +block-link(($w - 20), auto, $font_s)
+    bottom: 10px
+    display: block
+    position: absolute
+    left: 10px
+    
+@mixin clear-square-button-link()
+  float: none
+  height: auto
+  position: relative
+  width: auto
+  
+  span
+    bottom: auto
+    left: 20px
+    padding: 10px 0
+    position: relative
+    width: auto
+
+    
+/***********************************
+ * FONT MIXINS
+ ***********************************/
+    
+@mixin font-face-sansus() 
+  @font-face
+    font-family: 'Sansus'
+    src: url('../fonts/sansus-webissimo-regular-webfont.eot')
+    src: url('../fonts/sansus-webissimo-regular-webfont.eot?#iefix') format('embedded-opentype'), url('../fonts/sansus-webissimo-regular-webfont.woff') format('woff'), url('../fonts/sansus-webissimo-regular-webfont.ttf') format('truetype'), url('../fonts/sansus-webissimo-regular-webfont.svg#ArvoItalic') format('svg')
+    font-weight: normal
+    font-style: normal
+    
+  @font-face
+    font-family: 'Sansus'
+    src: url('../fonts/sansus-webissimo-italic-webfont.eot')
+    src: url('../fonts/sansus-webissimo-italic-webfont.eot?#iefix') format('embedded-opentype'), url('../fonts/sansus-webissimo-italic-webfont.woff') format('woff'), url('../fonts/sansus-webissimo-italic-webfont.ttf') format('truetype'), url('../fonts/sansus-webissimo-italic-webfont.svg#ArvoItalic') format('svg')
+    font-weight: normal
+    font-style: italic
+
+  
+  
+/******************************************8
+
+@mixin old-sprite($left, $top, $img: "sprite.png", $repeat: no-repeat)
+  background-image: url(../images/#{$img})
+  background-position: $left $top
+  background-repeat: no-repeat
+  
+@mixin sprite-block($width, $height, $left, $top, $img: "sprite.png", $repeat: no-repeat)
+  width: $width
+  height: $height
+  display: block
+  text-indent: -1000em
+  overflow: hidden
+  @include old-sprite($left, $top, $img, $repeat)
+
+@mixin fixed-background($image: url(../images/bg.jpg), $color: #fff)
+  color: #fff
+  background: $color $image no-repeat center center fixed
+  +background-size(cover)
+
+@mixin fade-background($start, $stop, $position: top)
+  +linear-gradient(color-stops($start, $stop), $position)
+  background-color: $start
+
+
+@mixin auto-fade-background($color, $position: top)
+  +fade-background(lighten($color, 20%), $color, $position)
+
+
+@mixin auto-fade-background-hover($color)
+  +auto-fade-background($color, top)
+  
+  &:hover
+    +auto-fade-background($color, bottom)
+
+
+@mixin link-clear($color)
+  &,
+  a
+    color: $color !important
+    text-decoration: none !important
+  
+@mixin list-clear
+  &,
+  ul,
+  li
+    margin: 0
+    padding: 0
+    list-style: none
+    list-style-image: none
+
+@mixin list-float($float: left, $margin-horizontal: 10px, $margin-vertical: 0)
+  +list-clear
+  >li
+    margin: $margin-vertical $margin-horizontal
+    float: $float 
+
+
+/***********************************
+ * FONT MIXINS
+ ***********************************/
+
+
+@mixin font_face_otari()
+  @font-face
+    font-family: 'otari'
+    src: url('../../../../all/themes/albatross/fonts/otari-bold-limited_copy-webfont.eot')
+    src: url('../../../../all/themes/albatross/fonts/otari-bold-limited_copy-webfont.eot?#iefix') format('embedded-opentype'), url('../../../../all/themes/albatross/fonts/otari-bold-limited_copy-webfont.woff') format('woff'), url('../../../../all/themes/albatross/fonts/otari-bold-limited_copy-webfont.ttf') format('truetype'), url('../../../../all/themes/albatross/fonts/otari-bold-limited_copy-webfont.svg#OtariBold-Limited') format('svg')
+    font-weight: normal
+    font-style: normal
+    
+@mixin font_face_pacifico()
+  @font-face
+    font-family: 'pacifico'
+    src: url('../../../../all/themes/albatross/fonts/pacifico_copy-webfont.eot')
+    src: url('../../../../all/themes/albatross/fonts/pacifico_copy-webfont.eot?#iefix') format('embedded-opentype'), url('../../../../all/themes/albatross/fonts/pacifico_copy-webfont.woff') format('woff'), url('../../../../all/themes/albatross/fonts/pacifico_copy-webfont.ttf') format('truetype'), url('../../../../all/themes/albatross/fonts/pacifico_copy-webfont.svg#PacificoRegular') format('svg')
+    font-weight: normal
+    font-style: normal
+
+@mixin font_face_nevis()
+  @font-face
+    font-family: 'nevis'
+    src: url('../../../../all/themes/albatross/fonts/nevis-webfont.eot')
+    src: url('../../../../all/themes/albatross/fonts/nevis-webfont.eot?#iefix') format('embedded-opentype'), url('../../../../all/themes/albatross/fonts/nevis-webfont.woff') format('woff'), url('../../../../all/themes/albatross/fonts/nevis-webfont.ttf') format('truetype'), url('../../../../all/themes/albatross/fonts/nevis-webfont.svg#webfontHubXaE9b') format('svg')
+    font-weight: normal
+    font-style: normal
+    
+@mixin font_face_copse()
+  @font-face
+    font-family: 'CopseRegular'
+    src: url('../../../../all/themes/albatross/fonts/Copse-Regular-webfont.eot')
+    src: url('../../../../all/themes/albatross/fonts/Copse-Regular-webfont.eot?#iefix') format('embedded-opentype'), url('../../../../all/themes/albatross/fonts/Copse-Regular-webfont.woff') format('woff'), url('../../../../all/themes/albatross/fonts/Copse-Regular-webfont.ttf') format('truetype'), url('../../../../all/themes/albatross/fonts/Copse-Regular-webfont.svg#CopseRegular') format('svg')
+    font-weight: normal
+    font-style: normal
+
+@mixin font_face_arvo()
+  @font-face
+    font-family: 'Arvo'
+    src: url('../../../../all/themes/albatross/fonts/Arvo-Regular-webfont.eot')
+    src: url('../../../../all/themes/albatross/fonts/Arvo-Regular-webfont.eot?#iefix') format('embedded-opentype'), url('../../../../all/themes/albatross/fonts/Arvo-Regular-webfont.woff') format('woff'), url('../../../../all/themes/albatross/fonts/Arvo-Regular-webfont.ttf') format('truetype'), url('../../../../all/themes/albatross/fonts/Arvo-Regular-webfont.svg#ArvoRegular') format('svg')
+    font-weight: normal
+    font-style: normal
+
+  @font-face
+    font-family: 'Arvo'
+    src: url('../../../../all/themes/albatross/fonts/Arvo-Italic-webfont.eot')
+    src: url('../../../../all/themes/albatross/fonts/Arvo-Italic-webfont.eot?#iefix') format('embedded-opentype'), url('../../../../all/themes/albatross/fonts/Arvo-Italic-webfont.woff') format('woff'), url('../../../../all/themes/albatross/fonts/Arvo-Italic-webfont.ttf') format('truetype'), url('../../../../all/themes/albatross/fonts/Arvo-Italic-webfont.svg#ArvoItalic') format('svg')
+    font-weight: normal
+    font-style: italic
+    
+  @font-face
+    font-family: 'Arvo'
+    src: url('../../../../all/themes/albatross/fonts/Arvo-Bold-webfont.eot')
+    src: url('../../../../all/themes/albatross/fonts/Arvo-Bold-webfont.eot?#iefix') format('embedded-opentype'), url('../../../../all/themes/albatross/fonts/Arvo-Bold-webfont.woff') format('woff'), url('../../../../all/themes/albatross/fonts/Arvo-Bold-webfont.ttf') format('truetype'), url('../../../../all/themes/albatross/fonts/Arvo-Bold-webfont.svg#ArvoRegular') format('svg')
+    font-weight: bold
+    font-style: normal
+    
+  @font-face
+    font-family: 'Arvo'
+    src: url('../../../../all/themes/albatross/fonts/Arvo-BoldItalic-webfont.eot')
+    src: url('../../../../all/themes/albatross/fonts/Arvo-BoldItalic-webfont.eot?#iefix') format('embedded-opentype'), url('../../../../all/themes/albatross/fonts/Arvo-BoldItalic-webfont.woff') format('woff'), url('../../../../all/themes/albatross/fonts/Arvo-BoldItalic-webfont.ttf') format('truetype'), url('../../../../all/themes/albatross/fonts/Arvo-BoldItalic-webfont.svg#ArvoItalic') format('svg')
+    font-weight: bold
+    font-style: italic
+    
+@mixin font_face_comfortaa()
+  @font-face
+    font-family: 'Comfortaa'
+    src: url('../../../../all/themes/albatross/fonts/comfortaa_bold_copy-webfont')
+    src: url('../../../../all/themes/albatross/fonts/comfortaa_bold_copy-webfont.eot?#iefix') format('embedded-opentype'), url('../../../../all/themes/albatross/fonts/comfortaa_bold_copy-webfont.woff') format('woff'), url('../../../../all/themes/albatross/fonts/comfortaa_bold_copy-webfont.ttf') format('truetype'), url('../../../../all/themes/albatross/fonts/comfortaa_bold_copy-webfont.svg#ArvoItalic') format('svg')
+    font-weight: normal
+    font-style: normal
+:@children[9o:Sass::Tree::ImportNode:
+@linei:@imported_filename"_variables.sass;0;[ :@options{ :@filename"}/data/disk/v4709507421/static/platforms/reach-7.12-prod/sites/experience.aidslifecycle.org/themes/sfaf/sass/_mixins.sasso:Sass::Tree::CommentNode:@value["// Sprite creation;
+i:
+@loudF;[ :@silentT;@;@o;	;
+i	;"#compass/utilities/sprites/base;0;[ ;@;@o:Sass::Tree::VariableNode;
+i
+:
+@expro:Sass::Script::Number;iA;
+i
+:@original"	60px:@denominator_units[ :@numerator_units["px;@:
+@name"icons-spacing;[ :@guarded0;@;@o;	;
+i;"icons/*.png;0;[ ;@;@o;;
+i;o:Sass::Script::Bool;T;
+i;@;"#disable-magic-sprite-selectors;[ ;0;@;@o:Sass::Tree::MixinNode;
+i:
+@args[ ;"all-icons-sprites;[ :@keywords{ ;@;@o;;["// Sprite mixins;
+i;F;[ ;T;@;@o:Sass::Tree::FunctionNode;T;
+i;[[o:Sass::Script::Variable;"y;@:@underscored_name"y0[o;;"	item;@; "	item0;"center-y;[o;;
+i;o:Sass::Script::Funcall
+;
+i;[o;	;
+i;"	item;@; "	item;"icons-sprite-height;{ ;@;"h;[ ;0;@;@o:Sass::Tree::ReturnNode
+;
+i;o:Sass::Script::Operation
+:@operand1o;#
+;$o;	;
+i;"y;@; "y;
+i:@operator:
+minus:@operand2o;	;
+i;"h;@; "h;@;
+i;%:div;'o;
+;i;
+i;[ ;[ ;@;@;[ ;@;@;@;@o;;T;
+i;[[o;;"x;@; "x0[o;;"	item;@; "	item0;"center-x;[o;;
+i;o;!
+;
+i;[o;	;
+i;"	item;@; "	item;"icons-sprite-width;{ ;@;"w;[ ;0;@;@o;"
+;
+i;o;#
+;$o;#
+;$o;	;
+i;"x;@; "x;
+i;%;&;'o;	;
+i;"w;@; "w;@;
+i;%;(;'o;
+;i;
+i;@L;[ ;@;@;[ ;@;@;@;@o;;["
+//***"
+"// FONTs;
+i;F;[ ;T;@;@o:Sass::Tree::MixinDefNode;T;
+i;[[o;;"alt;@; "alto:Sass::Script::String	;"normal;
+i:
+@type:identifier;@;"adelle;[o:Sass::Tree::PropNode:@prop_syntax:new;o;	;
+i ;"font_adelle;@; "font_adelle;
+i ;["font-family;[ :
+@tabsi ;@;@u:Sass::Tree::IfNode[o:Sass::Script::Operation
+:@operand1o:Sass::Script::Variable	:
+@linei!:
+@name"alt:@options{ :@underscored_name"alt;i!:@operator:eq:@operand2o:Sass::Script::String	:@value"italic;i!:
+@type:identifier;
+@	;
+@	u:Sass::Tree::IfNode[o:Sass::Script::Operation
+:@operand1o:Sass::Script::Variable	:
+@linei#:
+@name"alt:@options{ :@underscored_name"alt;i#:@operator:eq:@operand2o:Sass::Script::String	:@value"	bold;i#:
+@type:identifier;
+@	;
+@	u:Sass::Tree::IfNode*[o:Sass::Script::Operation
+:@operand1o:Sass::Script::Variable	:
+@linei%:
+@name"alt:@options{ :@underscored_name"alt;i%:@operator:eq:@operand2o:Sass::Script::String	:@value"bolditalic;i%:
+@type:identifier;
+@	;
+@	0[o:Sass::Tree::PropNode:@prop_syntax:new;o;	;"italic;i&;;;
+@	;i&;	["font-style:@children[ :
+@tabsi ;
+@	:@filename"}/data/disk/v4709507421/static/platforms/reach-7.12-prod/sites/experience.aidslifecycle.org/themes/sfaf/sass/_mixins.sasso;;;;o;	;"	bold;i';;;
+@	;i';	["font-weight;[ ;i ;
+@	;@[o:Sass::Tree::PropNode:@prop_syntax:new;o;	;"	bold;i$;;;
+@	;i$;	["font-weight:@children[ :
+@tabsi ;
+@	:@filename"}/data/disk/v4709507421/static/platforms/reach-7.12-prod/sites/experience.aidslifecycle.org/themes/sfaf/sass/_mixins.sass[o:Sass::Tree::PropNode:@prop_syntax:new;o;	;"italic;i";;;
+@	;i";	["font-style:@children[ :
+@tabsi ;
+@	:@filename"}/data/disk/v4709507421/static/platforms/reach-7.12-prod/sites/experience.aidslifecycle.org/themes/sfaf/sass/_mixins.sass;@;@o;);T;
+i);[ ;"leaguegothic;[o;-;.;/;o;*	;"normal;
+i*;+;,;@;
+i*;["font-weight;[ ;0i ;@;@o;-;.;/;o;	;
+i+;"font_league;@; "font_league;
+i+;["font-family;[ ;0i ;@;@;@;@o;;[
+"// Borderbox mixin"
+"1// Use box-sizing: border-box; with impunity"
+"0// Borderbox outputs equivalent CSS in <IE8;
+i-;F;[ ;T;@;@o;;["E// Set to true if you prefer declaring a global box-sizing prop."
+"//"
+"// Ex:"
+"!// $global-border-box: true;"
+"//"
+"// * {"
+",//     @include box-sizing(border-box);"
+"	// };
+i1;F;[ ;T;@;@o;;
+i:;o;;F;
+i:;@;"global-border-box;[ ;"!default;@;@o;);T;
+i<;[[o;;"dimensions;@; "dimensions0[o;;"padding;@; "paddingo;;F;
+i<;@[o;;"border;@; "bordero;;F;
+i<;@;"borderbox;[u;1÷[o:!Sass::Script::UnaryOperation	:
+@linei=:@operator:not:@options{ :@operando:Sass::Script::Variable	;i=:
+@name"global-border-box;	@:@underscored_name"global_border_box0[o:Sass::Tree::MixinNode;i>:
+@args[o:Sass::Script::String	:@value"border-box;i>:
+@type:identifier;	@;"box-sizing:@children[ :@keywords{ ;	@:@filename"}/data/disk/v4709507421/static/platforms/reach-7.12-prod/sites/experience.aidslifecycle.org/themes/sfaf/sass/_mixins.sasso;;["#// Extract width/height values;
+iA;F;[ ;T;@;@o;;
+iB;o;!
+;
+iB;[o;	;
+iB;"dimensions;@; "dimensionso;;i;
+iB;"1;@L;[ ;@;"nth;{ ;@;"
+width;[ ;0;@;@o;;
+iC;o;;F;
+iC;@;"height;[ ;0;@;@u;1Ö[o:Sass::Script::Operation
+:@operand1o:Sass::Script::Funcall
+:
+@lineiE:
+@args[o:Sass::Script::Variable	;iE:
+@name"dimensions:@options{ :@underscored_name"dimensions;"length:@keywords{ ;@;iE:@operator:eq:@operand2o:Sass::Script::Number:@valuei;iE:@original"2:@denominator_units[ :@numerator_units[ ;@;@0[o:Sass::Tree::VariableNode;iF:
+@expro;
+;iF;	[o;
+	;iF;"dimensions;@;"dimensionso;;i;iF;"2;@;[ ;@;"nth;{ ;@;"height:@children[ :@guarded0;@:@filename"}/data/disk/v4709507421/static/platforms/reach-7.12-prod/sites/experience.aidslifecycle.org/themes/sfaf/sass/_mixins.sasso;;["// Extract padding values;
+iI;F;[ ;T;@;@o;;
+iJ;o;!
+;
+iJ;[o;	;
+iJ;"padding;@; "padding;"length;{ ;@;"padding-length;[ ;0;@;@o;;
+iK;o;;i ;
+iK;"0;@L;[ ;@;"padding-y;[ ;0;@;@o;;
+iL;o;;i ;
+iL;"0;@L;[ ;@;"padding-x;[ ;0;@;@u;17[o:Sass::Script::Variable	:
+@lineiN:
+@name"padding:@options{ :@underscored_name"padding0[o:Sass::Tree::PropNode:@prop_syntax:new:@valueo; 	;iO;"padding;@;	"padding;iO;["padding:@children[ :
+@tabsi ;@:@filename"}/data/disk/v4709507421/static/platforms/reach-7.12-prod/sites/experience.aidslifecycle.org/themes/sfaf/sass/_mixins.sassu:Sass::Tree::IfNode∏[o:Sass::Script::Operation
+:@operand1o:Sass::Script::Variable	:
+@lineiQ:
+@name"padding-length:@options{ :@underscored_name"padding_length;iQ:@operator:eq:@operand2o:Sass::Script::Number:@valuei	;iQ:@original"4:@denominator_units[ :@numerator_units[ ;
+@	;
+@	u:Sass::Tree::IfNode’	[o:Sass::Script::Operation
+:@operand1o:Sass::Script::Variable	:
+@lineiT:
+@name"padding-length:@options{ :@underscored_name"padding_length;iT:@operator:eq:@operand2o:Sass::Script::Number:@valuei;iT:@original"3:@denominator_units[ :@numerator_units[ ;
+@	;
+@	u:Sass::Tree::IfNode*[o:Sass::Script::Operation
+:@operand1o:Sass::Script::Variable	:
+@lineiW:
+@name"padding-length:@options{ :@underscored_name"padding_length;iW:@operator:eq:@operand2o:Sass::Script::Number:@valuei;iW:@original"2:@denominator_units[ :@numerator_units[ ;
+@	;
+@	u:Sass::Tree::IfNode¿[o:Sass::Script::Operation
+:@operand1o:Sass::Script::Variable	:
+@lineiZ:
+@name"padding-length:@options{ :@underscored_name"padding_length;iZ:@operator:eq:@operand2o:Sass::Script::Number:@valuei;iZ:@original"1:@denominator_units[ :@numerator_units[ ;
+@	;
+@	0[o:Sass::Tree::VariableNode;i[:
+@expro; 
+;o;	;i[;	"padding;
+@	;"padding;i[;:
+times;o;;i;i[;"2;@;[ ;
+@	;
+@	;	"padding-y:@children[ :@guarded0;
+@	:@filename"}/data/disk/v4709507421/static/platforms/reach-7.12-prod/sites/experience.aidslifecycle.org/themes/sfaf/sass/_mixins.sasso;;i\;o; 
+;o;	;i\;	"padding;
+@	;"padding;i\;;;o;;i;i\;"2;@;[ ;
+@	;
+@	;	"padding-x;[ ;0;
+@	;@[o:Sass::Tree::VariableNode;iX:
+@expro; 
+;o:Sass::Script::Funcall
+;iX:
+@args[o;	;iX;	"padding;
+@	;"paddingo;;i;iX;"1;@;[ ;
+@	;	"nth:@keywords{ ;
+@	;iX;:
+times;o;;i;iX;"2;@;[ ;
+@	;
+@	;	"padding-y:@children[ :@guarded0;
+@	:@filename"}/data/disk/v4709507421/static/platforms/reach-7.12-prod/sites/experience.aidslifecycle.org/themes/sfaf/sass/_mixins.sasso;;iY;o; 
+;o;
+;iY;[o;	;iY;	"padding;
+@	;"paddingo;;i;iY;"2;@;[ ;
+@	;	"nth;{ ;
+@	;iY;;;o;;i;iY;"2;@;[ ;
+@	;
+@	;	"padding-x;[ ;0;
+@	;@"[o:Sass::Tree::VariableNode;iU:
+@expro; 
+;o:Sass::Script::Funcall
+;iU:
+@args[o;	;iU;	"padding;
+@	;"paddingo;;i;iU;"1;@;[ ;
+@	;	"nth:@keywords{ ;
+@	;iU;:	plus;o;
+;iU;[o;	;iU;	"padding;
+@	;"paddingo;;i;iU;"3;@;[ ;
+@	;	"nth;{ ;
+@	;
+@	;	"padding-y:@children[ :@guarded0;
+@	:@filename"}/data/disk/v4709507421/static/platforms/reach-7.12-prod/sites/experience.aidslifecycle.org/themes/sfaf/sass/_mixins.sasso;;iV;o; 
+;o;
+;iV;[o;	;iV;	"padding;
+@	;"paddingo;;i;iV;"2;@;[ ;
+@	;	"nth;{ ;
+@	;iV;:
+times;o;;i;iV;"2;@;[ ;
+@	;
+@	;	"padding-x;[ ;0;
+@	;@)[o:Sass::Tree::VariableNode;iR:
+@expro; 
+;o:Sass::Script::Funcall
+;iR:
+@args[o;	;iR;	"padding;
+@	;"paddingo;;i;iR;"1;@;[ ;
+@	;	"nth:@keywords{ ;
+@	;iR;:	plus;o;
+;iR;[o;	;iR;	"padding;
+@	;"paddingo;;i;iR;"3;@;[ ;
+@	;	"nth;{ ;
+@	;
+@	;	"padding-y:@children[ :@guarded0;
+@	:@filename"}/data/disk/v4709507421/static/platforms/reach-7.12-prod/sites/experience.aidslifecycle.org/themes/sfaf/sass/_mixins.sasso;;iS;o; 
+;o;
+;iS;[o;	;iS;	"padding;
+@	;"paddingo;;i;iS;"2;@;[ ;
+@	;	"nth;{ ;
+@	;iS;;;o;
+;iS;[o;	;iS;	"padding;
+@	;"paddingo;;i	;iS;"4;@;[ ;
+@	;	"nth;{ ;
+@	;
+@	;	"padding-x;[ ;0;
+@	;@)o;;["// Extract border values;
+i`;F;[ ;T;@;@o;;
+ia;o;;F;
+ia;@;"use-border-shorthand;[ ;0;@;@o;;
+ib;o;;F;
+ib;@;"border-width;[ ;0;@;@o:Sass::Tree::EachNode;T;
+id;[u;1Ä[o:Sass::Script::Operation
+:@operand1o:Sass::Script::Funcall
+:
+@lineie:
+@args[o:Sass::Script::Variable	;ie:
+@name"	unit:@options{ :@underscored_name"	unit;"type-of:@keywords{ ;@;ie:@operator:eq:@operand2o:Sass::Script::String	:@value"number;ie:
+@type:identifier;@;@u:Sass::Tree::IfNode![00[o:Sass::Tree::VariableNode:
+@lineil:
+@expro:Sass::Script::Bool:@valueT;il:@options{ :
+@name"use-border-shorthand:@children[ :@guarded0;
+@	:@filename"}/data/disk/v4709507421/static/platforms/reach-7.12-prod/sites/experience.aidslifecycle.org/themes/sfaf/sass/_mixins.sass[u;[o:Sass::Script::Variable	:
+@lineif:
+@name"border-width:@options{ :@underscored_name"border_widthu:Sass::Tree::IfNode5[00[o:Sass::Tree::VariableNode:
+@lineii:
+@expro:Sass::Script::Variable	;ii:
+@name"	unit:@options{ :@underscored_name"	unit;	"border-width:@children[ :@guarded0;
+@
+:@filename"}/data/disk/v4709507421/static/platforms/reach-7.12-prod/sites/experience.aidslifecycle.org/themes/sfaf/sass/_mixins.sass[o:Sass::Tree::VariableNode;ig:
+@expro:Sass::Script::Funcall
+;ig:
+@args[o; 	;ig;"border-width;@;	"border_widtho; 	;ig;"	unit;@;	"	unit;"append:@keywords{ ;@;"border-width:@children[ :@guarded0;@:@filename"}/data/disk/v4709507421/static/platforms/reach-7.12-prod/sites/experience.aidslifecycle.org/themes/sfaf/sass/_mixins.sass:	@var"	unit:
+@listo;	;
+id;"border;@; "border;@;@o;;
+ip;o;!
+;
+ip;[o;	;
+ip;"border-width;@; "border_width;"length;{ ;@;"border-length;[ ;0;@;@o;;
+iq;o;;i ;
+iq;"0;@L;[ ;@;"border-y;[ ;0;@;@o;;
+ir;o;;i ;
+ir;"0;@L;[ ;@;"border-x;[ ;0;@;@u;1û[o:Sass::Script::Variable	:
+@lineit:
+@name"border:@options{ :@underscored_name"border0[u:Sass::Tree::IfNodeÍ[o:Sass::Script::Variable	:
+@lineiu:
+@name"use-border-shorthand:@options{ :@underscored_name"use_border_shorthandu:Sass::Tree::IfNodeU[00[o:Sass::Tree::PropNode:@prop_syntax:new:@valueo:Sass::Script::Variable	:
+@lineix:
+@name"border-width:@options{ :@underscored_name"border_width;
+ix;["border-width:@children[ :
+@tabsi ;@
+:@filename"}/data/disk/v4709507421/static/platforms/reach-7.12-prod/sites/experience.aidslifecycle.org/themes/sfaf/sass/_mixins.sass[o:Sass::Tree::PropNode:@prop_syntax:new:@valueo; 	;iv;"border;@;	"border;iv;["border:@children[ :
+@tabsi ;@:@filename"}/data/disk/v4709507421/static/platforms/reach-7.12-prod/sites/experience.aidslifecycle.org/themes/sfaf/sass/_mixins.sassu;
+6[o:Sass::Script::Operation
+:@operand1o:Sass::Script::Variable	:
+@linei{:
+@name"border-length:@options{ :@underscored_name"border_length;i{:@operator:eq:@operand2o:Sass::Script::Number:@valuei	;i{:@original"4:@denominator_units[ :@numerator_units[ ;
+@	;
+@	u:Sass::Tree::IfNode/
+[o:Sass::Script::Operation
+:@operand1o:Sass::Script::Variable	:
+@linei~:
+@name"border-length:@options{ :@underscored_name"border_length;i~:@operator:eq:@operand2o:Sass::Script::Number:@valuei;i~:@original"3:@denominator_units[ :@numerator_units[ ;
+@	;
+@	u:Sass::Tree::IfNoded[o:Sass::Script::Operation
+:@operand1o:Sass::Script::Variable	:
+@linei|:
+@name"border-length:@options{ :@underscored_name"border_length;i|:@operator:eq:@operand2o:Sass::Script::Number:@valuei;i|:@original"2:@denominator_units[ :@numerator_units[ ;
+@	;
+@	u:Sass::Tree::IfNode€[o:Sass::Script::Operation
+:@operand1o:Sass::Script::Variable	:
+@linei:
+@name"border-length:@options{ :@underscored_name"border_length;i:@operator:eq:@operand2o:Sass::Script::Number:@valuei;i:@original"1:@denominator_units[ :@numerator_units[ ;
+@	;
+@	0[o:Sass::Tree::VariableNode;iÄ:
+@expro; 
+;o;	;iÄ;	"border-width;
+@	;"border_width;iÄ;:
+times;o;;i;iÄ;"2;@;[ ;
+@	;
+@	;	"border-y:@children[ :@guarded0;
+@	:@filename"}/data/disk/v4709507421/static/platforms/reach-7.12-prod/sites/experience.aidslifecycle.org/themes/sfaf/sass/_mixins.sasso;;iÅ;o; 
+;o;	;iÅ;	"border-width;
+@	;"border_width;iÅ;;;o;;i;iÅ;"2;@;[ ;
+@	;
+@	;	"border-x;[ ;0;
+@	;@[o:Sass::Tree::VariableNode;i}:
+@expro; 
+;o:Sass::Script::Funcall
+;i}:
+@args[o;	;i};	"border-width;
+@	;"border_widtho;;i;i};"1;@;[ ;
+@	;	"nth:@keywords{ ;
+@	;i};:
+times;o;;i;i};"2;@;[ ;
+@	;
+@	;	"border-y:@children[ :@guarded0;
+@	:@filename"}/data/disk/v4709507421/static/platforms/reach-7.12-prod/sites/experience.aidslifecycle.org/themes/sfaf/sass/_mixins.sasso;;i~;o; 
+;o;
+;i~;[o;	;i~;	"border-width;
+@	;"border_widtho;;i;i~;"2;@;[ ;
+@	;	"nth;{ ;
+@	;i~;;;o;;i;i~;"2;@;[ ;
+@	;
+@	;	"border-x;[ ;0;
+@	;@"[o:Sass::Tree::VariableNode;i:
+@expro; 
+;o:Sass::Script::Funcall
+;i:
+@args[o;	;i;	"border-width;
+@	;"border_widtho;;i;i;"1;@;[ ;
+@	;	"nth:@keywords{ ;
+@	;i;:	plus;o;
+;i;[o;	;i;	"border-width;
+@	;"border_widtho;;i;i;"3;@;[ ;
+@	;	"nth;{ ;
+@	;
+@	;	"border-y:@children[ :@guarded0;
+@	:@filename"}/data/disk/v4709507421/static/platforms/reach-7.12-prod/sites/experience.aidslifecycle.org/themes/sfaf/sass/_mixins.sasso;;i{;o; 
+;o;
+;i{;[o;	;i{;	"border-width;
+@	;"border_widtho;;i;i{;"2;@;[ ;
+@	;	"nth;{ ;
+@	;i{;:
+times;o;;i;i{;"2;@;[ ;
+@	;
+@	;	"border-x;[ ;0;
+@	;@)[o:Sass::Tree::VariableNode;i|:
+@expro; 
+;o:Sass::Script::Funcall
+;i|:
+@args[o;	;i|;	"border-width;
+@	;"border_widtho;;i;i|;"1;@;[ ;
+@	;	"nth:@keywords{ ;
+@	;i|;:	plus;o;
+;i|;[o;	;i|;	"border-width;
+@	;"border_widtho;;i;i|;"3;@;[ ;
+@	;	"nth;{ ;
+@	;
+@	;	"border-y:@children[ :@guarded0;
+@	:@filename"}/data/disk/v4709507421/static/platforms/reach-7.12-prod/sites/experience.aidslifecycle.org/themes/sfaf/sass/_mixins.sasso;;i};o; 
+;o;
+;i};[o;	;i};	"border-width;
+@	;"border_widtho;;i;i};"2;@;[ ;
+@	;	"nth;{ ;
+@	;i};;;o;
+;i};[o;	;i};	"border-width;
+@	;"border_widtho;;i	;i};"4;@;[ ;
+@	;	"nth;{ ;
+@	;
+@	;	"border-x;[ ;0;
+@	;@)o;;["// Set width value;
+iÑ;F;[ ;T;@;@u;1˚[o:Sass::Script::Variable	:
+@lineiÖ:
+@name"
+width:@options{ :@underscored_name"
+width0[u:Sass::Tree::IfNodeÑ[o:Sass::Script::Operation
+:@operand1o:Sass::Script::Variable	:
+@lineiÜ:
+@name"
+width:@options{ :@underscored_name"
+width;iÜ:@operator:eq:@operand2o:Sass::Script::String	:@value"	auto;iÜ:
+@type:identifier;
+@	;
+@	u:Sass::Tree::IfNodeà[00[o:Sass::Tree::PropNode:@prop_syntax:new:@valueo:Sass::Script::Variable	:
+@lineiâ:
+@name"
+width:@options{ :@underscored_name"
+width;
+iâ;["
+width:@children[ :
+@tabsi ;@
+:@filename"}/data/disk/v4709507421/static/platforms/reach-7.12-prod/sites/experience.aidslifecycle.org/themes/sfaf/sass/_mixins.sassu:Sass::Tree::IfNode.[o:Sass::Script::Variable	:
+@lineiä:
+@name"legacy-support-for-ie:@options{ :@underscored_name"legacy_support_for_ie0[o:Sass::Tree::PropNode:@prop_syntax:new:@valueo:Sass::Script::Operation
+:@operand1o;
+;o; 	;iã;"
+width;@;	"
+width;iã:@operator:
+minus:@operand2o; 	;iã;"padding-x;@;	"padding_x;@;iã;;;o; 	;iã;"border-x;@;	"border_x;@;iã;["*width:@children[ :
+@tabsi ;@:@filename"}/data/disk/v4709507421/static/platforms/reach-7.12-prod/sites/experience.aidslifecycle.org/themes/sfaf/sass/_mixins.sass[o:Sass::Tree::PropNode:@prop_syntax:new;o;	;iá;	"
+width;
+@	;"
+width;iá;	["
+width:@children[ :
+@tabsi ;
+@	:@filename"}/data/disk/v4709507421/static/platforms/reach-7.12-prod/sites/experience.aidslifecycle.org/themes/sfaf/sass/_mixins.sasso;;["// Set height value;
+iê;F;[ ;T;@;@u;1[o:Sass::Script::Variable	:
+@lineië:
+@name"height:@options{ :@underscored_name"height0[u:Sass::Tree::IfNodeè[o:Sass::Script::Operation
+:@operand1o:Sass::Script::Variable	:
+@lineií:
+@name"height:@options{ :@underscored_name"height;ií:@operator:eq:@operand2o:Sass::Script::String	:@value"	auto;ií:
+@type:identifier;
+@	;
+@	u:Sass::Tree::IfNodeé[00[o:Sass::Tree::PropNode:@prop_syntax:new:@valueo:Sass::Script::Variable	:
+@lineiï:
+@name"height:@options{ :@underscored_name"height;
+iï;["height:@children[ :
+@tabsi ;@
+:@filename"}/data/disk/v4709507421/static/platforms/reach-7.12-prod/sites/experience.aidslifecycle.org/themes/sfaf/sass/_mixins.sassu:Sass::Tree::IfNode1[o:Sass::Script::Variable	:
+@lineiñ:
+@name"legacy-support-for-ie:@options{ :@underscored_name"legacy_support_for_ie0[o:Sass::Tree::PropNode:@prop_syntax:new:@valueo:Sass::Script::Operation
+:@operand1o;
+;o; 	;ió;"height;@;	"height;ió:@operator:
+minus:@operand2o; 	;ió;"padding-y;@;	"padding_y;@;ió;;;o; 	;ió;"border-y;@;	"border_y;@;ió;["*height:@children[ :
+@tabsi ;@:@filename"}/data/disk/v4709507421/static/platforms/reach-7.12-prod/sites/experience.aidslifecycle.org/themes/sfaf/sass/_mixins.sass[o:Sass::Tree::PropNode:@prop_syntax:new;o;	;iì;	"height;
+@	;"height;iì;	["height:@children[ :
+@tabsi ;
+@	:@filename"}/data/disk/v4709507421/static/platforms/reach-7.12-prod/sites/experience.aidslifecycle.org/themes/sfaf/sass/_mixins.sass;@;@o;;T;
+iô;[[o;;"n;@; "n0[o;;"left_outer;@; "left_outero;;F;
+iô;@[o;;"right_outer;@; "right_outero;;F;
+iô;@;"grid-width;[u;1+	[o:Sass::Script::Operation
+:@operand1o:Sass::Script::Variable	:
+@lineiö:
+@name"n:@options{ :@underscored_name"n;iö:@operator:eq:@operand2o:Sass::Script::Bool:@valueF;iö;
+@	;
+@	u:Sass::Tree::IfNodeT[00[	o:Sass::Tree::VariableNode:
+@lineiù:
+@expro:Sass::Script::Operation
+:@operand1o;
+;	o:Sass::Script::Variable	;iù:
+@name"n:@options{ :@underscored_name"n;iù:@operator:
+times:@operand2o;
+	;iù;"col_width;@;"col_width;@;iù;:	plus;o;
+;	o;
+;	o:Sass::Script::Number
+:@valuei;iù:@denominator_units[ :@numerator_units[ ;@;iù;;;o;
+	;iù;"col_margin;@;"col_margin;@;iù;;;o;
+;	o;
+	;iù;"n;@;"n;iù;:
+minus;o;;i;iù:@original"1;@;[ ;@;@;@;@;"
+width:@children[ :@guarded0;@:@filename"}/data/disk/v4709507421/static/platforms/reach-7.12-prod/sites/experience.aidslifecycle.org/themes/sfaf/sass/_mixins.sassu:Sass::Tree::IfNode[o:Sass::Script::Operation
+:@operand1o:Sass::Script::Variable	:
+@lineiû:
+@name"left_outer:@options{ :@underscored_name"left_outer;iû:@operator:eq:@operand2o:Sass::Script::Bool:@valueT;iû;
+@	;
+@	0[o:Sass::Tree::VariableNode;iü:
+@expro; 
+;o;	;iü;	"
+width;
+@	;"
+width;iü;:	plus;o;	;iü;	"col_margin_outer;
+@	;"col_margin_outer;
+@	;	"
+width:@children[ :@guarded0;
+@	:@filename"}/data/disk/v4709507421/static/platforms/reach-7.12-prod/sites/experience.aidslifecycle.org/themes/sfaf/sass/_mixins.sassu;[o:Sass::Script::Operation
+:@operand1o:Sass::Script::Variable	:
+@linei†:
+@name"right_outer:@options{ :@underscored_name"right_outer;i†:@operator:eq:@operand2o:Sass::Script::Bool:@valueT;i†;
+@	;
+@	0[o:Sass::Tree::VariableNode;i°:
+@expro; 
+;o;	;i°;	"
+width;
+@	;"
+width;i°;:	plus;o;	;i°;	"col_margin_outer;
+@	;"col_margin_outer;
+@	;	"
+width:@children[ :@guarded0;
+@	:@filename"}/data/disk/v4709507421/static/platforms/reach-7.12-prod/sites/experience.aidslifecycle.org/themes/sfaf/sass/_mixins.sasso:Sass::Tree::ReturnNode
+;i¢;o;
+	;i¢;"
+width;@;"
+width;[ ;@;@"[o:Sass::Tree::ReturnNode
+;iõ:
+@expro:Sass::Script::String	;"	auto;iõ:
+@type:identifier;
+@	:@children[ ;
+@	:@filename"}/data/disk/v4709507421/static/platforms/reach-7.12-prod/sites/experience.aidslifecycle.org/themes/sfaf/sass/_mixins.sass;@;@o;);T;
+i§;[[o;;"r;@; "r0;"rounded;[o;;
+i•;[o;	;
+i•;"r;@; "r;"border-radius;[ ;{ ;@;@o;-;.;/;o;	;
+i¶;"r;@; "r;
+i¶;["border-radius;[ ;0i ;@;@o;-;.;/;o;*	;".url(/sites/all/libraries/css3pie/PIE.htc);
+iß;+;,;@;
+iß;["behavior;[ ;0i ;@;@;@;@o;;["2// Utilize the themes alternate text in style;
+i©;F;[ ;T;@;@o;);T;
+i™;[[o;;"set;@; "seto;;T;
+i™;@[o;;"f_weight;@; "f_weighto;	;
+i™;"font_alt_weight;@; "font_alt_weight;"alternate-font;[o;;
+i´;[ ;"leaguegothic;[ ;{ ;@;@u;1™[o:Sass::Script::Operation
+:@operand1o:Sass::Script::Variable	:
+@linei¨:
+@name"set:@options{ :@underscored_name"set;i¨:@operator:eq:@operand2o:Sass::Script::Bool:@valueT;i¨;
+@	;
+@	0[o:Sass::Tree::PropNode:@prop_syntax:new;o:Sass::Script::String	;"normal;i≠:
+@type:identifier;
+@	;i≠;	["font-style:@children[ :
+@tabsi ;
+@	:@filename"}/data/disk/v4709507421/static/platforms/reach-7.12-prod/sites/experience.aidslifecycle.org/themes/sfaf/sass/_mixins.sasso;;;;o;	;iÆ;	"font_league_spacing;
+@	;"font_league_spacing;iÆ;	["letter-spacing;[ ;i ;
+@	;@o;;;;o;	;"uppercase;iØ;;;
+@	;iØ;	["text-transform;[ ;i ;
+@	;@;@;@o;);T;
+i±;[[o;;"set;@; "seto;;T;
+i±;@[o;;"f_weight;@; "f_weighto;*	;"normal;
+i±;+;,;@;"normal-font;[o;-;.;/;o;	;
+i≤;"font_normal;@; "font_normal;
+i≤;["font-family;[ ;0i ;@;@u;1B[o:Sass::Script::Operation
+:@operand1o:Sass::Script::Variable	:
+@linei≥:
+@name"set:@options{ :@underscored_name"set;i≥:@operator:eq:@operand2o:Sass::Script::Bool:@valueT;i≥;
+@	;
+@	0[o:Sass::Tree::PropNode:@prop_syntax:new;o;	;i¥;	"f_weight;
+@	;"f_weight;i¥;	["font-weight:@children[ :
+@tabsi ;
+@	:@filename"}/data/disk/v4709507421/static/platforms/reach-7.12-prod/sites/experience.aidslifecycle.org/themes/sfaf/sass/_mixins.sasso;;;;o:Sass::Script::String	;"	none;iµ:
+@type:identifier;
+@	;iµ;	["text-transform;[ ;i ;
+@	;@;@;@o;);T;
+i∑;[[o;;"w;@; "w0[o;;"h;@; "h0[o;;"b;@; "b0;"box-border;[o;;
+i∏;[o;*	;"border-box;
+i∏;+;,;@;"box-sizing;[ ;{ ;@;@o;-;.;/;o:Sass::Script::List	;[o;	;
+iπ;"b;@; "bo;*	;"
+solid;
+iπ;+;,;@;
+iπ:@separator:
+space;@;
+iπ;["border;[ ;0i ;@;@o;;["//if height is auto;
+i∫;F;[ ;T;@;@u;17[o:Sass::Script::Operation
+:@operand1o:Sass::Script::Variable	:
+@lineiª:
+@name"h:@options{ :@underscored_name"h;iª:@operator:eq:@operand2o:Sass::Script::String	:@value"	auto;iª:
+@type:identifier;
+@	;
+@	u:Sass::Tree::IfNodeJ[00[o:Sass::Tree::PropNode:@prop_syntax:new:@valueo:Sass::Script::Variable	:
+@lineiæ:
+@name"h:@options{ :@underscored_name"h;
+iæ;["height:@children[ :
+@tabsi ;@
+:@filename"}/data/disk/v4709507421/static/platforms/reach-7.12-prod/sites/experience.aidslifecycle.org/themes/sfaf/sass/_mixins.sasso; ;;;o:Sass::Script::Operation
+:@operand1o;		;
+iø;"h;@
+;"h;
+iø:@operator:
+minus:@operand2o;
+;o:Sass::Script::Number
+;i;
+iø:@denominator_units[ :@numerator_units[ ;@
+;
+iø;:
+times;o;		;
+iø;"b;@
+;"b;@
+;@
+;
+iø;["*height;[ ;i ;@
+;@[o:Sass::Tree::PropNode:@prop_syntax:new;o;	;iº;	"h;
+@	;"h;iº;	["height:@children[ :
+@tabsi ;
+@	:@filename"}/data/disk/v4709507421/static/platforms/reach-7.12-prod/sites/experience.aidslifecycle.org/themes/sfaf/sass/_mixins.sasso;;["//if width is auto;
+i¿;F;[ ;T;@;@u;14[o:Sass::Script::Operation
+:@operand1o:Sass::Script::Variable	:
+@linei¡:
+@name"w:@options{ :@underscored_name"w;i¡:@operator:eq:@operand2o:Sass::Script::String	:@value"	auto;i¡:
+@type:identifier;
+@	;
+@	u:Sass::Tree::IfNodeH[00[o:Sass::Tree::PropNode:@prop_syntax:new:@valueo:Sass::Script::Variable	:
+@lineiƒ:
+@name"w:@options{ :@underscored_name"w;
+iƒ;["
+width:@children[ :
+@tabsi ;@
+:@filename"}/data/disk/v4709507421/static/platforms/reach-7.12-prod/sites/experience.aidslifecycle.org/themes/sfaf/sass/_mixins.sasso; ;;;o:Sass::Script::Operation
+:@operand1o;		;
+i≈;"w;@
+;"w;
+i≈:@operator:
+minus:@operand2o;
+;o:Sass::Script::Number
+;i;
+i≈:@denominator_units[ :@numerator_units[ ;@
+;
+i≈;:
+times;o;		;
+i≈;"b;@
+;"b;@
+;@
+;
+i≈;["*width;[ ;i ;@
+;@[o:Sass::Tree::PropNode:@prop_syntax:new;o;	;i¬;	"w;
+@	;"w;i¬;	["
+width:@children[ :
+@tabsi ;
+@	:@filename"}/data/disk/v4709507421/static/platforms/reach-7.12-prod/sites/experience.aidslifecycle.org/themes/sfaf/sass/_mixins.sass;@;@o;);T;
+i«;[[o;;"c;@; "co;*	;"transparent;
+i«;+;,;@;"border-override;[	o;-;.;/;o;	;
+i»;"c;@; "c;
+i»;["border-bottom-color;[ ;0i ;@;@o;-;.;/;o;	;
+i…;"c;@; "c;
+i…;["border-left-color;[ ;0i ;@;@o;-;.;/;o;	;
+i ;"c;@; "c;
+i ;["border-right-color;[ ;0i ;@;@o;-;.;/;o;	;
+iÀ;"c;@; "c;
+iÀ;["border-top-color;[ ;0i ;@;@;@;@o;);T;
+iÕ;[
+[o;;"w;@; "w0[o;;"h;@; "h0[o;;"f;@; "fo;;i;
+iÕ;"1em;[ ;["em;@[o;;"alt;@; "alto;;T;
+iÕ;@[o;;"display;@; "displayo;*	;"
+block;
+iÕ;+;,;@;"block-link;[o;-;.;/;o;	;
+iŒ;"display;@; "display;
+iŒ;["display;[ ;0i ;@;@o;-;.;/;o;	;
+iœ;"h;@; "h;
+iœ;["height;[ ;0i ;@;@o;-;.;/;o;	;
+i–;"f;@; "f;
+i–;["font-size;[ ;0i ;@;@u;1~[o:Sass::Script::Operation
+:@operand1o:Sass::Script::Variable	:
+@linei—:
+@name"h:@options{ :@underscored_name"h;i—:@operator:eq:@operand2o:Sass::Script::String	:@value"	auto;i—:
+@type:identifier;
+@	;
+@	u:Sass::Tree::IfNode@[00[o:Sass::Tree::PropNode:@prop_syntax:new:@valueo:Sass::Script::Variable	:
+@linei‘:
+@name"h:@options{ :@underscored_name"h;
+i‘;["line-height:@children[ :
+@tabsi ;@
+:@filename"}/data/disk/v4709507421/static/platforms/reach-7.12-prod/sites/experience.aidslifecycle.org/themes/sfaf/sass/_mixins.sass[o:Sass::Tree::PropNode:@prop_syntax:new;o:Sass::Script::Number;i;i“:@original"1em:@denominator_units[ :@numerator_units["em;
+@	;i“;	["line-height:@children[ :
+@tabsi ;
+@	:@filename"}/data/disk/v4709507421/static/platforms/reach-7.12-prod/sites/experience.aidslifecycle.org/themes/sfaf/sass/_mixins.sassu;1®[o:Sass::Script::Operation
+:@operand1o:Sass::Script::Variable	:
+@linei’:
+@name"alt:@options{ :@underscored_name"alt;i’:@operator:eq:@operand2o:Sass::Script::Bool:@valueT;i’;
+@	;
+@	0[o:Sass::Tree::MixinNode;i÷:
+@args[ ;	"alternate-font:@children[ :@keywords{ ;
+@	:@filename"}/data/disk/v4709507421/static/platforms/reach-7.12-prod/sites/experience.aidslifecycle.org/themes/sfaf/sass/_mixins.sasso;-;.;/;o;*	;"	none;
+i◊;+;,;@;
+i◊;["text-decoration;[ ;0i ;@;@o;-;.;/;o;	;
+iÿ;"w;@; "w;
+iÿ;["
+width;[ ;0i ;@;@o:Sass::Tree::RuleNode;T:
+@rule["&:hover;
+i⁄:@parsed_ruleso:"Sass::Selector::CommaSequence;
+i⁄:@members[o:Sass::Selector::Sequence;<[o:#Sass::Selector::SimpleSequence;
+i⁄;<[o:Sass::Selector::Parent;
+i⁄;@o:Sass::Selector::Pseudo
+;
+i⁄;+:
+class;["
+hover:	@arg0;@;@;@;[o;-;.;/;o;*	;"	none;
+i€;+;,;@;
+i€;["text-decoration;[ ;0i ;@;@;0i ;@;@;@;@o;;[""//Make link into button style;
+i›;F;[ ;T;@;@o;);T;
+iﬁ;[[o;;"w;@; "w0[o;;"h;@; "h0[o;;"f;@; "fo;;f1.3999999999999999 ff;
+iﬁ;"
+1.4em;[ ;["em;@[o;;"back_c;@; "back_co;	;
+iﬁ;"b_back_color;@; "b_back_color[o;;"alt;@; "alto;;T;
+iﬁ;@[o;;"display;@; "displayo;*	;"
+block;
+iﬁ;+;,;@;"buttonize-link;[o;;
+iﬂ;[
+o;	;
+iﬂ;"w;@; "wo;	;
+iﬂ;"h;@; "ho;	;
+iﬂ;"f;@; "fo;	;
+iﬂ;"alt;@; "alto;	;
+iﬂ;"display;@; "display;"block-link;[ ;{ ;@;@o;-;.;/;o;	;
+i‡;"b_back_color;@; "b_back_color;
+i‡;["background;[ ;0i ;@;@o;-;.;/;o;5	;[o;;i;
+i·;"2px;[ ;["px;@o;*	;"
+solid;
+i·;+;,;@o;!
+;
+i·;[o;	;
+i·;"back_c;@; "back_co;;i;
+i·;"20%;[ ;["%;@;"darken;{ ;@;
+i·;6;7;@;
+i·;["border-bottom;[ ;0i ;@;@o;-;.;/;o;	;
+i‚;"color1_font;@; "color1_font;
+i‚;["
+color;[ ;0i ;@;@o;;
+i„;[o;;i;
+i„;"2px;[ ;["px;@;"rounded;[ ;{ ;@;@o;-;.;/;o;*	;"center;
+i‰;+;,;@;
+i‰;["text-align;[ ;0i ;@;@o;8;T;9["&:hover;
+iÊ;:o;;;
+iÊ;<[o;=;<[o;>;
+iÊ;<[o;?;
+iÊ;@o;@
+;
+iÊ;+;A;["
+hover;B0;@;@;@;[o;-;.;/;o;!
+;
+iÁ;[o;	;
+iÁ;"back_c;@; "back_co;;i
+;
+iÁ;"5%;[ ;["%;@;"lighten;{ ;@;
+iÁ;["background;[ ;0i ;@;@;0i ;@;@;@;@o;;["$//cross browser top facing fade;
+iÍ;F;[ ;T;@;@o;);T;
+iÎ;[[o;;"c;@; "c0[o;;"c2;@; "c2o;;F;
+iÎ;@;"simple-grad-top;[	o;-;.;/;o;	;
+iÏ;"c;@; "c;
+iÏ;["background-color;[ ;0i ;@;@o;;
+iÌ;o;;T;
+iÌ;@;"!experimental-support-for-svg;[ ;0;@;@o;;["+//if no second color, just use lighten;
+iÓ;F;[ ;T;@;@u;1[o:Sass::Script::Operation
+:@operand1o:Sass::Script::Variable	:
+@lineiÔ:
+@name"c2:@options{ :@underscored_name"c2;iÔ:@operator:eq:@operand2o:Sass::Script::Bool:@valueF;iÔ;
+@	;
+@	u:Sass::Tree::IfNode [00[o:Sass::Tree::MixinNode:
+@lineiÛ:
+@args[o:Sass::Script::Variable	;iÛ:
+@name"c:@options{ :@underscored_name"co;	;iÛ;	"c2;
+@;"c2;	"filter-gradient:@children[ :@keywords{ ;
+@:@filename"}/data/disk/v4709507421/static/platforms/reach-7.12-prod/sites/experience.aidslifecycle.org/themes/sfaf/sass/_mixins.sasso; ;iÙ;[o:Sass::Script::Funcall
+;iÙ;[o;
+;iÙ;[o;	;iÙ;	"c;
+@;"co:Sass::Script::List	:@value[o;	;iÙ;	"c2;
+@;"c2o:Sass::Script::Number;i7;iÙ:@original"50%:@denominator_units[ :@numerator_units["%;
+@;iÙ:@separator:
+space;
+@o;	;[o;	;iÙ;	"c2;
+@;"c2o;;ii;iÙ;"	100%;[ ;["%;
+@;iÙ;;;
+@;	"color-stops;{ ;
+@;	"linear-gradient;{ ;
+@;	"background-image;[ ;{ ;
+@;@[o:Sass::Tree::MixinNode;i:
+@args[o:Sass::Script::Funcall
+;i;[o;	;i;	"c;
+@	;"co:Sass::Script::Number;i
+;i:@original"5%:@denominator_units[ :@numerator_units["%;
+@	;	"lighten:@keywords{ ;
+@	o;	;i;	"c;
+@	;"c;	"filter-gradient:@children[ ;{ ;
+@	:@filename"}/data/disk/v4709507421/static/platforms/reach-7.12-prod/sites/experience.aidslifecycle.org/themes/sfaf/sass/_mixins.sasso;;iÒ;[o;
+;iÒ;[o;
+;iÒ;[o;
+;iÒ;[o;	;iÒ;	"c;
+@	;"co;;i
+;iÒ;"5%;[ ;["%;
+@	;	"lighten;{ ;
+@	o:Sass::Script::List	;[o;	;iÒ;	"c;
+@	;"co;;i7;iÒ;"50%;[ ;["%;
+@	;iÒ:@separator:
+space;
+@	o;	;[o;	;iÒ;	"c;
+@	;"co;;ii;iÒ;"	100%;[ ;["%;
+@	;iÒ;;;
+@	;	"color-stops;{ ;
+@	;	"linear-gradient;{ ;
+@	;	"background-image;[ ;{ ;
+@	;@";@;@o;;["'//cross browser bottom facing fade;
+iˆ;F;[ ;T;@;@o;);T;
+i˜;[[o;;"c;@; "c0[o;;"c2;@; "c2o;;F;
+i˜;@;"simple-grad-bottom;[o;-;.;/;o;	;
+i¯;"c;@; "c;
+i¯;["background-color;[ ;0i ;@;@o;;["*//if no second color, just use darken;
+i˘;F;[ ;T;@;@u;1’[o:Sass::Script::Operation
+:@operand1o:Sass::Script::Variable	:
+@linei˙:
+@name"c2:@options{ :@underscored_name"c2;i˙:@operator:eq:@operand2o:Sass::Script::Bool:@valueF;i˙;
+@	;
+@	u:Sass::Tree::IfNodeP[00[o:Sass::Tree::MixinNode:
+@lineiˇ:
+@args[o:Sass::Script::Variable	;iˇ:
+@name"c:@options{ :@underscored_name"co;	;iˇ;	"c2;
+@;"c2;	"filter-gradient:@children[ :@keywords{ ;
+@:@filename"}/data/disk/v4709507421/static/platforms/reach-7.12-prod/sites/experience.aidslifecycle.org/themes/sfaf/sass/_mixins.sasso:Sass::Tree::VariableNode;i :
+@expro:Sass::Script::Bool:@valueT;i ;
+@;	"!experimental-support-for-svg;[ :@guarded0;
+@;@o; ;i;[o:Sass::Script::Funcall
+;i;[o;
+;i;[o;	;i;	"c;
+@;"co:Sass::Script::List	;[o;	;i;	"c;
+@;"co:Sass::Script::Number;i7;i:@original"50%:@denominator_units[ :@numerator_units["%;
+@;i:@separator:
+space;
+@o;	;i;	"c2;
+@;"c2;	"color-stops;{ ;
+@;	"linear-gradient;{ ;
+@;	"background-image;[ ;{ ;
+@;@[o:Sass::Tree::MixinNode;i˚:
+@args[o;	;i˚;	"c;
+@	;"co:Sass::Script::Funcall
+;i˚;[o;	;i˚;	"c;
+@	;"co:Sass::Script::Number;i
+;i˚:@original"5%:@denominator_units[ :@numerator_units["%;
+@	;	"darken:@keywords{ ;
+@	;	"filter-gradient:@children[ ;{ ;
+@	:@filename"}/data/disk/v4709507421/static/platforms/reach-7.12-prod/sites/experience.aidslifecycle.org/themes/sfaf/sass/_mixins.sasso:Sass::Tree::VariableNode;i¸:
+@expro;;T;i¸;
+@	;	"!experimental-support-for-svg;[ :@guarded0;
+@	;@"o;;i˝;[o;
+;i˝;[o;
+;i˝;[o;	;i˝;	"c;
+@	;"co:Sass::Script::List	;[o;	;i˝;	"c;
+@	;"co;;i7;i˝;"50%;[ ;["%;
+@	;i˝:@separator:
+space;
+@	o;	;[o;
+;i˝;[o;	;i˝;	"c;
+@	;"co;;i
+;i˝;"5%;[ ;["%;
+@	;	"darken;{ ;
+@	o;;ii;i˝;"	100%;[ ;["%;
+@	;i˝; ;!;
+@	;	"color-stops;{ ;
+@	;	"linear-gradient;{ ;
+@	;	"background-image;[ ;{ ;
+@	;@";@;@o;);T;
+i;[[o;;"n;@; "no;;F;
+i;@[o;;"h;@; "ho;	;
+i;"square_block_h;@; "square_block_h[o;;"font_s;@; "font_so;	;
+i;"square_block_font;@; "square_block_font;"square-button-link;[o;;
+i;o;!
+;
+i;[o;	;
+i;"n;@; "n;"grid-width;{ ;@;"w;[ ;0;@;@o;-;.;/;o;*	;"
+block;
+i;+;,;@;
+i;["display;[ ;0i ;@;@o;-;.;/;o;;i;
+i;"1em;[ ;["em;@;
+i;["font-size;[ ;0i ;@;@o;-;.;/;o;	;
+i;"h;@; "h;
+i;["height;[ ;0i ;@;@o;-;.;/;o;*	;"relative;
+i;+;,;@;
+i;["position;[ ;0i ;@;@o;-;.;/;o;	;
+i	;"w;@; "w;
+i	;["
+width;[ ;0i ;@;@o;8;T;9["	span;
+i;:o;;;
+i;<[o;=;<[o;>;
+i;<[o:Sass::Selector::Element	;
+i;["	span;@:@namespace0;@;@;[
+u;1l[o:Sass::Script::Operation
+:@operand1o:Sass::Script::Variable	:
+@linei:
+@name"w:@options{ :@underscored_name"w;i:@operator:eq:@operand2o:Sass::Script::String	:@value"	auto;i:
+@type:identifier;
+@	;
+@	u:Sass::Tree::IfNodeC[00[o:Sass::Tree::MixinNode:
+@linei:
+@args[o:Sass::Script::Operation
+:@operand1o:Sass::Script::Variable	;i:
+@name"w:@options{ :@underscored_name"w;i:@operator:
+minus:@operand2o:Sass::Script::Number:@valuei;i:@original"20:@denominator_units[ :@numerator_units[ ;@;@o:Sass::Script::String	;"	auto;i:
+@type:identifier;@o;
+	;i;"font_s;@;"font_s;"block-link:@children[ :@keywords{ ;@:@filename"}/data/disk/v4709507421/static/platforms/reach-7.12-prod/sites/experience.aidslifecycle.org/themes/sfaf/sass/_mixins.sass[o:Sass::Tree::MixinNode;i:
+@args[o;	;i;	"w;
+@	;"wo;	;"	auto;i;;;
+@	o;	;i;	"font_s;
+@	;"font_s;	"block-link:@children[ :@keywords{ ;
+@	:@filename"}/data/disk/v4709507421/static/platforms/reach-7.12-prod/sites/experience.aidslifecycle.org/themes/sfaf/sass/_mixins.sasso;-;.;/;o;;i;
+i;"	10px;[ ;["px;@;
+i;["bottom;[ ;0i ;@;@o;-;.;/;o;*	;"
+block;
+i;+;,;@;
+i;["display;[ ;0i ;@;@o;-;.;/;o;*	;"absolute;
+i;+;,;@;
+i;["position;[ ;0i ;@;@o;-;.;/;o;;i;
+i;"	10px;[ ;["px;@;
+i;["	left;[ ;0i ;@;@;0i ;@;@;@;@o;);T;
+i;[ ;"clear-square-button-link;[
+o;-;.;/;o;*	;"	none;
+i;+;,;@;
+i;["
+float;[ ;0i ;@;@o;-;.;/;o;*	;"	auto;
+i;+;,;@;
+i;["height;[ ;0i ;@;@o;-;.;/;o;*	;"relative;
+i;+;,;@;
+i;["position;[ ;0i ;@;@o;-;.;/;o;*	;"	auto;
+i;+;,;@;
+i;["
+width;[ ;0i ;@;@o;8;T;9["	span;
+i;:o;;;
+i;<[o;=;<[o;>;
+i;<[o;C	;
+i;["	span;@;D0;@;@;[
+o;-;.;/;o;*	;"	auto;
+i;+;,;@;
+i;["bottom;[ ;0i ;@;@o;-;.;/;o;;i;
+i;"	20px;[ ;["px;@;
+i;["	left;[ ;0i ;@;@o;-;.;/;o;5	;[o;;i;
+i;"	10px;[ ;["px;@o;;i ;
+i;"0;@L;[ ;@;
+i;6;7;@;
+i;["padding;[ ;0i ;@;@o;-;.;/;o;*	;"relative;
+i;+;,;@;
+i;["position;[ ;0i ;@;@o;-;.;/;o;*	;"	auto;
+i ;+;,;@;
+i ;["
+width;[ ;0i ;@;@;0i ;@;@;@;@o;;["^/**********************************
+ * FONT MIXINS
+ ********************************** */;
+i#;F;[ ;F;@;@o;);T;
+i';[ ;"font-face-sansus;[o:Sass::Tree::DirectiveNode;T;"@font-face;
+i(;[
+o;-;.;/;o;*	;"Sansus;
+i);+:string;@;
+i);["font-family;[ ;0i ;@;@o;-;.;/;o;!
+;
+i*;[o;*	;"2../fonts/sansus-webissimo-regular-webfont.eot;
+i*;+;F;@;"url;{ ;@;
+i*;["src;[ ;0i ;@;@o;-;.;/;o;5	;[	o;5	;[o;!
+;
+i+;[o;*	;"9../fonts/sansus-webissimo-regular-webfont.eot?#iefix;
+i+;+;F;@;"url;{ ;@o;!
+;
+i+;[o;*	;"embedded-opentype;
+i+;+;F;@;"format;{ ;@;
+i+;6;7;@o;5	;[o;!
+;
+i+;[o;*	;"3../fonts/sansus-webissimo-regular-webfont.woff;
+i+;+;F;@;"url;{ ;@o;!
+;
+i+;[o;*	;"	woff;
+i+;+;F;@;"format;{ ;@;
+i+;6;7;@o;5	;[o;!
+;
+i+;[o;*	;"2../fonts/sansus-webissimo-regular-webfont.ttf;
+i+;+;F;@;"url;{ ;@o;!
+;
+i+;[o;*	;"truetype;
+i+;+;F;@;"format;{ ;@;
+i+;6;7;@o;5	;[o;!
+;
+i+;[o;*	;"=../fonts/sansus-webissimo-regular-webfont.svg#ArvoItalic;
+i+;+;F;@;"url;{ ;@o;!
+;
+i+;[o;*	;"svg;
+i+;+;F;@;"format;{ ;@;
+i+;6;7;@;
+i+;6:
+comma;@;
+i+;["src;[ ;0i ;@;@o;-;.;/;o;*	;"normal;
+i,;+;,;@;
+i,;["font-weight;[ ;0i ;@;@o;-;.;/;o;*	;"normal;
+i-;+;,;@;
+i-;["font-style;[ ;0i ;@;@;@;@o;E;T;"@font-face;
+i/;[
+o;-;.;/;o;*	;"Sansus;
+i0;+;F;@;
+i0;["font-family;[ ;0i ;@;@o;-;.;/;o;!
+;
+i1;[o;*	;"1../fonts/sansus-webissimo-italic-webfont.eot;
+i1;+;F;@;"url;{ ;@;
+i1;["src;[ ;0i ;@;@o;-;.;/;o;5	;[	o;5	;[o;!
+;
+i2;[o;*	;"8../fonts/sansus-webissimo-italic-webfont.eot?#iefix;
+i2;+;F;@;"url;{ ;@o;!
+;
+i2;[o;*	;"embedded-opentype;
+i2;+;F;@;"format;{ ;@;
+i2;6;7;@o;5	;[o;!
+;
+i2;[o;*	;"2../fonts/sansus-webissimo-italic-webfont.woff;
+i2;+;F;@;"url;{ ;@o;!
+;
+i2;[o;*	;"	woff;
+i2;+;F;@;"format;{ ;@;
+i2;6;7;@o;5	;[o;!
+;
+i2;[o;*	;"1../fonts/sansus-webissimo-italic-webfont.ttf;
+i2;+;F;@;"url;{ ;@o;!
+;
+i2;[o;*	;"truetype;
+i2;+;F;@;"format;{ ;@;
+i2;6;7;@o;5	;[o;!
+;
+i2;[o;*	;"<../fonts/sansus-webissimo-italic-webfont.svg#ArvoItalic;
+i2;+;F;@;"url;{ ;@o;!
+;
+i2;[o;*	;"svg;
+i2;+;F;@;"format;{ ;@;
+i2;6;7;@;
+i2;6;G;@;
+i2;["src;[ ;0i ;@;@o;-;.;/;o;*	;"normal;
+i3;+;,;@;
+i3;["font-weight;[ ;0i ;@;@o;-;.;/;o;*	;"italic;
+i4;+;,;@;
+i4;["font-style;[ ;0i ;@;@;@;@;@;@o;;["3/*****************************************8 */;
+i8;F;[ ;F;@;@o;);T;
+i:;[	[o;;"	left;@; "	left0[o;;"top;@; "top0[o;;"img;@; "imgo;*	;"sprite.png;
+i:;+;F;@[o;;"repeat;@; "repeato;*	;"no-repeat;
+i:;+;,;@;"old-sprite;[o;-;.;/;o:&Sass::Script::StringInterpolation
+:@aftero;*	;");
+i;;+;,;@;
+i;:	@mido;	;
+i;;"img;@; "img:@beforeo;*	;"url(../images/;
+i;;+;,;@;@;
+i;;["background-image;[ ;0i ;@;@o;-;.;/;o;5	;[o;	;
+i<;"	left;@; "	lefto;	;
+i<;"top;@; "top;
+i<;6;7;@;
+i<;["background-position;[ ;0i ;@;@o;-;.;/;o;*	;"no-repeat;
+i=;+;,;@;
+i=;["background-repeat;[ ;0i ;@;@;@;@o;);T;
+i?;[[o;;"
+width;@; "
+width0[o;;"height;@; "height0[o;;"	left;@; "	left0[o;;"top;@; "top0[o;;"img;@; "imgo;*	;"sprite.png;
+i?;+;F;@[o;;"repeat;@; "repeato;*	;"no-repeat;
+i?;+;,;@;"sprite-block;[o;-;.;/;o;	;
+i@;"
+width;@; "
+width;
+i@;["
+width;[ ;0i ;@;@o;-;.;/;o;	;
+iA;"height;@; "height;
+iA;["height;[ ;0i ;@;@o;-;.;/;o;*	;"
+block;
+iB;+;,;@;
+iB;["display;[ ;0i ;@;@o;-;.;/;o;;i˛¸;
+iC;"-1000em;[ ;["em;@;
+iC;["text-indent;[ ;0i ;@;@o;-;.;/;o;*	;"hidden;
+iD;+;,;@;
+iD;["overflow;[ ;0i ;@;@o;;
+iE;[	o;	;
+iE;"	left;@; "	lefto;	;
+iE;"top;@; "topo;	;
+iE;"img;@; "imgo;	;
+iE;"repeat;@; "repeat;"old-sprite;[ ;{ ;@;@;@;@o;);T;
+iG;[[o;;"
+image;@; "
+imageo;*	;"url(../images/bg.jpg);
+iG;+;,;@[o;;"
+color;@; "
+coloro:Sass::Script::Color	;0;
+iG:@attrs{	:
+alphai:
+greeniˇ:	blueiˇ:rediˇ;@;"fixed-background;[o;-;.;/;o;L	;0;
+iH;M{	;Ni;Oiˇ;Piˇ;Qiˇ;@;
+iH;["
+color;[ ;0i ;@;@o;-;.;/;o;5	;[o;	;
+iI;"
+color;@; "
+coloro;	;
+iI;"
+image;@; "
+imageo;*	;"no-repeat;
+iI;+;,;@o;*	;"center;
+iI;+;,;@o;*	;"center;
+iI;+;,;@o;*	;"
+fixed;
+iI;+;,;@;
+iI;6;7;@;
+iI;["background;[ ;0i ;@;@o;;
+iJ;[o;*	;"
+cover;
+iJ;+;,;@;"background-size;[ ;{ ;@;@;@;@o;);T;
+iL;[[o;;"
+start;@; "
+start0[o;;"	stop;@; "	stop0[o;;"position;@; "positiono;*	;"top;
+iL;+;,;@;"fade-background;[o;;
+iM;[o;!
+;
+iM;[o;	;
+iM;"
+start;@; "
+starto;	;
+iM;"	stop;@; "	stop;"color-stops;{ ;@o;	;
+iM;"position;@; "position;"linear-gradient;[ ;{ ;@;@o;-;.;/;o;	;
+iN;"
+start;@; "
+start;
+iN;["background-color;[ ;0i ;@;@;@;@o;);T;
+iQ;[[o;;"
+color;@; "
+color0[o;;"position;@; "positiono;*	;"top;
+iQ;+;,;@;"auto-fade-background;[o;;
+iR;[o;!
+;
+iR;[o;	;
+iR;"
+color;@; "
+coloro;;i;
+iR;"20%;[ ;["%;@;"lighten;{ ;@o;	;
+iR;"
+color;@; "
+coloro;	;
+iR;"position;@; "position;"fade-background;[ ;{ ;@;@;@;@o;);T;
+iU;[[o;;"
+color;@; "
+color0;"auto-fade-background-hover;[o;;
+iV;[o;	;
+iV;"
+color;@; "
+coloro;*	;"top;
+iV;+;,;@;"auto-fade-background;[ ;{ ;@;@o;8;T;9["&:hover;
+iX;:o;;;
+iX;<[o;=;<[o;>;
+iX;<[o;?;
+iX;@o;@
+;
+iX;+;A;["
+hover;B0;@;@;@;[o;;
+iY;[o;	;
+iY;"
+color;@; "
+coloro;*	;"bottom;
+iY;+;,;@;"auto-fade-background;[ ;{ ;@;@;0i ;@;@;@;@o;);T;
+i\;[[o;;"
+color;@; "
+color0;"link-clear;[o;8;T;9["	&,
+a;
+i];:o;;;
+i;<[o;=;<[o;>;
+i;<[o;?;
+i;" ;@Ÿo;=;<["
+o;>;
+i;<[o;C	;
+i;["a;@Ÿ;D0;@Ÿ;@Ÿ;[o;-;.;/;o;5	;[o;	;
+i_;"
+color;@; "
+coloro;*	;"!important;
+i_;+;,;@;
+i_;6;7;@;
+i_;["
+color;[ ;0i ;@;@o;-;.;/;o;5	;[o;*	;"	none;
+i`;+;,;@o;*	;"!important;
+i`;+;,;@;
+i`;6;7;@;
+i`;["text-decoration;[ ;0i ;@;@;0i ;@;@;@;@o;);T;
+ib;[ ;"list-clear;[o;8;T;9["&,
+ul,
+li;
+ic;:o;;;
+i;<[o;=;<[o;>;
+i;<[o;?;
+i;" ;@o;=;<["
+o;>;
+i;<[o;C	;
+i;["ul;@;D0;@o;=;<["
+o;>;
+i;<[o;C	;
+i;["li;@;D0;@;@;[	o;-;.;/;o;;i ;
+if;"0;@L;[ ;@;
+if;["margin;[ ;0i ;@;@o;-;.;/;o;;i ;
+ig;"0;@L;[ ;@;
+ig;["padding;[ ;0i ;@;@o;-;.;/;o;*	;"	none;
+ih;+;,;@;
+ih;["list-style;[ ;0i ;@;@o;-;.;/;o;*	;"	none;
+ii;+;,;@;
+ii;["list-style-image;[ ;0i ;@;@;0i ;@;@;@;@o;);T;
+ik;[[o;;"
+float;@; "
+floato;*	;"	left;
+ik;+;,;@[o;;"margin-horizontal;@; "margin_horizontalo;;i;
+ik;"	10px;[ ;["px;@[o;;"margin-vertical;@; "margin_verticalo;;i ;
+ik;"0;@L;[ ;@;"list-float;[o;;
+il;[ ;"list-clear;[ ;{ ;@;@o;8;T;9[">li;
+im;:o;;;
+im;<[o;=;<[">o;>;
+im;<[o;C	;
+im;["li;@;D0;@;@;[o;-;.;/;o;5	;[o;	;
+in;"margin-vertical;@; "margin_verticalo;	;
+in;"margin-horizontal;@; "margin_horizontal;
+in;6;7;@;
+in;["margin;[ ;0i ;@;@o;-;.;/;o;	;
+io;"
+float;@; "
+float;
+io;["
+float;[ ;0i ;@;@;0i ;@;@;@;@o;;["^/**********************************
+ * FONT MIXINS
+ ********************************** */;
+ir;F;[ ;F;@;@o;);T;
+iw;[ ;"font_face_otari;[o;E;T;"@font-face;
+ix;[
+o;-;.;/;o;*	;"
+otari;
+iy;+;F;@;
+iy;["font-family;[ ;0i ;@;@o;-;.;/;o;!
+;
+iz;[o;*	;"O../../../../all/themes/albatross/fonts/otari-bold-limited_copy-webfont.eot;
+iz;+;F;@;"url;{ ;@;
+iz;["src;[ ;0i ;@;@o;-;.;/;o;5	;[	o;5	;[o;!
+;
+i{;[o;*	;"V../../../../all/themes/albatross/fonts/otari-bold-limited_copy-webfont.eot?#iefix;
+i{;+;F;@;"url;{ ;@o;!
+;
+i{;[o;*	;"embedded-opentype;
+i{;+;F;@;"format;{ ;@;
+i{;6;7;@o;5	;[o;!
+;
+i{;[o;*	;"P../../../../all/themes/albatross/fonts/otari-bold-limited_copy-webfont.woff;
+i{;+;F;@;"url;{ ;@o;!
+;
+i{;[o;*	;"	woff;
+i{;+;F;@;"format;{ ;@;
+i{;6;7;@o;5	;[o;!
+;
+i{;[o;*	;"O../../../../all/themes/albatross/fonts/otari-bold-limited_copy-webfont.ttf;
+i{;+;F;@;"url;{ ;@o;!
+;
+i{;[o;*	;"truetype;
+i{;+;F;@;"format;{ ;@;
+i{;6;7;@o;5	;[o;!
+;
+i{;[o;*	;"a../../../../all/themes/albatross/fonts/otari-bold-limited_copy-webfont.svg#OtariBold-Limited;
+i{;+;F;@;"url;{ ;@o;!
+;
+i{;[o;*	;"svg;
+i{;+;F;@;"format;{ ;@;
+i{;6;7;@;
+i{;6;G;@;
+i{;["src;[ ;0i ;@;@o;-;.;/;o;*	;"normal;
+i|;+;,;@;
+i|;["font-weight;[ ;0i ;@;@o;-;.;/;o;*	;"normal;
+i};+;,;@;
+i};["font-style;[ ;0i ;@;@;@;@;@;@o;);T;
+i;[ ;"font_face_pacifico;[o;E;T;"@font-face;
+iÄ;[
+o;-;.;/;o;*	;"pacifico;
+iÅ;+;F;@;
+iÅ;["font-family;[ ;0i ;@;@o;-;.;/;o;!
+;
+iÇ;[o;*	;"E../../../../all/themes/albatross/fonts/pacifico_copy-webfont.eot;
+iÇ;+;F;@;"url;{ ;@;
+iÇ;["src;[ ;0i ;@;@o;-;.;/;o;5	;[	o;5	;[o;!
+;
+iÉ;[o;*	;"L../../../../all/themes/albatross/fonts/pacifico_copy-webfont.eot?#iefix;
+iÉ;+;F;@;"url;{ ;@o;!
+;
+iÉ;[o;*	;"embedded-opentype;
+iÉ;+;F;@;"format;{ ;@;
+iÉ;6;7;@o;5	;[o;!
+;
+iÉ;[o;*	;"F../../../../all/themes/albatross/fonts/pacifico_copy-webfont.woff;
+iÉ;+;F;@;"url;{ ;@o;!
+;
+iÉ;[o;*	;"	woff;
+iÉ;+;F;@;"format;{ ;@;
+iÉ;6;7;@o;5	;[o;!
+;
+iÉ;[o;*	;"E../../../../all/themes/albatross/fonts/pacifico_copy-webfont.ttf;
+iÉ;+;F;@;"url;{ ;@o;!
+;
+iÉ;[o;*	;"truetype;
+iÉ;+;F;@;"format;{ ;@;
+iÉ;6;7;@o;5	;[o;!
+;
+iÉ;[o;*	;"U../../../../all/themes/albatross/fonts/pacifico_copy-webfont.svg#PacificoRegular;
+iÉ;+;F;@;"url;{ ;@o;!
+;
+iÉ;[o;*	;"svg;
+iÉ;+;F;@;"format;{ ;@;
+iÉ;6;7;@;
+iÉ;6;G;@;
+iÉ;["src;[ ;0i ;@;@o;-;.;/;o;*	;"normal;
+iÑ;+;,;@;
+iÑ;["font-weight;[ ;0i ;@;@o;-;.;/;o;*	;"normal;
+iÖ;+;,;@;
+iÖ;["font-style;[ ;0i ;@;@;@;@;@;@o;);T;
+iá;[ ;"font_face_nevis;[o;E;T;"@font-face;
+ià;[
+o;-;.;/;o;*	;"
+nevis;
+iâ;+;F;@;
+iâ;["font-family;[ ;0i ;@;@o;-;.;/;o;!
+;
+iä;[o;*	;"=../../../../all/themes/albatross/fonts/nevis-webfont.eot;
+iä;+;F;@;"url;{ ;@;
+iä;["src;[ ;0i ;@;@o;-;.;/;o;5	;[	o;5	;[o;!
+;
+iã;[o;*	;"D../../../../all/themes/albatross/fonts/nevis-webfont.eot?#iefix;
+iã;+;F;@;"url;{ ;@o;!
+;
+iã;[o;*	;"embedded-opentype;
+iã;+;F;@;"format;{ ;@;
+iã;6;7;@o;5	;[o;!
+;
+iã;[o;*	;">../../../../all/themes/albatross/fonts/nevis-webfont.woff;
+iã;+;F;@;"url;{ ;@o;!
+;
+iã;[o;*	;"	woff;
+iã;+;F;@;"format;{ ;@;
+iã;6;7;@o;5	;[o;!
+;
+iã;[o;*	;"=../../../../all/themes/albatross/fonts/nevis-webfont.ttf;
+iã;+;F;@;"url;{ ;@o;!
+;
+iã;[o;*	;"truetype;
+iã;+;F;@;"format;{ ;@;
+iã;6;7;@o;5	;[o;!
+;
+iã;[o;*	;"M../../../../all/themes/albatross/fonts/nevis-webfont.svg#webfontHubXaE9b;
+iã;+;F;@;"url;{ ;@o;!
+;
+iã;[o;*	;"svg;
+iã;+;F;@;"format;{ ;@;
+iã;6;7;@;
+iã;6;G;@;
+iã;["src;[ ;0i ;@;@o;-;.;/;o;*	;"normal;
+iå;+;,;@;
+iå;["font-weight;[ ;0i ;@;@o;-;.;/;o;*	;"normal;
+iç;+;,;@;
+iç;["font-style;[ ;0i ;@;@;@;@;@;@o;);T;
+iè;[ ;"font_face_copse;[o;E;T;"@font-face;
+iê;[
+o;-;.;/;o;*	;"CopseRegular;
+ië;+;F;@;
+ië;["font-family;[ ;0i ;@;@o;-;.;/;o;!
+;
+ií;[o;*	;"E../../../../all/themes/albatross/fonts/Copse-Regular-webfont.eot;
+ií;+;F;@;"url;{ ;@;
+ií;["src;[ ;0i ;@;@o;-;.;/;o;5	;[	o;5	;[o;!
+;
+iì;[o;*	;"L../../../../all/themes/albatross/fonts/Copse-Regular-webfont.eot?#iefix;
+iì;+;F;@;"url;{ ;@o;!
+;
+iì;[o;*	;"embedded-opentype;
+iì;+;F;@;"format;{ ;@;
+iì;6;7;@o;5	;[o;!
+;
+iì;[o;*	;"F../../../../all/themes/albatross/fonts/Copse-Regular-webfont.woff;
+iì;+;F;@;"url;{ ;@o;!
+;
+iì;[o;*	;"	woff;
+iì;+;F;@;"format;{ ;@;
+iì;6;7;@o;5	;[o;!
+;
+iì;[o;*	;"E../../../../all/themes/albatross/fonts/Copse-Regular-webfont.ttf;
+iì;+;F;@;"url;{ ;@o;!
+;
+iì;[o;*	;"truetype;
+iì;+;F;@;"format;{ ;@;
+iì;6;7;@o;5	;[o;!
+;
+iì;[o;*	;"R../../../../all/themes/albatross/fonts/Copse-Regular-webfont.svg#CopseRegular;
+iì;+;F;@;"url;{ ;@o;!
+;
+iì;[o;*	;"svg;
+iì;+;F;@;"format;{ ;@;
+iì;6;7;@;
+iì;6;G;@;
+iì;["src;[ ;0i ;@;@o;-;.;/;o;*	;"normal;
+iî;+;,;@;
+iî;["font-weight;[ ;0i ;@;@o;-;.;/;o;*	;"normal;
+iï;+;,;@;
+iï;["font-style;[ ;0i ;@;@;@;@;@;@o;);T;
+ió;[ ;"font_face_arvo;[	o;E;T;"@font-face;
+iò;[
+o;-;.;/;o;*	;"	Arvo;
+iô;+;F;@;
+iô;["font-family;[ ;0i ;@;@o;-;.;/;o;!
+;
+iö;[o;*	;"D../../../../all/themes/albatross/fonts/Arvo-Regular-webfont.eot;
+iö;+;F;@;"url;{ ;@;
+iö;["src;[ ;0i ;@;@o;-;.;/;o;5	;[	o;5	;[o;!
+;
+iõ;[o;*	;"K../../../../all/themes/albatross/fonts/Arvo-Regular-webfont.eot?#iefix;
+iõ;+;F;@;"url;{ ;@o;!
+;
+iõ;[o;*	;"embedded-opentype;
+iõ;+;F;@;"format;{ ;@;
+iõ;6;7;@o;5	;[o;!
+;
+iõ;[o;*	;"E../../../../all/themes/albatross/fonts/Arvo-Regular-webfont.woff;
+iõ;+;F;@;"url;{ ;@o;!
+;
+iõ;[o;*	;"	woff;
+iõ;+;F;@;"format;{ ;@;
+iõ;6;7;@o;5	;[o;!
+;
+iõ;[o;*	;"D../../../../all/themes/albatross/fonts/Arvo-Regular-webfont.ttf;
+iõ;+;F;@;"url;{ ;@o;!
+;
+iõ;[o;*	;"truetype;
+iõ;+;F;@;"format;{ ;@;
+iõ;6;7;@o;5	;[o;!
+;
+iõ;[o;*	;"P../../../../all/themes/albatross/fonts/Arvo-Regular-webfont.svg#ArvoRegular;
+iõ;+;F;@;"url;{ ;@o;!
+;
+iõ;[o;*	;"svg;
+iõ;+;F;@;"format;{ ;@;
+iõ;6;7;@;
+iõ;6;G;@;
+iõ;["src;[ ;0i ;@;@o;-;.;/;o;*	;"normal;
+iú;+;,;@;
+iú;["font-weight;[ ;0i ;@;@o;-;.;/;o;*	;"normal;
+iù;+;,;@;
+iù;["font-style;[ ;0i ;@;@;@;@o;E;T;"@font-face;
+iü;[
+o;-;.;/;o;*	;"	Arvo;
+i†;+;F;@;
+i†;["font-family;[ ;0i ;@;@o;-;.;/;o;!
+;
+i°;[o;*	;"C../../../../all/themes/albatross/fonts/Arvo-Italic-webfont.eot;
+i°;+;F;@;"url;{ ;@;
+i°;["src;[ ;0i ;@;@o;-;.;/;o;5	;[	o;5	;[o;!
+;
+i¢;[o;*	;"J../../../../all/themes/albatross/fonts/Arvo-Italic-webfont.eot?#iefix;
+i¢;+;F;@;"url;{ ;@o;!
+;
+i¢;[o;*	;"embedded-opentype;
+i¢;+;F;@;"format;{ ;@;
+i¢;6;7;@o;5	;[o;!
+;
+i¢;[o;*	;"D../../../../all/themes/albatross/fonts/Arvo-Italic-webfont.woff;
+i¢;+;F;@;"url;{ ;@o;!
+;
+i¢;[o;*	;"	woff;
+i¢;+;F;@;"format;{ ;@;
+i¢;6;7;@o;5	;[o;!
+;
+i¢;[o;*	;"C../../../../all/themes/albatross/fonts/Arvo-Italic-webfont.ttf;
+i¢;+;F;@;"url;{ ;@o;!
+;
+i¢;[o;*	;"truetype;
+i¢;+;F;@;"format;{ ;@;
+i¢;6;7;@o;5	;[o;!
+;
+i¢;[o;*	;"N../../../../all/themes/albatross/fonts/Arvo-Italic-webfont.svg#ArvoItalic;
+i¢;+;F;@;"url;{ ;@o;!
+;
+i¢;[o;*	;"svg;
+i¢;+;F;@;"format;{ ;@;
+i¢;6;7;@;
+i¢;6;G;@;
+i¢;["src;[ ;0i ;@;@o;-;.;/;o;*	;"normal;
+i£;+;,;@;
+i£;["font-weight;[ ;0i ;@;@o;-;.;/;o;*	;"italic;
+i§;+;,;@;
+i§;["font-style;[ ;0i ;@;@;@;@o;E;T;"@font-face;
+i¶;[
+o;-;.;/;o;*	;"	Arvo;
+iß;+;F;@;
+iß;["font-family;[ ;0i ;@;@o;-;.;/;o;!
+;
+i®;[o;*	;"A../../../../all/themes/albatross/fonts/Arvo-Bold-webfont.eot;
+i®;+;F;@;"url;{ ;@;
+i®;["src;[ ;0i ;@;@o;-;.;/;o;5	;[	o;5	;[o;!
+;
+i©;[o;*	;"H../../../../all/themes/albatross/fonts/Arvo-Bold-webfont.eot?#iefix;
+i©;+;F;@;"url;{ ;@o;!
+;
+i©;[o;*	;"embedded-opentype;
+i©;+;F;@;"format;{ ;@;
+i©;6;7;@o;5	;[o;!
+;
+i©;[o;*	;"B../../../../all/themes/albatross/fonts/Arvo-Bold-webfont.woff;
+i©;+;F;@;"url;{ ;@o;!
+;
+i©;[o;*	;"	woff;
+i©;+;F;@;"format;{ ;@;
+i©;6;7;@o;5	;[o;!
+;
+i©;[o;*	;"A../../../../all/themes/albatross/fonts/Arvo-Bold-webfont.ttf;
+i©;+;F;@;"url;{ ;@o;!
+;
+i©;[o;*	;"truetype;
+i©;+;F;@;"format;{ ;@;
+i©;6;7;@o;5	;[o;!
+;
+i©;[o;*	;"M../../../../all/themes/albatross/fonts/Arvo-Bold-webfont.svg#ArvoRegular;
+i©;+;F;@;"url;{ ;@o;!
+;
+i©;[o;*	;"svg;
+i©;+;F;@;"format;{ ;@;
+i©;6;7;@;
+i©;6;G;@;
+i©;["src;[ ;0i ;@;@o;-;.;/;o;*	;"	bold;
+i™;+;,;@;
+i™;["font-weight;[ ;0i ;@;@o;-;.;/;o;*	;"normal;
+i´;+;,;@;
+i´;["font-style;[ ;0i ;@;@;@;@o;E;T;"@font-face;
+i≠;[
+o;-;.;/;o;*	;"	Arvo;
+iÆ;+;F;@;
+iÆ;["font-family;[ ;0i ;@;@o;-;.;/;o;!
+;
+iØ;[o;*	;"G../../../../all/themes/albatross/fonts/Arvo-BoldItalic-webfont.eot;
+iØ;+;F;@;"url;{ ;@;
+iØ;["src;[ ;0i ;@;@o;-;.;/;o;5	;[	o;5	;[o;!
+;
+i∞;[o;*	;"N../../../../all/themes/albatross/fonts/Arvo-BoldItalic-webfont.eot?#iefix;
+i∞;+;F;@;"url;{ ;@o;!
+;
+i∞;[o;*	;"embedded-opentype;
+i∞;+;F;@;"format;{ ;@;
+i∞;6;7;@o;5	;[o;!
+;
+i∞;[o;*	;"H../../../../all/themes/albatross/fonts/Arvo-BoldItalic-webfont.woff;
+i∞;+;F;@;"url;{ ;@o;!
+;
+i∞;[o;*	;"	woff;
+i∞;+;F;@;"format;{ ;@;
+i∞;6;7;@o;5	;[o;!
+;
+i∞;[o;*	;"G../../../../all/themes/albatross/fonts/Arvo-BoldItalic-webfont.ttf;
+i∞;+;F;@;"url;{ ;@o;!
+;
+i∞;[o;*	;"truetype;
+i∞;+;F;@;"format;{ ;@;
+i∞;6;7;@o;5	;[o;!
+;
+i∞;[o;*	;"R../../../../all/themes/albatross/fonts/Arvo-BoldItalic-webfont.svg#ArvoItalic;
+i∞;+;F;@;"url;{ ;@o;!
+;
+i∞;[o;*	;"svg;
+i∞;+;F;@;"format;{ ;@;
+i∞;6;7;@;
+i∞;6;G;@;
+i∞;["src;[ ;0i ;@;@o;-;.;/;o;*	;"	bold;
+i±;+;,;@;
+i±;["font-weight;[ ;0i ;@;@o;-;.;/;o;*	;"italic;
+i≤;+;,;@;
+i≤;["font-style;[ ;0i ;@;@;@;@;@;@o;);T;
+i¥;[ ;"font_face_comfortaa;[o;E;T;"@font-face;
+iµ;[
+o;-;.;/;o;*	;"Comfortaa;
+i∂;+;F;@;
+i∂;["font-family;[ ;0i ;@;@o;-;.;/;o;!
+;
+i∑;[o;*	;"G../../../../all/themes/albatross/fonts/comfortaa_bold_copy-webfont;
+i∑;+;F;@;"url;{ ;@;
+i∑;["src;[ ;0i ;@;@o;-;.;/;o;5	;[	o;5	;[o;!
+;
+i∏;[o;*	;"R../../../../all/themes/albatross/fonts/comfortaa_bold_copy-webfont.eot?#iefix;
+i∏;+;F;@;"url;{ ;@o;!
+;
+i∏;[o;*	;"embedded-opentype;
+i∏;+;F;@;"format;{ ;@;
+i∏;6;7;@o;5	;[o;!
+;
+i∏;[o;*	;"L../../../../all/themes/albatross/fonts/comfortaa_bold_copy-webfont.woff;
+i∏;+;F;@;"url;{ ;@o;!
+;
+i∏;[o;*	;"	woff;
+i∏;+;F;@;"format;{ ;@;
+i∏;6;7;@o;5	;[o;!
+;
+i∏;[o;*	;"K../../../../all/themes/albatross/fonts/comfortaa_bold_copy-webfont.ttf;
+i∏;+;F;@;"url;{ ;@o;!
+;
+i∏;[o;*	;"truetype;
+i∏;+;F;@;"format;{ ;@;
+i∏;6;7;@o;5	;[o;!
+;
+i∏;[o;*	;"V../../../../all/themes/albatross/fonts/comfortaa_bold_copy-webfont.svg#ArvoItalic;
+i∏;+;F;@;"url;{ ;@o;!
+;
+i∏;[o;*	;"svg;
+i∏;+;F;@;"format;{ ;@;
+i∏;6;7;@;
+i∏;6;G;@;
+i∏;["src;[ ;0i ;@;@o;-;.;/;o;*	;"normal;
+iπ;+;,;@;
+iπ;["font-weight;[ ;0i ;@;@o;-;.;/;o;*	;"normal;
+i∫;+;,;@;
+i∫;["font-style;[ ;0i ;@;@;@;@;@;@;@

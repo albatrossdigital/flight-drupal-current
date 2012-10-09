@@ -1,0 +1,5 @@
+name = "Elegant Backend"
+description = "Takes the standard Drupal admin frown and turns it upside-down"
+core = "7.x"
+package = "Reach"
+dependencies[] = "filter_tips_dialog"

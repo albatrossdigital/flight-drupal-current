@@ -1,0 +1,53 @@
+<?php
+/**
+ * @file
+ */
+
+// Drupal needs this blank file.
+
+/**
+ * Implementation of hook_wysiwyg_editor_settings_alter
+ */
+function elegant_backend_wysiwyg_editor_settings_alter(&$settings, &$context) {
+  if($context['profile']->editor == 'ckeditor') {
+    $settings['forcePasteAsPlainText'] = TRUE;
+    /*$settings['disableNativeSpellChecker'] = false;
+    //$settings['scayt_autoStartup'] = true;
+    $settings['browserContextMenuOnCtrl'] = true;
+    $settings['enterMode'] = 2; // CKEDITOR.ENTER_BR
+    $settings['shiftEnterMode'] = 1; // CKEDITOR.ENTER_P
+    */
+    $settings['skin'] = 'chris';  //'chris,' . drupal_get_path('module', 'elegant_backend) . '/chris';
+    // @TODO: Look into http://drupal.org/node/835682#comment-5071696 and http://drupal.org/node/492618 for possible solutions
+    //TODO: Why isn't this working??
+    /*$theme = base_path() . drupal_get_path('theme', variable_get('theme_default', 'bartik'));
+    $settings['height'] = (preg_match('~(media)|(multiedit)~', $_REQUEST['q'])) ? '100px' : '250px';
+    $settings['contentsCss'] = array(
+      $theme . '/style.css',
+      $theme . '/blue.css',
+    );*/
+    
+    // AutoGrow
+    // TODO: Make this work
+    /*$settings['extraPlugins'] = 'autogrow';
+    $settings['removePlugins'] = 'resize';
+    $settings['autoGrow_onStartup'] = TRUE;
+    $settings['autoGrow_maxHeight'] = '800px';*/
+  }
+  drupal_add_css(drupal_get_path('module', 'elegant_backend') . '/css/elegant-backend-wysiwyg.css');
+  drupal_add_js(drupal_get_path('module', 'elegant_backend') . '/js/elegant-backend-wysiwyg.js', array('weight' => 1000));
+  
+  if (module_exists('qtip')) {
+    drupal_add_js(drupal_get_path('module', 'elegant_backend') . '/js/elegant-backend-qtip.js');
+  }
+}
+
+
+/**
+ * Implementation of the media_dialog_page theme preprocessor
+ * Add our CSS to make the media dialog look ok
+ */
+function elegant_backend_preprocess_media_dialog_page(&$variables) {
+  drupal_add_css(drupal_get_path('module', 'elegant_backend') . '/css/elegant-backend-media-browser.css');
+}
+

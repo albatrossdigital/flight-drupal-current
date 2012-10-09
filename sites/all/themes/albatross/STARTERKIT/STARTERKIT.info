@@ -1,0 +1,111 @@
+name = STARTERKIT Custom Theme
+description = By Albatross Digital
+screenshot = images/screenshot.gif
+core = "7.x"
+project = "basic"
+base theme = albatross
+engine = phptemplate
+
+regions[page_top] = Page top
+regions[header] = Header
+regions[highlight] = Highlight
+regions[help] = Help
+regions[content] = Content
+regions[content_top] = Content Top
+regions[sidebar_first] = First sidebar
+regions[sidebar_second] = Second sidebar
+regions[content_bottom] = Content Bottom
+regions[navigation]     = Navigation bar
+regions[footer] = Footer
+regions[page_bottom] = Page bottom
+regions[closure] = Closure
+
+; Layout: Default
+layouts[default][name] = "Default"
+layouts[default][description] = "Simple three column page."
+layouts[2_col_left][template] = "../../../all/themes/albatross/templates/page"
+layouts[default][regions][] = "page_top"
+layouts[default][regions][] = "header"
+layouts[default][regions][] = "highlight"
+layouts[default][regions][] = "help"
+layouts[default][regions][] = "content"
+layouts[default][regions][] = "content_top"
+layouts[default][regions][] = "sidebar_first"
+layouts[default][regions][] = "sidebar_second"
+layouts[default][regions][] = "navigation"
+layouts[default][regions][] = "footer"
+layouts[default][regions][] = "page_bottom"
+layouts[default][regions][] = "closure"
+
+; Layout: 2 Column Left Sidebar Only
+layouts[2_col_left][name] = "2_col_left"
+layouts[2_col_left][description] = "Simple two column page, displays left (first) sidebar only."
+layouts[2_col_left][template] = "../../../all/themes/albatross/templates/page"
+layouts[2_col_left][regions][] = "page_top"
+layouts[2_col_left][regions][] = "header"
+layouts[2_col_left][regions][] = "highlight"
+layouts[2_col_left][regions][] = "help"
+layouts[2_col_left][regions][] = "content"
+layouts[2_col_left][regions][] = "content_top"
+layouts[2_col_left][regions][] = "sidebar_first"
+layouts[2_col_left][regions][] = "navigation"
+layouts[2_col_left][regions][] = "footer"
+layouts[2_col_left][regions][] = "page_bottom"
+layouts[2_col_left][regions][] = "closure"
+
+; Layout: 2 Column Right Sidebar Only
+layouts[2_col_right][name] = "2_col_right"
+layouts[2_col_right][description] = "Simple two column page, displays right (second) sidebar only."
+layouts[2_col_left][template] = "../../../all/themes/albatross/templates/page"
+layouts[2_col_right][regions][] = "page_top"
+layouts[2_col_right][regions][] = "header"
+layouts[2_col_right][regions][] = "highlight"
+layouts[2_col_right][regions][] = "help"
+layouts[2_col_right][regions][] = "content"
+layouts[2_col_right][regions][] = "content_top"
+layouts[2_col_right][regions][] = "sidebar_second"
+layouts[2_col_right][regions][] = "navigation"
+layouts[2_col_right][regions][] = "footer"
+layouts[2_col_right][regions][] = "page_bottom"
+layouts[2_col_right][regions][] = "closure"
+
+; Layout: Single column
+layouts[1_column][name] = "1_column"
+layouts[1_column][description] = "Simple 1 column page."
+layouts[2_col_left][template] = "../../../all/themes/albatross/templates/page"
+layouts[1_column][regions][] = "page_top"
+layouts[1_column][regions][] = "header"
+layouts[1_column][regions][] = "highlight"
+layouts[1_column][regions][] = "help"
+layouts[1_column][regions][] = "content"
+layouts[1_column][regions][] = "content_top"
+layouts[1_column][regions][] = "navigation"
+layouts[1_column][regions][] = "footer"
+layouts[1_column][regions][] = "page_bottom"
+layouts[1_column][regions][] = "closure"
+
+features[] = logo
+features[] = name
+features[] = slogan
+features[] = node_user_picture
+features[] = comment_user_picture
+features[] = search
+features[] = favicon
+features[] = main_menu
+features[] = secondary_menu
+
+stylesheets[all][] = css/layout.css
+stylesheets[all][] = css/style.css
+stylesheets[all][] = css/page.css
+stylesheets[all][] = css/page-specific.css
+stylesheets[print][] = css/print.css
+
+scripts[] = js/script.js
+
+settings[toggle_main_menu] = 0
+settings[toggle_secondary_menu] = 0
+settings[STARTERKIT_tabs] = 0
+settings[STARTERKIT_breadcrumb_separator] = »
+settings[wireframe_mode] = 0
+settings[clear_registry] = 0
+

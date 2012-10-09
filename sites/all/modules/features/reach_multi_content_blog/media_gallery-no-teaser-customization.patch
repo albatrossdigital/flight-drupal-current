@@ -1,0 +1,135 @@
+diff --git a/media_gallery.css b/media_gallery.css
+index cad3938..4c563ca 100644
+--- a/media_gallery.css
++++ b/media_gallery.css
+@@ -509,6 +509,11 @@ a.media-gallery-thumb img,
+   padding-right: 1em;
+ }
+ 
++.media-gallery-detail-wrapper .media-thumbnail-frame img {
++  width: auto;
++  max-width: 100%;
++}
++
+ /* @end */
+ 
+ /* @group Lightbox styles */
+diff --git a/media_gallery.fields.inc b/media_gallery.fields.inc
+index f172915..c5cd7bc 100644
+--- a/media_gallery.fields.inc
++++ b/media_gallery.fields.inc
+@@ -89,6 +89,12 @@ function media_gallery_field_formatter_view($entity_type, $entity, $field, $inst
+   // Prepare the referenced file entities for viewing.
+   $files = array();
+   foreach ($items as $delta => $item) {
++    // Don't try to display files which no longer exist.
++    if (!isset($item['file'])) {
++      unset($items[$delta]);
++      continue;
++    }
++
+     $file = $item['file'];
+ 
+     // Pass along formatter reference field values from the gallery to the file.
+@@ -151,6 +157,7 @@ function media_gallery_field_formatter_view($entity_type, $entity, $field, $inst
+  * @see media_gallery_lightbox_page()
+  */
+ function media_gallery_item_view($gallery_node, $file, $file_view_mode) {
++dpm('asdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdf');
+   $display = array('type' => 'media_gallery', 'settings' => array('file_view_mode' => $file_view_mode));
+   $id = $gallery_node->nid;
+   $field_name = 'media_gallery_media';
+diff --git a/media_gallery.info b/media_gallery.info
+index c7b045c..049ff23 100644
+--- a/media_gallery.info
++++ b/media_gallery.info
+@@ -15,3 +15,10 @@ files[] = media_gallery.fields.inc
+ files[] = media_gallery.theme.inc
+ 
+ configure = admin/config/media/galleries
++
++; Information added by drupal.org packaging script on 2011-10-12
++version = "7.x-1.0-beta7"
++core = "7.x"
++project = "media_gallery"
++datestamp = "1318459310"
++
+diff --git a/media_gallery.install b/media_gallery.install
+index dce80b4..dee3128 100644
+--- a/media_gallery.install
++++ b/media_gallery.install
+@@ -293,18 +293,15 @@ function _media_gallery_controlled_fields() {
+       'field_name' => 'media_description',
+       'locked' => TRUE,
+       'type' => 'text_long',
+-      'translatable' => TRUE,
+     ),
+     'media_title' => array(
+       'field_name' => 'media_title',
+       'locked' => TRUE,
+       'type' => 'text',
+-      'translatable' => TRUE,
+     ),
+     'field_license' => array(
+       'field_name' => 'field_license',
+       'locked' => TRUE,
+-      'translatable' => TRUE,
+       'settings' => array(
+         'allowed_values_function' => '_media_gallery_get_field_license_values',
+       ),
+diff --git a/media_gallery.module b/media_gallery.module
+index 70f3932..90002e0 100644
+--- a/media_gallery.module
++++ b/media_gallery.module
+@@ -278,10 +278,10 @@ function media_gallery_view($node, $view_mode) {
+   // rest from the node's field data, so that the field formatter doesn't waste
+   // time building the render structure for items that won't be shown.
+   if ($view_mode == 'teaser') {
+-    if (!empty($node->media_gallery_media[LANGUAGE_NONE])) {
++    /*if (!empty($node->media_gallery_media[LANGUAGE_NONE])) {
+       $first_item = array_shift($node->media_gallery_media[LANGUAGE_NONE]);
+       $node->media_gallery_media[LANGUAGE_NONE] = array($first_item);
+-    }
++    }*/
+   }
+   // For the full display, implement pagination.
+   elseif ($view_mode == 'full' || $view_mode == 'media_gallery_block') {
+@@ -504,8 +504,10 @@ function media_gallery_node_info() {
+  */
+ function media_gallery_update($node) {
+   // If the media gallery node is being saved and is configured to not provide
+-  // a block, remove all blocks associated with it from the database.
+-  if (empty($node->media_gallery_expose_block[LANGUAGE_NONE][0]['value'])) {
++  // a block, remove all blocks associated with it from the database. The block
++  // module might not be installed, so we need to check that the database table
++  // exists before querying it.
++  if (empty($node->media_gallery_expose_block[LANGUAGE_NONE][0]['value']) && db_table_exists('block')) {
+     db_delete('block')
+       ->condition('module', 'media_gallery')
+       ->condition('delta', $node->nid)
+@@ -548,9 +550,15 @@ function media_gallery_block_info() {
+  */
+ function media_gallery_block_view($delta = '') {
+   $node = node_load($delta);
+-  $block['subject'] = check_plain($node->title);
+-  if (empty($node->media_gallery_media_original)) {
++  if (empty($node->media_gallery_expose_block[LANGUAGE_NONE][0]['value'])) {
++    // Bail out now if the node doesn't exist or if it is configured not to
++    // display a block.
++    $block['subject'] = NULL;
++    $block['content'] = '';
++  }
++  elseif (empty($node->media_gallery_media_original)) {
+     // Bail out now if there won't be any media items to show.
++    $block['subject'] = check_plain($node->title);
+     $block['content'] = t('No content available.');
+   }
+   else {
+@@ -596,6 +604,7 @@ function media_gallery_block_view($delta = '') {
+     // Perform the sort.
+     usort($files, '_media_gallery_sort_by_recent');
+     // Display the block.
++    $block['subject'] = check_plain($node->title);
+     $block['content']['gallery'] = node_view($node, 'media_gallery_block');
+     // Move the node's contextual links so that they display on the block
+     // rather than the node (i.e., in the same dropdown as the "Configure

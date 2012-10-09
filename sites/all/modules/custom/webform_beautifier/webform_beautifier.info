@@ -1,0 +1,7 @@
+name = "Webform Beautifier"
+description = "Adds integration between Webform and the From Beautifier module"
+core = "7.x"
+package = "Webform"
+
+dependencies[] = "webform"
+dependencies[] = "form_beautifier"

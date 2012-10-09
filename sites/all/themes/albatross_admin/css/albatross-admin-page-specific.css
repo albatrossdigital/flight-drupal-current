@@ -1,0 +1,374 @@
+/* Albatross Mixins
+ * @mixin sprite($left, $top, $url: url(../images/sprite.png))
+ * @mixin sprite-block($width, $height, $left, $top, $url: url(../images/sprite.png?a))
+ * @mixin fixed-background($image: url(../images/bg.jpg), $color: #fff)
+ * @mixin fade-background($start, $stop, $position: top)
+ * @mixin auto-fade-background($color, $position: top)
+ * @mixin auto-fade-background-hover($color)
+ * @mixin link-clear($color)
+ * @mixin list-clear
+ * @mixin list-float($float: left, $margin-horizontal: 10px, $margin-vertical: 0) */
+/* line 110, ../sass/_mixins.sass */
+li a.create-page:before {
+  content: "\f016"; }
+
+/* line 119, ../sass/_mixins.sass */
+.action-item-Download:before,
+.action-item-download:before {
+  content: "\f019"; }
+
+/* line 240, ../sass/_mixins.sass */
+li a.create-blog:before {
+  content: "\f044"; }
+
+/* line 351, ../sass/_mixins.sass */
+li a.create-donation:before,
+.action-item-donation:before {
+  content: "\f06b"; }
+
+/* line 420, ../sass/_mixins.sass */
+.action-item-User:before,
+.action-item-user-login:before {
+  content: "\f084"; }
+
+/* line 501, ../sass/_mixins.sass */
+li a.create-issue:before {
+  content: "\f0a1"; }
+
+/* line 540, ../sass/_mixins.sass */
+li a.create-form:before,
+li a.create-webform:before,
+.action-item-form-submission:before {
+  content: "\f0ae"; }
+
+/* line 546, ../sass/_mixins.sass */
+li a.create-research_nonprofit:before,
+li a.create-research_political:before {
+  content: "\f0b1"; }
+
+/* line 552, ../sass/_mixins.sass */
+li a.create-contact:before, .action-item-share:before {
+  content: "\f0c0"; }
+
+/* line 642, ../sass/_mixins.sass */
+li a.create-mailing:before {
+  content: "\f0e0"; }
+
+/* line 681, ../sass/_mixins.sass */
+li a.create-blog:before, li a.create-page:before, li a.create-form:before,
+li a.create-webform:before,
+.action-item-form-submission:before, li a.create-mailing:before, li a.create-donation:before,
+.action-item-donation:before, li a.create-issue:before, li a.create-contact:before, .action-item-share:before, .action-item-Download:before,
+.action-item-download:before, .action-item-User:before,
+.action-item-user-login:before, li a.create-research_nonprofit:before,
+li a.create-research_political:before {
+  font-family: FontAwesome !important;
+  font-weight: normal !important;
+  font-style: normal !important;
+  display: inline-block;
+  text-decoration: inherit !important;
+  vertical-align: middle !important; }
+
+/**********************************
+ * FONT MIXINS
+ ********************************** */
+@font-face {
+  font-family: "FontAwesome";
+  src: url("../../../../all/libraries/Font-Awesome/font/fontawesome-webfont.eot");
+  src: url("../../../../all/libraries/Font-Awesome/font/fontawesome-webfont.eot?#iefix") format("embedded-opentype"), url("../../../../all/libraries/Font-Awesome/font/fontawesome-webfont.woff") format("woff"), url("../../../../all/libraries/Font-Awesome/font/fontawesome-webfont.ttf") format("truetype"), url("../../../../all/libraries/Font-Awesome/font/fontawesome-webfont.svg#FontAwesomeRegular") format("svg");
+  font-weight: normal;
+  font-style: normal; }
+
+/* ICONS */
+/* line 714, ../sass/_mixins.sass */
+li a.create-blog:before {
+  font-size: 28px;
+  color: #0f6c00; }
+
+/* line 714, ../sass/_mixins.sass */
+li a.create-page:before {
+  font-size: 28px;
+  color: #6c0b00; }
+
+/* line 714, ../sass/_mixins.sass */
+li a.create-form:before,
+li a.create-webform:before,
+.action-item-form-submission:before {
+  font-size: 28px;
+  color: #000a6c; }
+
+/* line 714, ../sass/_mixins.sass */
+li a.create-mailing:before {
+  font-size: 28px;
+  color: #005e6c; }
+
+/* line 714, ../sass/_mixins.sass */
+li a.create-donation:before,
+.action-item-donation:before {
+  font-size: 28px;
+  color: #c61c3d; }
+
+/* line 714, ../sass/_mixins.sass */
+li a.create-issue:before {
+  font-size: 28px;
+  color: #e6660f; }
+
+/* line 714, ../sass/_mixins.sass */
+li a.create-contact:before {
+  font-size: 28px;
+  color: #9d0086; }
+
+/* line 714, ../sass/_mixins.sass */
+.action-item-share:before {
+  font-size: 28px;
+  color: #344f88; }
+
+/* line 714, ../sass/_mixins.sass */
+.action-item-Download:before,
+.action-item-download:before {
+  font-size: 28px;
+  color: #00bd00; }
+
+/* line 714, ../sass/_mixins.sass */
+.action-item-User:before,
+.action-item-user-login:before {
+  font-size: 28px;
+  color: #dda400; }
+
+/* line 714, ../sass/_mixins.sass */
+li a.create-research_nonprofit:before,
+li a.create-research_political:before {
+  font-size: 28px;
+  color: #c61c3d; }
+
+/* DASHBOARD */
+/* line 68, ../sass/albatross-admin-page-specific.sass */
+.item-list.create {
+  margin: 0;
+  padding: 0;
+  height: 80px;
+  text-align: center;
+  position: relative; }
+  /* line 75, ../sass/albatross-admin-page-specific.sass */
+  .item-list.create li {
+    margin: 0;
+    padding: 0;
+    float: left;
+    list-style: none; }
+    /* line 81, ../sass/albatross-admin-page-specific.sass */
+    .item-list.create li a {
+      width: 80px;
+      display: block; }
+      /* line 85, ../sass/albatross-admin-page-specific.sass */
+      .item-list.create li a.create-contact {
+        position: absolute;
+        right: 0; }
+      /* line 89, ../sass/albatross-admin-page-specific.sass */
+      .item-list.create li a:before {
+        height: 30px;
+        padding-top: 10px;
+        width: 100%; }
+
+/* activity feeds */
+/* line 98, ../sass/albatross-admin-page-specific.sass */
+.view.reach-actions .views-row {
+  padding: 3px 5px 3px 0;
+  background-repeat: no-repeat;
+  background-position: 5px center;
+  min-height: 40px;
+  clear: both; }
+  /* line 105, ../sass/albatross-admin-page-specific.sass */
+  .view.reach-actions .views-row:before {
+    float: left;
+    padding-left: 5px;
+    line-height: 40px; }
+  /* line 110, ../sass/albatross-admin-page-specific.sass */
+  .view.reach-actions .views-row .views-field {
+    margin-left: 45px; }
+  /* line 113, ../sass/albatross-admin-page-specific.sass */
+  .view.reach-actions .views-row .entity-action {
+    float: left; }
+  /* line 116, ../sass/albatross-admin-page-specific.sass */
+  .view.reach-actions .views-row .views-field-field-action-points {
+    color: #ffac40;
+    text-align: right; }
+  /* line 120, ../sass/albatross-admin-page-specific.sass */
+  .view.reach-actions .views-row .action-link a,
+  .view.reach-actions .views-row .views-field-created {
+    color: #aaaaaa;
+    font-size: 0.9em; }
+  /* line 125, ../sass/albatross-admin-page-specific.sass */
+  .view.reach-actions .views-row .action-link a {
+    text-decoration: underline; }
+/* line 128, ../sass/albatross-admin-page-specific.sass */
+.view.reach-actions .views-field-created {
+  text-align: right; }
+
+/* line 131, ../sass/albatross-admin-page-specific.sass */
+.field-name-redhen-contact-activity {
+  clear: both; }
+
+/* activity overview */
+/* line 136, ../sass/albatross-admin-page-specific.sass */
+#block-reach-crm-overview,
+.pane-reach-crm-overview {
+  min-height: 100px; }
+  /* line 140, ../sass/albatross-admin-page-specific.sass */
+  #block-reach-crm-overview .reach-stat,
+  .pane-reach-crm-overview .reach-stat {
+    float: left;
+    width: 140px;
+    margin-right: 20px;
+    background-color: #00456a;
+    color: white;
+    height: 70px;
+    position: relative; }
+    /* line 149, ../sass/albatross-admin-page-specific.sass */
+    #block-reach-crm-overview .reach-stat span,
+    .pane-reach-crm-overview .reach-stat span {
+      display: block;
+      padding: 5px 0;
+      text-align: center;
+      font-weight: bold; }
+      /* line 155, ../sass/albatross-admin-page-specific.sass */
+      #block-reach-crm-overview .reach-stat span.reach-label,
+      .pane-reach-crm-overview .reach-stat span.reach-label {
+        background-color: #00456a;
+        height: 20px;
+        line-height: 20px;
+        border-bottom: 2px solid white; }
+      /* line 161, ../sass/albatross-admin-page-specific.sass */
+      #block-reach-crm-overview .reach-stat span.reach-value,
+      .pane-reach-crm-overview .reach-stat span.reach-value {
+        background-color: #3a6f8f;
+        font-size: 1.7em;
+        height: 40px;
+        line-height: 40px; }
+    /* line 170, ../sass/albatross-admin-page-specific.sass */
+    #block-reach-crm-overview .reach-stat.reach-stat-total-points span.reach-label,
+    .pane-reach-crm-overview .reach-stat.reach-stat-total-points span.reach-label {
+      background-color: #f1741e; }
+    /* line 173, ../sass/albatross-admin-page-specific.sass */
+    #block-reach-crm-overview .reach-stat.reach-stat-total-points span.reach-value,
+    .pane-reach-crm-overview .reach-stat.reach-stat-total-points span.reach-value {
+      background-color: #ffac40; }
+
+/*REACH SEARCH */
+/* line 179, ../sass/albatross-admin-page-specific.sass */
+.page-admin-contacts #block-reach-crm-overview {
+  float: right; }
+/* line 182, ../sass/albatross-admin-page-specific.sass */
+.page-admin-contacts .view-reach-search {
+  position: relative;
+  clear: both; }
+  /* line 186, ../sass/albatross-admin-page-specific.sass */
+  .page-admin-contacts .view-reach-search .form-text, .page-admin-contacts .view-reach-search .form-select {
+    max-width: 150px; }
+  /* line 189, ../sass/albatross-admin-page-specific.sass */
+  .page-admin-contacts .view-reach-search .form-text#edit-zip {
+    width: 80px; }
+  /* line 192, ../sass/albatross-admin-page-specific.sass */
+  .page-admin-contacts .view-reach-search .feed-icon {
+    position: absolute;
+    top: 35px;
+    right: 0; }
+
+/* Redhen Contact Page */
+/* line 201, ../sass/albatross-admin-page-specific.sass */
+.page-redhen-contact .tabs-secondary {
+  position: absolute;
+  right: 0;
+  z-index: 10; }
+/* line 206, ../sass/albatross-admin-page-specific.sass */
+.page-redhen-contact #content {
+  margin-top: 30px; }
+/* line 209, ../sass/albatross-admin-page-specific.sass */
+.page-redhen-contact #block-views-reach-redhen-contact-info-block {
+  margin-top: 100px; }
+/* line 213, ../sass/albatross-admin-page-specific.sass */
+.page-redhen-contact .view-reach-redhen-contact-info .views-row {
+  position: relative; }
+  /* line 216, ../sass/albatross-admin-page-specific.sass */
+  .page-redhen-contact .view-reach-redhen-contact-info .views-row .views-field {
+    position: relative;
+    padding: 0.2em 0;
+    border-top: 2px solid #f3f4ee;
+    min-height: 2em; }
+    /* line 222, ../sass/albatross-admin-page-specific.sass */
+    .page-redhen-contact .view-reach-redhen-contact-info .views-row .views-field .views-label {
+      position: absolute;
+      left: 0;
+      width: 100px;
+      font-weight: bold;
+      color: #aaaaaa;
+      line-height: 1.5em; }
+    /* line 230, ../sass/albatross-admin-page-specific.sass */
+    .page-redhen-contact .view-reach-redhen-contact-info .views-row .views-field .field-content {
+      margin-left: 100px; }
+    /* line 233, ../sass/albatross-admin-page-specific.sass */
+    .page-redhen-contact .view-reach-redhen-contact-info .views-row .views-field.views-field-field-picture, .page-redhen-contact .view-reach-redhen-contact-info .views-row .views-field.views-field-field-location {
+      position: absolute;
+      padding-top: 0.5em;
+      right: 5px; }
+      /* line 239, ../sass/albatross-admin-page-specific.sass */
+      .page-redhen-contact .view-reach-redhen-contact-info .views-row .views-field.views-field-field-picture img, .page-redhen-contact .view-reach-redhen-contact-info .views-row .views-field.views-field-field-location img {
+        width: 60px; }
+    /* line 242, ../sass/albatross-admin-page-specific.sass */
+    .page-redhen-contact .view-reach-redhen-contact-info .views-row .views-field.views-field-last-name, .page-redhen-contact .view-reach-redhen-contact-info .views-row .views-field.views-field-created, .page-redhen-contact .view-reach-redhen-contact-info .views-row .views-field.views-field-field-picture, .page-redhen-contact .view-reach-redhen-contact-info .views-row .views-field.views-field-field-location {
+      border-top: none; }
+    /* line 248, ../sass/albatross-admin-page-specific.sass */
+    .page-redhen-contact .view-reach-redhen-contact-info .views-row .views-field.views-field-created {
+      height: 3em; }
+    /* line 251, ../sass/albatross-admin-page-specific.sass */
+    .page-redhen-contact .view-reach-redhen-contact-info .views-row .views-field.views-field-field-address {
+      min-height: 65px; }
+
+/* PARTY PAGE
+ * .page-party
+ *
+ *   #block-views-reach-actions-party-block
+ *     width: 65%
+ *     float: left
+ *     margin-top: 120px
+ *
+ *   #block-reach-crm-overview
+ *     margin-left: 35%
+ *     position: absolute
+ *
+ *   .entity-party
+ *     position: relative
+ *     color: #fff
+ *     float: left
+ *     width: 35%
+ *
+ *     .field
+ *       color: #000
+ *
+ *     .field-label
+ *       width: 10em
+ *       font-size: .9em
+ *       color: #666
+ *       text-align: right
+ *       margin-right: .2em
+ *
+ *     .field-name-field-photo
+ *       +sprite-block(150px, 150px, 0, 0, url(../images/default-person.png))
+ *       margin-left: 50px
+ *       margin-bottom: 1em */
+/* PARTY EDIT PAGE */
+/* line 290, ../sass/albatross-admin-page-specific.sass */
+#redhen-contact-edit-form {
+  padding-left: 150px; }
+  /* line 292, ../sass/albatross-admin-page-specific.sass */
+  #redhen-contact-edit-form .field-name-field-photo {
+    top: 0;
+    left: 0;
+    position: absolute;
+    width: 150px; }
+
+/* Fix issue with editor border from seven */
+/* line 302, ../sass/albatross-admin-page-specific.sass */
+.cke_dialog tr td:last-child {
+  border-right: none !important; }
+
+/* move to mod */

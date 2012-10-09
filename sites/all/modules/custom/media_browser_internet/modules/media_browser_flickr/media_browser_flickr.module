@@ -1,0 +1,355 @@
+<?php
+define(MEDIA_FLICKR_CONNECTOR, 'flickr');
+define(MEDIA_FLICKR_API, 'http://api.flickr.com/services/rest/');
+
+/**
+ * Implements hook_media_browser_plugin_info().
+ */
+function media_browser_flickr_media_browser_plugin_info() {
+  $plugins = array();
+  if (user_access('administer media') || user_access('media browser flickr')) {
+    $plugins['media_browser_flickr'] = array(
+      '#weight' => -10,
+      '#title' => t('Flickr'),
+    );
+  }
+  return $plugins;
+}
+
+/**
+ * Implement hook_permission().
+ */
+function media_browser_flickr_permission() {
+  return array(
+    'media browser flickr' => array(
+      'title' => t('media browser flickr'),
+      'description' => t('media browser flickr'),
+    ),
+  );
+}
+
+
+/**
+ * Implementation of hook_menu().
+ */
+/*function media_browser_flickr_menu() {
+  $items = array();
+  $items['media/browser/internet/flickr'] = array(
+    'type' => MENU_CALLBACK,
+    'access arguments' => array('media browser flickr'),
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('media/browser/internet/flickr'),
+  );
+  return $items;
+}*/
+
+
+/**
+ * Implements hook_media_browser_plugin_view().
+ */
+function media_browser_flickr_media_browser_plugin_view($plugin_name, $params) {
+  $path = drupal_get_path('module', 'media_browser_flickr');
+  $media_path = drupal_get_path('module', 'media');
+
+  $types = isset($params['types']) ? $params['types'] : array();
+  $multiselect = isset($params['multiselect']) ? $params['multiselect'] : FALSE;
+  
+  $url = MEDIA_FLICKR_API . '?format=json&jsoncallback=?&api_key=' . media_browser_internet_key(MEDIA_FLICKR_CONNECTOR);
+
+  $redirect = array('media/browser', array('query' => array('render' => 'media-popup')));
+  switch ($plugin_name) {
+    case 'media_browser_flickr':
+      $form = is_array($params) ? $params : array();
+      $form['#title'] = t('Library');
+      $form['#attached'] = array(
+        'js' => array(
+          $path . '/media-browser-flickr.js',
+        ),
+        'css' => array(
+          $media_path . '/js/plugins/media.library.css',
+        ),
+        'library' => array(
+          array('qtip', 'qtip'),
+          array('waypoints', 'waypoints'),
+          array('media_browser_internet', 'browser'),
+        ),
+      );
+      
+      $form['#settings'] = array(
+        'selector' => 'media-browser-internet-list',
+        'viewMode' => 'thumbnails',
+        'container' => '#flickr-container',
+        'sections' => array(),
+      );
+      
+      $form['#settings']['sections']['community'] = array(
+        'label' => t('Community'),
+        'search' => array(
+          'url' => $url . '&method=flickr.photos.search',
+        ),
+        'thumbEvent' => 'click',
+        'form' => array(
+          'text' => array(
+            '#type' => 'textfield',
+            //'#title' => '',
+          ),
+          'sort' => array(
+            '#type' => 'select',
+            '#title' => 'Sort By',
+            '#options' => array(
+              'interestingness-desc' => t('Most Interesting'),
+              'relevance' => t('Relevance'),
+              'date-taken-desc' => t('Most Recently Taken'),
+              'date-posted-desc' => t('Most Recently Posted'),
+            ),
+            '#default_value' => 'interestingness-desc',
+          ),
+          'license' => array(
+            '#type' => 'select',
+            '#title' => 'license',
+            '#options' => array(
+              '1,2,3,4,5,6' => t('Creative Commons'),
+              '4,6,5' => t('Creative Commons - Commercial Use'),
+              '' => t('No License Restrictions'),
+              /*4 => t('Attribution License'),
+              6 => t('Attribution-NoDerivs License'),
+              3 => t('Attribution-NonCommercial-NoDerivs License'),
+              2 => t('Attribution-NonCommercial License'),
+              1 => t('Attribution-NonCommercial-ShareAlike License'),
+              5 => t('Attribution-ShareAlike License'),*/
+            ),
+            '#default_value' => '1,2,3,4,5,6',
+          ),
+        ),
+      );
+      
+      if ($cid = media_browser_internet_cid(MEDIA_FLICKR_CONNECTOR)) {
+        $form['#settings']['sections']['container'] = array(
+          'label' => t('My Sets'),
+          'categories' => array(
+            'url' => $url . '&method=flickr.photosets.getList&user_id=' . $cid,
+          ),
+          'items' => array(
+            'url' => $url . '&method=flickr.photosets.getPhotos&photoset_id=',
+          ),
+          'search' => array(
+            'url' => $url . '&method=flickr.photos.search',
+          ),
+        );
+      } elseif (user_access('connect with oauthconnector_facebook')) {
+        $form['#settings']['sections']['connect'] = array(
+          'label' => t('My Galleries'),
+          'content' => theme('media_browser_internet_connect', array('service' => t('Flickr'), 'section' => t('My Galleries'))),
+        );
+      }
+      
+
+      $form['#markup'] = drupal_render(drupal_get_form('media_browser_flickr_form'));
+      
+      break;
+  }
+
+  return $form;
+}
+
+/**
+ * Creates the hidden form.
+ */
+function media_browser_flickr_form($form, &$form_state) {
+
+  $form = array();
+  $form['files'] = array(
+    '#type' => hidden,
+    '#attributes' => array('id' => 'flickr-files'),
+  );
+  $form['markup'] = array(
+    '#type' => 'markup',
+    '#markup' => '<div id="flickr-container"><div class="scrollbox"><div class="breadcrumb"></div><ul class="media-browser-internet-list media-list-thumbnails"></ul><div class="ajax-status"></div></div></div>',
+  );
+  
+  $form['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Submit'),
+    '#attributes' => array('id' => 'flickr-submit', 'class' => array('media-browser-internet-submit')),
+  );
+
+  return $form;
+}
+
+
+
+/**
+ * Saves the image(s) from Flickr.
+ */
+function media_browser_flickr_form_submit($form, &$form_state) {
+  $form_state['values']['files'] = is_array($form_state['values']['files']) ? $form_state['values']['files'] : array($form_state['values']['files']);
+  watchdog('flicrk', 'var <pre>!vars</pre>', array('!vars' => print_r($form_state['values']['files'], 1)));
+  
+  foreach ($form_state['values']['files'] as $file_data) {
+    parse_str($file_data, $file_data);
+    
+    // Call Flickr's api to get more info about file
+    // TODO: Do with feeds?
+    $data = array(
+      'method' => 'flickr.photos.getInfo',
+      'photo_id' => $file_data['id'],
+      'api_key' => media_browser_internet_key(MEDIA_FLICKR_CONNECTOR),
+    );
+    /*$flickr_data = oauthconnector_endpoint_call_for_user(MEDIA_FLICKR_API, $data, MEDIA_FLICKR_CONNECTOR, $account=NULL, 'GET', $format='XML');
+    $metadata = array(
+      'title' => (string) $flickr_data->photo->title,
+      'description' => (string) $flickr_data->photo->description,
+      'credit' =>  (string) $flickr_data->photo->owner->{'@attributes'}->realname,
+      'license' => _media_browser_flickr_cc_map((int) $flickr_data->photo->{'@attributes'}->license),
+    );
+    
+                watchdog('media_browser_internet', '$flickr_data: <pre>!f</pre>', array('!f' => print_r($flickr_data,1)));
+    */
+    $uri = 'http://farm' . $file_data['farm'] . '.static.flickr.com/' . $file_data['server'] . '/' . $file_data['id'] . '_' . $file_data['secret'] . '_b.jpg';
+    $file = media_browser_internet_file_create_by_uri($uri, $metadata['title'], $metadata);
+    //$file->media_description[LANGUAGE_NONE][0]['value'] = (string) $flickr_data->photo->description;
+
+  }
+  $form_state['redirect'] = array('media/browser', array('query' => array('render' => 'media-popup', 'fid' => $file->fid)));
+}
+
+/**
+ * Returns a mapping from the Flickr CC license id to the media_gallery field_license options
+ */
+function _media_browser_flickr_cc_map($fickr_license) {
+  $mapping = array(
+    1 => 'cc_sa_nc', //=> t('Attribution, Non-Commercial, Share Alike'),
+    2 => 'cc_nc', // => t('Attribution, Non-Commercial'),
+    3 => 'cc_nd_nc', //=> t('Attribution, Non-Commercial, No Derivative Works'),
+    4 => 'cc', // => t('Attribution'),
+    5 => 'cc_sa', //=> t('Attribution, Share Alike'),
+    6 => 'cc_nd', //=> t('Attribution, No Derivative Works'),
+  );
+  return $mapping[$flickr_license];
+}
+
+
+/**
+ * Save a file record based on a remote URL.
+ *
+ * Mostly copied from remote_stream_wrapper.module.
+ */
+function media_browser_flickr_create_file($uri) {
+  try {
+    $file = remote_stream_wrapper_file_load_by_uri($uri);
+    if (!$file) {
+      $file = remote_stream_wrapper_file_create_by_uri($uri);
+    }
+  }
+  catch (Exception $e) {
+    form_set_error('url', $e->getMessage());
+    return;
+  }
+
+  if (empty($file->fid)) {
+    form_set_error('url', t('Unable to add file from URL %file.', array('%file' => $url)));
+    return;
+  }
+  
+  return $file;
+}
+
+/**
+ * Helper functon to assemble a new file entity object by URI.
+ *
+ * @param string $uri
+ *   A string containing the URI, path, or filename.
+ */
+function media_browser_internet_file_create_by_uri($uri, $filename = NULL, $data = NULL) {
+  $uri = file_stream_wrapper_uri_normalize($uri);
+  
+  $data_key = array(
+    'title' => 'media_title',
+    'description' => 'media_description',
+    'license' => 'field_license',
+    'credit' => 'field_credit',
+  );
+  
+  $extensions = 'jpg jpeg gif png txt doc xls pdf ppt pps odt ods odp';
+  
+  
+  $query = new EntityFieldQuery();
+  $query->entityCondition('entity_type', 'file')
+    ->propertyCondition('uri', $uri);
+  $result = $query->execute();
+            watchdog('media_browser_internet', 'result: <pre>!f</pre>', array('!f' => print_r($result,1)));
+  if (!$result) {
+  
+    
+    $file = new stdClass();
+    $file->fid = NULL;
+    $file->uri = $uri;
+    $file->filename = $filename ? _media_browser_internet_sanitize_file_name($filename, $extensions) : basename($file->uri);
+    $file->filemime = file_get_mimetype($file->uri);
+    $file->uid = $GLOBALS['user']->uid;
+    $file->status = FILE_STATUS_PERMANENT;
+
+    if (is_array($data)) {
+      foreach ($data as $key => $value) {
+        $file->{$data_key[$key]}[LANGUAGE_NONE][0]['value'] = $value;
+      }
+    }
+    
+          watchdog('media_browser_internet', 'data: <pre>!f</pre>', array('!f' => print_r($data,1)));
+      watchdog('media_browser_internet', 'new file: <pre>!f</pre>', array('!f' => print_r($file,1)));
+
+    file_save($file);
+  } else {
+    return file_load(array_keys($result['file']));
+    watchdog('media_browser_internet', 'file exists', array('!f' => print_r($file,1)));
+  }
+  return $file;
+}
+
+/**
+ * Get a nice filename
+ * Taken from Chyrp: http://stackoverflow.com/questions/2668854/sanitizing-strings-to-make-them-url-and-filename-safe
+ */
+function _media_browser_internet_sanitize_file_name($string, $force_lowercase = true, $anal = false) {
+    $strip = array("~", "`", "!", "@", "#", "$", "%", "^", "&", "*", "(", ")", "_", "=", "+", "[", "{", "]",
+                   "}", "\\", "|", ";", ":", "\"", "'", "&#8216;", "&#8217;", "&#8220;", "&#8221;", "&#8211;", "&#8212;",
+                   "â€”", "â€“", ",", "<", ".", ">", "/", "?");
+    $clean = trim(str_replace($strip, "", strip_tags($string)));
+    $clean = preg_replace('/\s+/', "-", $clean);
+    $clean = ($anal) ? preg_replace("/[^a-zA-Z0-9]/", "", $clean) : $clean ;
+    return ($force_lowercase) ?
+        (function_exists('mb_strtolower')) ?
+            mb_strtolower($clean, 'UTF-8') :
+            strtolower($clean) :
+        $clean;
+}
+
+/*
+ * Implementation of hook_file_insert()
+ *
+ * Updates file information when it is saved.
+ */
+/*function media_browser_flickr_file_insert($file){
+  dpm($file);
+  $matches = array();
+  if (preg_match('/.+?flickr.com\/.+?\/(.+?)_b\..+?/', $file->uri, $matches)) {
+    $data = array(
+      'method' => 'flickr.photos.getInfo',
+      'photo_id' => $matches[1],
+      'api_key' => media_browser_internet_key(MEDIA_FLICKR_CONNECTOR),
+    );
+    $formatter = new HttpClientBaseFormatter(HttpClientBaseFormatter::FORMAT_JSON);
+    $client = new HttpClient(NULL, $formatter);
+    dpm(MEDIA_FLICKR_API);
+    dpm($data);
+    $return = $client->get(MEDIA_FLICKR_API . '?method=flickr.photos.getInfo', $data);
+    
+    //$flickr_data = oauthconnector_endpoint_call_for_user(MEDIA_FLICKR_API, $data, MEDIA_FLICKR_CONNECTOR, $account=NULL, 'GET', $format='JSON');
+    dpm($flickr_data);
+  }
+}
+
+function media_browser_flickr_file_update($file){
+  media_browser_flickr_file_insert($file);
+}*/
+

@@ -1,0 +1,49 @@
+<?php
+/**
+ * Implement hook_schema().
+ *
+ * @see drupal.org/node/146843
+ */
+function webform_beautifier_schema() {
+  $schema['webform_beautifier'] = array(
+    'description' => 'Stores transaction information.',
+    'fields' => array(
+      'nid' => array(
+        'description' => 'The node identifier of a webform.',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'labels' => array(
+        'description' => 'The label format.',
+        'type' => 'varchar',
+        'length' => 16,
+      ),
+      'display' => array(
+        'description' => 'Should the form be vertical or horizontal?',
+        'type' => 'varchar',
+        'length' => 16,
+      ),
+      'block_labels' => array(
+        'description' => 'The label format on the block version of this webform.',
+        'type' => 'varchar',
+        'length' => 16,
+      ),
+      'block_display' => array(
+        'description' => 'Should the block form be vertical or horizontal?',
+        'type' => 'varchar',
+        'length' => 16,
+      ),
+    ),
+    'primary key' => array('nid'),
+  );
+  return $schema;
+}
+
+/**
+ * Implement hook_uninstall().
+ */
+function webform_beautifier_uninstall()
+{
+  drupal_uninstall_schema('webform_beautifier');
+}

@@ -1,0 +1,8 @@
+name = Media Browser Flickr
+description = Provides a Flickr tab to the media browser
+package = Media
+core = 7.x
+dependencies[] = media
+dependencies[] = media_browser_internet
+files[] = media_browser_flickr.module
+

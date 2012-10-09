@@ -1,0 +1,185 @@
+@import compass/css3
+@import _mixins.sass
+@import ../../albatross/sass/_mixins.sass
+@import _variables.sass
+
+.block, .item-list, .help-items ul, .form-item, .confirmation ul, .admin-list, .node-type-list, .admin-panel
+  border: none
+
+
+
+/* Toolbar
+#toolbar
+  a
+    font-size: 1em
+
+  div.toolbar-menu ul li
+    a.active:hover,
+    a.active:active,
+    a.active,
+    &.active-trail a
+      background: $dark_blue
+
+
+/* Branding for full-page view
+#branding
+  background-color: $light_blue
+  font-family: "Lucida Grande", "Lucida Sans Unicode", sans-serif
+
+  .page-title
+    text-transform: uppercase
+    padding: 0 10px
+
+  h1.page-title
+    padding: 0
+
+
+  .breadcrumb,
+  .breadcrumb a
+    color: #333
+
+/* Overlay
+#overlay
+  padding-right: 0
+  padding-left: 0
+
+  #branding  div.breadcrumb
+    font-size: 1.1em
+
+#overlay-content
+  padding-top: 85px
+
+
+#overlay-titlebar
+  position: absolute
+  padding: 0
+  width: 100%
+
+  #overlay-title-wrapper
+    height: $header_height
+    line-height: $header_height
+    margin: $padding
+    background-color: $light_blue
+    font-family: "Lucida Grande", "Lucida Sans Unicode", sans-serif
+    text-transform: uppercase
+    padding: 0 10px
+
+    h1#overlay-title
+      padding: 0
+
+  .add-or-remove-shortcuts
+    padding-top: 1.5em
+
+  #overlay-tabs
+    bottom: 18px
+    right: 30px
+
+
+  #overlay-close-wrapper
+    top: 0
+
+    li
+      margin: 0 2px
+
+/* Tabs
+ul.tabs.primary li,
+#overlay-tabs li
+  a,
+  a:hover,
+  a:visited
+    background-color: $light_gray_tabs
+    margin: 0 3px !important
+    text-transform: none
+    font-weight: normal
+    font-size: 13px
+    +border-top-radius(4px)
+    border: none
+
+    &:hover
+      background-color: $light_gray_tabs_hover
+      color: $black
+
+      &.active
+        background-color: $white !important
+
+/* Page
+#page
+  padding: $padding
+
+/* Display suite layouts
+.ds-2col
+
+  .group-left
+    width: 64%
+    margin-right: 4%
+
+  .group-right
+    width: 32%
+
+/* Blocks
+.block,
+.panel-pane,
+#dashboard .dashboard-region div.block
+  +block
+
+/* Forms
+// fieldset
+
+.vertical-tabs .form-type-textfield
+  input
+    width: auto
+
+  .form-select
+    width: 250px
+
+
+.div.vertical-tabs
+  +auto-fade-background($gray)
+
+#views-ajax-pad form
+  padding: 3px 10px
+
+form#views-ui-add-item-form .form-item
+  label
+    color: #000 !important
+  .description
+    color: #ddd !important
+
+iframe.media-modal-frame
+  padding: 0 !important
+
+input.form-submit, a.button
+  border-radius: 6px !important
+  background-color: #fff !important
+
+input.form-submit:hover, a.button:hover
+  border-top: 1px solid #B4B4B4
+  border-bottom: 1px solid #E4E4E4
+
+form.node-form #edit-actions
+  #edit-submit
+    background: $dark_blue !important
+    color: $light_gray
+
+  #edit-draft
+    background: $medium_blue !important
+    color: $light_gray
+
+img.typekit-badge,
+.typekit-badge
+  max-height: none!important
+  min-height: none!important
+  height: 0!important
+  display: none!important
+
+
+/* Views
+.view
+
+  .views-row
+    padding: 2px 5px
+
+    &.views-row-even
+      background-color: $gray_zebra
+
+

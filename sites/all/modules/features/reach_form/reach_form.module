@@ -1,0 +1,30 @@
+<?php
+/**
+ * @file
+ * Code for the Reach Form feature.
+ */
+
+
+
+include_once('reach_form.features.inc');
+
+/*function reach_form_preprocess_entity(&$vars) {
+  
+  if ($vars['entity_type'] == 'action' && $vars['action']->type == 'form_submission') {
+    $action = $vars['action'];
+    
+    $text = t('!contact submitted the form !form. !points points.', array(
+      '!contact' => empty($vars['field_action_party']) ? reach_crm_entity_link($vars['field_action_user'][0]['entity'], 'user') : reach_crm_entity_link($vars['field_action_party'][0]['entity'], 'party'),
+      '!form' => reach_crm_entity_link($vars['field_action_form'][0]['entity'], 'node'),
+    ));
+    
+    $vars['story'] = theme('reach_crm_action', array(
+      'text' => $text,
+      'points' => $vars['field_action_points'][0]['value'],
+      'link' => reach_crm_entity_link($vars['field_action_submisison'][0]['entity'], 'webform_submission', 'View submission'),
+    ));
+
+  }
+
+}*/
+

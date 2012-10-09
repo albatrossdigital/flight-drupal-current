@@ -1,0 +1,109 @@
+<?php
+/**
+ * @file
+ * Code for the Reach Multi-content Blog feature.
+ */
+
+include_once('reach_multi_content_blog.features.inc');
+
+
+/**
+ * Implements hook_views_pre_render()
+ * Hopefully this won't be too necessary in the future
+ */
+function reach_multi_content_blog_views_pre_render(&$view) {
+  if ($view->name == 'multi_content_blog' && module_exists('views_slideshow_galleria')) {
+    $library_path = libraries_get_path('galleria');
+    $galleria_path = _views_slideshow_galleria_library_path();
+
+    // Load Galleria.
+    drupal_add_js($galleria_path, array('group' => JS_LIBRARY));
+    // Load our galleria js.
+    drupal_add_js(drupal_get_path('module', 'views_slideshow_galleria') . '/views_slideshow_galleria.js');
+  }
+}
+
+
+
+
+/**
+ * Implements hook_ds_fields_info().
+ */
+function reach_multi_content_blog_ds_fields_info($entity_type) {
+  $fields = array();
+  
+  if ($entity_type == 'user') { // && module_exists('views_galleria_slideshow')
+    $fields[$entity_type]['reach_multi_content_blog_latest'] = array(
+      'title' => t('Views latest posts by this author'),
+      'field_type' => DS_FIELD_TYPE_FUNCTION,
+      'function' => 'reach_multi_content_blog_latest_view',
+      'properties' => array(
+        'settings' => array(
+          'view_name' => array('type' => 'textfield'),
+          'view_display' => array('type' => 'textfield'),
+          'view_title' => array('type' => 'checkbox'),
+        ),
+        'default' => array(
+          'view_name' => 'multi_content_blog',
+          'view_display' => 'block_2',
+          'view_title' => TRUE,
+        ),
+      ),
+    );
+  }
+    
+  return $fields;
+}
+
+/**
+ * Implements hook_ds_field_settings_form().
+ */
+function reach_multi_content_blog_ds_field_settings_form($field) {
+  // Saved formatter settings are on $field['formatter_settings'];
+  $settings = isset($field['formatter_settings']) ? $field['formatter_settings'] : $field['properties']['default'];
+  
+  
+  $form['view_name'] = array(
+    '#type' => 'textfield', 
+    '#title' => t('View name'), 
+    '#default_value' => $settings['view_name'],
+    '#width' => 10,
+    '#description' => t('This block will automatically pass the uid as the first argument to the view.'),
+  );
+  $form['view_display'] = array(
+    '#type' => 'textfield', 
+    '#title' => t('View display'), 
+    '#default_value' => $settings['view_display'],
+    '#width' => 10,
+  );
+  $form['view_title'] = array(
+    '#type' => 'checkbox', 
+    '#title' => t('Include title'), 
+    '#default_value' => $settings['view_title'],
+  );
+  return $form;
+}
+
+
+
+/**
+ * Generates the output for the displaysuite field.
+ */
+function reach_multi_content_blog_latest_view($field) {
+  $settings = isset($field['formatter_settings']) ? $field['formatter_settings'] : $field['properties']['default'];
+  
+  $view = views_get_view($settings['view_name']);
+  if (!$view || !$view->access($settings['view_display'])) {
+    return;
+  }
+  
+  $output = '';
+  if ($settings['view_title']) {
+    $output .= '<h2 class="block-title">'. $view->display[$settings['view_display']]->display_title .'</h2>';
+  }
+
+  $output .= $view->preview($settings['view_display'], array($field['entity']->uid));
+  
+  return $output;
+}
+

@@ -1,0 +1,62 @@
+/* Tabs CSS
+ * --------
+ * Adds styles for the primary and secondary tabs.
+ *
+ * Compare this with default CSS found in the system module's stylesheet (a copy
+ * of which is in drupal5-reference.css, line 510.) */
+/* line 10, ../sass/tabs.sass */
+body {
+  display: none; }
+
+/* line 13, ../sass/tabs.sass */
+div.tabs {
+  margin: 0 0 5px 0; }
+
+/* line 16, ../sass/tabs.sass */
+ul.primary, ul.secondary {
+  width: 99%; }
+
+/* line 22, ../sass/tabs.sass */
+ul.primary li a {
+  height: 30px;
+  display: block; }
+
+/* line 27, ../sass/tabs.sass */
+ul.secondary {
+  margin: 0;
+  padding: 0 0 0 5px;
+  border-bottom: 1px solid silver;
+  list-style: none;
+  white-space: nowrap;
+  background: url(../images/tabs/tab-secondary-bg.png) repeat-x left bottom; }
+  /* line 34, ../sass/tabs.sass */
+  ul.secondary li {
+    float: left;
+    margin: 0 5px 0 0;
+    padding: 5px 0;
+    border-right: none; }
+  /* line 39, ../sass/tabs.sass */
+  ul.secondary a {
+    display: block;
+    height: 24px;
+    margin: 0;
+    padding: 0;
+    border: 1px solid silver;
+    text-decoration: none;
+    color: #777777;
+    background: url(../images/tabs/tab-secondary.png) repeat-x left -56px; }
+    /* line 48, ../sass/tabs.sass */
+    ul.secondary a .active, ul.secondary a .active:hover {
+      border: 1px solid silver;
+      color: black;
+      background: url(../images/tabs/tab-secondary.png) repeat-x left top; }
+    /* line 52, ../sass/tabs.sass */
+    ul.secondary a:hover {
+      background: url(../images/tabs/tab-secondary.png) repeat-x left bottom; }
+    /* line 54, ../sass/tabs.sass */
+    ul.secondary a .tab {
+      display: block;
+      height: 18px;
+      margin: 0;
+      padding: 3px 8px;
+      line-height: 18px; }

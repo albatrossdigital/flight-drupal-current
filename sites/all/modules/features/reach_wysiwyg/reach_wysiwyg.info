@@ -1,0 +1,7 @@
+name = "Reach WYSIWYG"
+description = "Extends the WYSIWYG configurations of debug_wysiwyg"
+core = "7.x"
+package = "Flight"
+;dependencies[] = "fe_wysiwyg"
+dependencies[] = "debut_wysiwyg"
+dependencies[] = "elegant_backend"

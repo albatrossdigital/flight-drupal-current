@@ -1,0 +1,104 @@
+<?php
+
+
+/**
+ * Implements hook_library().
+ */
+function media_browser_internet_library() {
+  $libraries['browser'] = array(
+    'title' => 'Media Browser Internet Browser', 
+    //'website' => 'http://drupal.org/project/internet_media_browser', 
+    //'version' => '1.0', 
+    'js' => array(
+      drupal_get_path('module', 'media_browser_internet') . '/js/jquery.mediaBrowserInternet.js' => array(),
+    ), 
+    'css' => array(
+      drupal_get_path('module', 'media_browser_internet') . '/css/media-browser-internet.css' => array(),
+    ),
+  );
+  return $libraries;
+}
+
+/**
+ * Implements hook_media_browser_plugin_info_alter().
+ * TODO: Make work
+ */
+function media_browser_internet_media_browser_plugin_info_alter(&$info) {
+  dpm($items);
+  watchdog('jeffff', 'asdf');
+}
+
+/**
+ * Returns the app key for an oauthconnector provider.
+ *
+ * Copied from reach_social.module, reach_social_get_keys()
+ */
+function media_browser_internet_key($provider_name) {
+  $provider = oauthconnector_provider_load($provider_name);
+  $consumer = oauth_common_consumer_load($provider->csid);
+  return $consumer->key;
+}
+
+
+/**
+ * Returns an oauth connection token.
+ */
+function media_browser_internet_token($provider_name) {
+  $provider = oauthconnector_provider_load($provider_name);
+  global $user;
+  $connections = _connector_get_user_connections($user->uid);
+  $connection = NULL;
+  foreach ($connections as $_connection) {
+    if ($_connection->connector == 'oauthconnector_' . $provider->name) {
+      $connection = $_connection;
+      break;
+    }
+  }
+  if (empty($connection)) {
+    return array(
+      'error' => TRUE,
+      'error_str' => t('No connection found for this user.')
+    );
+  }
+  $access_token = oauthconnector_get_connection_token($provider, $connection->cid);
+  return $access_token->key;
+}
+
+/**
+ * Returns an oauth connection id.
+ */
+function media_browser_internet_cid($provider_name) {
+  global $user;
+  $connections = _connector_get_user_connections($user);
+
+  foreach ($connections as $_connection) {
+    if ($_connection->connector == 'oauthconnector_' . $provider_name) {
+      $connection = $_connection;
+      break;
+    }
+  }
+  if (isset($connection->cid)) {
+    return $connection->cid;
+  } else {
+    return FALSE;
+  }
+}
+
+/**
+ * Implementation of hook_theme().
+ */
+function media_browser_internet_theme() {
+
+  //$module_path = drupal_get_path('module', 'media_browser_internet');
+
+  //$base = array(
+  //  'path' => "$module_path/theme",
+  //);
+  return array(
+    'media_browser_internet_connect' => array(
+       'template' => 'media-browser-internet-connect',
+       'variables' => array('service' => '', 'section' => ''),
+     ),
+  );
+}
+

@@ -1,0 +1,493 @@
+<?php
+
+/**
+ * @file
+ * Provides a demonstration of using the Dialog API.
+ */
+
+define('REACH_FB_API', 'https://graph.facebook.com');
+define('REACH_TWITTER_API', 'http://api.twitter.com');
+define('REACH_CONNECTOR_FB', 'facebook');
+define('REACH_CONNECTOR_TWITTER', 'twitter');
+define('REACH_TINYURL_API', 'http://tinyurl.com/api-create.php');
+
+
+
+/**
+ * Implementation of hook_menu().
+ */
+function reach_social_menu() {
+  $items['admin/config/reach/social'] = array(
+    'title' => 'Configure Reach Social',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('reach_social_admin_settings'),
+    'access arguments' => array('administer site configuration'),
+    'file' => 'reach_social.pages.inc',
+    'type' => MENU_LOCAL_TASK,
+    'weight' => 3,
+  );
+  $items['social-post'] = array(
+    'title' => 'Post to your Social Networks',
+    'type' => MENU_CALLBACK,
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('reach_social_single_form'),
+    'access arguments' => array('access content'),
+  );
+  $items['social-post/complete'] = array(
+    'title' => 'Thanks for sharing!',
+    'type' => MENU_CALLBACK,
+    'page callback' => 'reach_social_complete',
+    'page arguments' => array(2),
+    'access arguments' => array('access content'),
+  );
+  return $items;
+}
+
+
+
+
+/**
+ * Implements hook_permission().
+ */
+function reach_social_permission() {
+  return array(
+    'post to social networks' => array(
+      'title' => t('Post to Facebook and twitter'),
+    ),
+  );
+}
+
+/**
+ * Implements hook_library().
+ */
+function reach_social_library() {
+  $libraries['fbconnect'] = array(
+    'title' => 'Reach FB Connect',
+    'website' => 'http://facebook.com',
+    'version' => '1.0',
+    'js' => array(
+      drupal_get_path('module', 'reach_social') . '/reach-fbconnect.js' => array(),
+    ),
+    /*'css' => array(
+      drupal_get_path('module', 'my_module') . '/library-2.css' => array(
+        'type' => 'file',
+        'media' => 'screen',
+      ),
+    ),*/
+  );
+  return $libraries;
+}
+
+
+/**
+ * Implements hook_block_info().
+ */
+function reach_social_block_info() {
+  $blocks['social_post'] = array(
+    'info' => t('Social Post form'),
+  );
+  return $blocks;
+}
+
+
+/**
+ * Implements hook_block_view().
+ */
+function reach_social_block_view($delta = '') {
+  switch ($delta) {
+    case 'social_post':
+      $block['title'] = t('Take Action');
+      $block['content'] = drupal_get_form('reach_social_single_form');
+      break;
+  }
+  return $block;
+}
+
+/**
+ * Get the key for a provider.
+ */
+function reach_social_get_keys($provider_name) {
+  $provider = oauthconnector_provider_load(REACH_CONNECTOR_FB);
+  return oauth_common_consumer_load($provider->csid);
+}
+
+function reach_social_fbconnect(&$form, $mapping = FALSE, $weight = 1) {
+  drupal_add_library('reach_social', 'fbconnect');
+  if ($mapping) {
+    drupal_add_js(array('reach_social' => array(
+      'fbkey' => reach_social_get_keys(REACH_CONNECTOR_FB)->key,
+      'fbconnect_selector' => '.fbconnect',
+      'fbconnect_form_selector' => '.fbconnect-form',
+      'fbmapping' => $mapping,
+    )), 'setting');
+  }
+
+  $form['fbconnect'] = array(
+    '#type' => 'markup',
+    '#markup' => '<div id="fb-root"></div><div class="fbconnect-wrapper"><a href="#" class="fbconnect">Connect</a><a class="fbconnect-tooltip qtip-link" href="#" title="' . t('Click here to Connect with Facebook to automatically fill out this form!') . '">Help</a></div>',
+    '#weight' => $weight,
+  );
+
+  $form['#attributes']['class'][] = 'fbconnect-form';
+}
+
+/**
+ * Implements hook_form_alter().
+ * Alter the node edit form.
+ */
+function reach_social_form_alter(&$form, $form_state, $form_id) {
+  // Alter any node forms.
+  if (1==2 && isset($form['#node']) && $form['#node']->type . '_node_form' == $form_id && user_access('post to social networks')) {
+
+    $type = $form['#node']->type;
+    $allowed_types = variable_get('reach_social_types', array('story' => 'story', 'blog' => 'blog'));
+    if (empty($allowed_types[$type])) {
+      return;
+    }
+
+    $form['social'] = array(
+      '#type' => 'fieldset',
+      '#title' => t('Post to Social Networks'),
+      '#group' => 'additional_settings',
+      '#weight' => -8,
+    );
+
+    $form['social']['fbwall'] = array(
+      '#type' => 'checkbox',
+      '#title' => t('Post to your Facebook wall as a link'),
+      '#default_value' => (empty($form['nid']['#value'])),
+    );
+    $form['social']['fbmessage'] = array(
+      '#type' => 'textfield',
+      '#default_value' => variable_get('reach_social_fb_message', ''),
+      '#description' => t('The this text will be posted to as the link description.'),
+      '#maxlength' => 420,
+      '#states' => array(
+        'visible' => array(
+          ':input[name="fbwall"]' => array('checked' => TRUE),
+        ),
+      ),
+    );
+    if ($type == 'event') {
+      $form['socal']['fbevent'] = array(
+        '#type' => 'checkbox',
+        '#title' => t('Create a facebook event'),
+        '#default_value' => (empty($form['nid']['#value'])),
+      );
+    }
+
+    $form['social']['tweet'] = array(
+      '#type' => 'checkbox',
+      '#title' => t('Tweet on Twitter'),
+      '#default_value' => (empty($form['nid']['#value'])),
+    );
+    $form['social']['tweetmessage'] = array(
+      '#type' => 'textfield',
+      '#default_value' => variable_get('reach_social_twitter_message', 'New post: !title !url'),
+      '#description' => t('Enter the message your would like to tweet. You can use !url, !title and !user as replacement text.'),
+      '#maxlength' => 120,
+      '#states' => array(
+        'visible' => array(
+          ':input[name="tweet"]' => array('checked' => TRUE),
+        ),
+      ),
+    );
+  }
+}
+
+/**
+ * Implementation of hook_node_insert().
+ *
+ * Intercepts newly published nodes and posts noticed to Twitter.
+ */
+function reach_social_node_insert($node) {
+  $search = array('!url', '!title', '!user');
+  $replacements = array(url('node/' . $node->nid, array('absolute' => TRUE)), $node->title, $node->author);
+
+  if (!empty($node->status)) {
+
+    // Tweet
+    if ($node->tweet) {
+      $replacements[0] = reach_social_shorten_url($replacements[0]);
+      $data = array(
+        'status' => str_replace($search, $replacements, $node->tweetmessage),
+      );
+      $twitter_return = oauthconnector_endpoint_call_for_user(REACH_TWITTER_API . '/1/statuses/update.json', $data, REACH_CONNECTOR_TWITTER, $account=NULL, 'POST', $format='JSON');
+      if (isset($twitter_return['id'])) {
+        drupal_set_message(t('Successfully tweeted this post.'));
+      } else {
+        drupal_set_message(t('There was a problem tweeting this post.'), 'error');
+      }
+    }
+
+    // Post to FB Wall
+    dpm($node);
+    if ($node->fbwall) {
+      $data = array(
+        'link' => $replacements[0],
+        'name' => $replacements[1],
+        'message' => str_replace($search, $replacements, $node->fbmessage),
+      );
+      dpm($data);
+      $fb_return = oauthconnector_endpoint_call_for_user(REACH_FB_API . '/me/links', $data, REACH_CONNECTOR_FB, $account=NULL, 'POST', $format='JSON');
+      if (isset($fb_return['id'])) {
+        drupal_set_message(t('Successfully posted to your Facebook wall.'));
+      } else {
+        drupal_set_message(t('There was a problem posting to your Facebook wall.'), 'error');
+        watchdog('reach_social', 'Error posting to Facebook wall %response', array('%response' => $fb_return), WATCHDOG_ERROR);
+      }
+      dpm($fb_return);
+    }
+
+    // Create FB event
+    if ($node->type == 'event' && $node->fbevent) {
+      $data = array(
+        'name' => $node->title,
+        'start_time' => $node->field_date['und'][0]['value'],
+        'end_time' => $node->field_date['und'][0]['value2'],
+        'description' => $node->body['und'][0]['value'],
+      );
+      $fb_return = oauthconnector_endpoint_call_for_user(REACH_FB_API . '/me/events', $data, REACH_CONNECTOR_FB, $account=NULL, 'POST', $format='JSON');
+      if (isset($fb_return['id'])) {
+        drupal_set_message(t('Successfully created a Facebook event.'));
+      } else {
+        drupal_set_message(t('There was a problem creating a Facebook event.'), 'error');
+        watchdog('reach_social', 'Error creating Facebook event %response', array('%response' => $fb_return), WATCHDOG_ERROR);
+      }
+    }
+  }
+}
+
+/**
+ * Implementation of hook_node_update().
+ *
+ */
+function reach_social_node_update($node) {
+  reach_social_node_insert($node);
+}
+
+
+
+
+
+
+
+/**
+ * The singlepost form for Anonymous users.
+ */
+function reach_social_single_form($form, &$form_state){
+  $form = array();
+
+    $form['message'] = array(
+    '#type' => 'textarea',
+    '#rows' => 2,
+    '#resizable' => FALSE,
+    '#title' => 'Enter your message',
+    '#default_value' => variable_get('reach_social_post_message', ''),
+  );
+
+
+  $form['url'] = array(
+    '#type' => 'value',
+    '#value' => variable_get('reach_social_post_url', url('', array('absolute' => TRUE))),
+  );
+
+  $form['providers'] = array(
+    '#type' => 'checkboxes',
+    '#title' => 'Post to',
+    '#options' => array(
+      'facebook' => t('Facebook'),
+      'twitter' => t('Twitter')
+    ),
+    '#default_value' => array('facebook', 'twitter'),
+  );
+
+  $form['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Post'),
+    '#weight' => 99,
+    /*'#ajax' => array(
+      'callback' => 'reach_social_single_form_submit_ajax',
+      'name' => 'ajax_submit',
+    ),*/
+  );
+
+  /*$form['fbconnect'] = array(
+    '#type' => 'markup',
+    '#markup' => '<div id="fb-root"></div><a href="#" class="fbconnect">Connect</a>',
+  );*/
+
+
+  //$form['#attributes'] = array('target' => '_blank');
+
+  return $form;
+}
+
+
+/**
+ * The singlepost form submit handler.
+ */
+function reach_social_single_form_submit($form, &$form_state) {
+  $provider = (isset($form_state['values']['providers']['facebook'])) ? 'facebook' : 'twitter';
+  $_SESSION['reach_social_values'] = $form_state['values'];
+
+  reach_social_redirect($provider);
+}
+
+
+/**
+ * Submit handler for twitter signin
+ */
+function reach_social_twitter_signin_redirect() {
+
+
+  /*
+  $data = array('status' => 'jeff lyonsdf http://albatrossdigital.com');
+  $twitter_return = oauthconnector_endpoint_call_for_user('http://api.twitter.com/1/statuses/update.json', $data, 'twitter', $account=NULL, 'POST', $format='JSON');
+  dpm($twitter_return);
+  $data = array(
+    'link' => 'http://albatrossdigital.com',
+    'description' => $form_state['values']['message'],
+  );
+  ///$fb_return = oauthconnector_endpoint_call_for_user('https://graph.facebook.com/me/links', $data, 'facebook', $account=NULL, 'POST', $format='JSON');
+
+
+  // Example for event
+  /*$data = array(
+    'name' => 'http://albatrossdigital.com',
+    'description' => $form_state['values']['message'],
+    'start_time' => time() + 4000,
+    'end_time' => time() + 8000,
+  );
+  $fb_return = oauthconnector_endpoint_call_for_user('https://graph.facebook.com/me/events', $data, 'facebook', $account=NULL, 'POST', $format='JSON');*/
+
+  //dpm($fb_return);
+  //drupal_goto($twitter->get_authenticate_url($token));
+}
+
+
+
+
+/**
+ * Very lightweight helper function to generate a TinyURL for a given post.
+ * Copied from twitter_shorten_url() in twitter.module.
+ */
+function reach_social_shorten_url($url) {
+  if (module_exists('shorten')) {
+    return shorten_url($url);
+  }
+  else {
+    $response = drupal_http_request(REACH_TINYURL_API . "/api-create.php?url=" . $url);
+    if ($response->code == 200) {
+      return $response->data;
+    }
+    else {
+      return $url;
+    }
+  }
+}
+
+
+
+
+
+
+/**
+ * Builds and executes the oAuth authentication redirect.
+ * Mostly copied from oauthconnector.module.
+ */
+function reach_social_redirect($provider_name) {
+
+  $provider = oauthconnector_provider_load($provider_name);
+  $callback_url = url('oauth/authorized', array('absolute' => TRUE));
+
+  $configuration = array(
+    'provider_url' => $provider->url,
+  );
+  $consumer = DrupalOAuthConsumer::loadById($provider->csid, FALSE);
+  $sig_method = DrupalOAuthClient::signatureMethod(substr(strtolower($provider->consumer_advanced['signature method']), 5));
+
+  if (!$consumer->configuration['oauth2']) {
+    $client = new DrupalOAuthClient($consumer, NULL, $sig_method);
+    //TODO: Deal with errors! Add a try-catch
+    $request_token = $client->getRequestToken($provider->consumer_advanced['request token endpoint'], array(
+      'realm' => $provider->consumer_advanced['authentication realm'],
+      'callback' => $callback_url,
+    ));
+
+    if (!$login) {
+      $request_token->uid = $user->uid;
+    }
+
+    $request_token->write();
+    $auth_url = $client->getAuthorizationUrl($provider->consumer_advanced['authorization endpoint'], array(
+      'callback' => $callback_url,
+    ));
+  } else {
+    $callback_url = url('oauth/authorized2/' . $consumer->csid, array('absolute' => TRUE));
+    $request_token = new DrupalOAuthToken(md5(mt_rand()), md5(mt_rand()), $consumer, array(
+      'type'    => OAUTH_COMMON_TOKEN_TYPE_REQUEST,
+      //'version' => $client->version,
+    ));
+    $client = new DrupalOAuthClient($consumer, $request_token, $sig_method);
+    $auth_url = $client->getAuthorizationUrl($provider->consumer_advanced['authorization endpoint'], array(
+      'params'=>array(
+        'redirect_uri' => $callback_url,
+        'response_type' => 'code',
+        'client_id' => $consumer->key,
+        'scope' => $provider->consumer_advanced['authorization scope'],
+      ),
+    ));
+    $request_token->write();
+  }
+
+  $_SESSION['oauthconnector_request_key'] = $request_token->key;
+  $_SESSION['reach_social_provider'] = $provider_name;
+
+
+  drupal_goto($auth_url);
+}
+
+
+/**
+ * Implements hook_oauth_common_authorized().
+ */
+function reach_social_oauth_common_authorized($consumer, $access_token, $request_token) {
+
+  $provider_name = $_SESSION['reach_social_provider'];
+    if ($provider_name) {
+    $provider = oauthconnector_provider_load($provider_name);
+    switch ($provider_name) {
+      case 'twitter':
+        //$data = array('status' => $_SESSION['reach_social_values']['message'] . ' ' .  reach_social_shorten_url($_SESSION['reach_social_values']['url']));
+        $data = array('status' => $_SESSION['reach_social_values']['message']);
+        $twitter_return = oauthconnector_endpoint_call(REACH_TWITTER_API . '/1/statuses/update.json', $data, $provider, $access_token, $method='POST', $format='JSON');
+        dpm($twitter_return);
+        break;
+
+      case 'facebook':
+        $data = array(
+          'link' => $_SESSION['reach_social_values']['url'],
+          'message' => $_SESSION['reach_social_values']['message'],
+        );
+        $fb_return = oauthconnector_endpoint_call(REACH_FB_API . '/me/links', $data, $provider, $access_token, $method='POST', $format='JSON');
+
+        // Go through the Twitter Auth?
+        if (isset($_SESSION['reach_social_values']['providers']['twitter'])) {
+          reach_social_redirect('twitter');
+        }
+        break;
+    }
+
+    drupal_goto('social-post/complete');
+  }
+}
+
+
+function reach_social_complete() {
+  //$js = '<script type="text/javascript">self.close();</script>';
+  $_SESSION['reach_social_provider'] = NULL;
+  $_SESSION['reach_social_values'] = NULL;
+  return  '<img alt="" class="media-image" src="http://iranwatchlist.com/sites/iranwatchlist.com/files/spread-the-word-title.png"><p>Thanks for sharing! How do you stack up on our leaderboard?</p>';//'Thanks for sharing!';
+
+}

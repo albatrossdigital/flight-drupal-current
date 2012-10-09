@@ -1,0 +1,21 @@
+<?php
+
+
+/**
+ * Implementaton of hook_uninstall
+ */
+function user_dropdown_menu_install() {
+  variable_set('block_hover_block_user_dropdown_menu_dropdown', TRUE);
+}
+
+
+/**
+ * Implementaton of hook_uninstall
+ */
+function user_dropdown_menu_uninstall() {
+  db_query("DELETE FROM {variable} WHERE name LIKE 'user_dropdown_menu_%'");
+  db_query("DELETE FROM {system} WHERE name = 'user_dropdown_menu'");
+}
+
+
+

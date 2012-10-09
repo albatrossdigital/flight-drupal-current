@@ -1,0 +1,10 @@
+name = Pay Stripe
+description = Stripe payments integraton with Pay module.
+core = 7.x
+package = Payment API
+dependencies[] = pay
+dependencies[] = libraries
+
+files[] = pay_stripe_method_gateway.inc
+
+

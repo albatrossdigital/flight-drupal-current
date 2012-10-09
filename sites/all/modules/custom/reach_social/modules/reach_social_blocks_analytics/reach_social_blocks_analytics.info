@@ -1,0 +1,5 @@
+name = "Reach Social Blocks Analytics"
+description = "Adds actions to parties that interact with the social blocks."
+core = 7.x
+;dependencies[] = reach_social
+

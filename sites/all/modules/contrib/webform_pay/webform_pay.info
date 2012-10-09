@@ -1,0 +1,7 @@
+name = Webform pay
+description = Provides integration between Webform and Pay modules.
+core = 7.x
+package = Webform
+dependencies[] = webform
+dependencies[] = pay
+files[] = webform_pay.inc

@@ -1,0 +1,105 @@
+/************************* */
+/*  BODY */
+/************************ */
+/* Handy font size definitions
+ * font-size: .625em;   16px x .625   = 10px 
+ * font-size: .6875em;  16px x .6875  = 11px 
+ * font-size: .75em;    16px x .75    = 12px 
+ * font-size: .8125em;  16px x .8125  = 13px 
+ * font-size: .875em;   16px x .875   = 14px
+ * font-size: .9375em;  16px x .9375  = 15px
+ * font-size: 1.0625em; 16px x 1.0625 = 17px
+ * font-size: 1.5em;    16px x 1.5    = 24px */
+/************************* */
+/*  LINKS */
+/************************ */
+/************************* */
+/*  TEXT */
+/************************ */
+/************************* */
+/*  PAGE ELEMENTS */
+/************************ */
+/* line 44, ../sass/global.sass */
+.page-element {
+  /* logo */
+  /* site name + slogan */
+  /* site name */
+  /* site slogan */
+  /*page title */ }
+
+/************************* */
+/*  TITLES */
+/************************ */
+/* line 85, ../sass/global.sass */
+h1, h2, h3, h4, h5, h6 {
+  line-height: 1.3em; }
+
+/* line 88, ../sass/global.sass */
+h1 {
+  font-size: 2.2em;
+  padding: 0;
+  margin: 0; }
+  /* line 93, ../sass/global.sass */
+  h1 a,
+  h1 a:hover {
+    text-decoration: none; }
+
+/* line 97, ../sass/global.sass */
+h2 {
+  font-size: 1.7em;
+  margin-bottom: 0.5em; }
+
+/* line 101, ../sass/global.sass */
+h3 {
+  font-size: 1.2em;
+  margin-bottom: 1em; }
+
+/* line 105, ../sass/global.sass */
+h4 {
+  font-size: 1.2em;
+  margin-bottom: 0.8em; }
+
+/* line 109, ../sass/global.sass */
+h5 {
+  font-size: 1.1em;
+  font-weight: 600;
+  margin-bottom: 0; }
+
+/* line 114, ../sass/global.sass */
+h6 {
+  font-size: 1em;
+  font-weight: bold; }
+
+/*------------------------- */
+/*  Block title */
+/*------------------------- */
+/************************* */
+/*  LISTS */
+/************************ */
+/* line 131, ../sass/global.sass */
+.node ol,
+.node ul {
+  padding-left: 2em; }
+
+/************************* */
+/* MAIN MENU */
+/************************ */
+/************************* */
+/* RESPONSIVE MEDIA */
+/************************ */
+/************************* */
+/*  FORMS */
+/************************ */
+/* submits */
+/* line 181, ../sass/global.sass */
+form {
+  /* infield labels */
+  /* horizontal styles */
+  /* fb connect */ }
+
+/************************* */
+/*  MESSAGES */
+/************************ */
+/************************* */
+/*  QTIP */
+/************************ */

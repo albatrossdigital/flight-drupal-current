@@ -1,0 +1,11 @@
+<?php
+// $Id
+
+/**
+ * Implementation of hook_install().
+ *
+ * Save unique 10-character Critsend id for tags
+ */
+function crm_mailing_critsend_install() {
+  variable_set('critsend_tag_id', substr(base64_encode(variable_get('site_name', rand())), 0, 10));
+}

@@ -1,0 +1,7 @@
+name = Media Browser Facebook
+description = Provides a Facebook tab to the media browser
+package = Media
+core = 7.x
+dependencies[] = media
+dependencies[] = media_browser_internet
+

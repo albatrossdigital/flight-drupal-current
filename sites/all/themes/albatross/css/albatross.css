@@ -1,0 +1,6 @@
+/* Overlay loader */
+/* line 2, ../sass/albatross.sass */
+.overlay-modal-background-image {
+  background: url(../images/ajax-loader.css) center no-repeat;
+  width: 100%;
+  height: 100%; }

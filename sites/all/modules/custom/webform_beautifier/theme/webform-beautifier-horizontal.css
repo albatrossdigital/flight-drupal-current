@@ -1,0 +1,36 @@
+.webform-horizontal .webform-component {
+  float: left;
+  margin-right: 10px;
+  max-width: 45%;
+  -moz-box-sizing: border-box;
+  -webkit-box-sizing: border-box;
+  -ms-box-sizing: border-box;
+  box-sizing: border-box;
+}
+
+.webform-horizontal .webform-component:nth-child(even),
+.webform-horizontal .webform-component:nth-child(odd) {
+  max-width: 48%;
+}
+
+.webform-horizontal .webform-component:nth-child(odd) {
+  margin-right: 4%;
+}
+
+.webform-horizontal .webform-component:nth-child(even) {
+  margin-right: 0;
+}
+
+
+.webform-horizontal input.form-text {
+  max-width: 100%;
+  -moz-box-sizing: border-box;
+  -webkit-box-sizing: border-box;
+  -ms-box-sizing: border-box;
+  box-sizing: border-box;
+  *width: 95%;
+}
+
+.webform-horizontal .form-actions {
+  float: left;
+}

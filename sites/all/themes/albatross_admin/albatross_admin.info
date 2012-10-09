@@ -1,0 +1,11 @@
+
+name = Albatross Admin
+description = The Albatross Digital Back-end Theme.
+base theme = seven
+core = 7.x
+engine = phptemplate
+
+scripts[] = js/albatross-admin.js
+stylesheets[all][] = css/albatross-admin.css
+stylesheets[all][] = css/albatross-admin-page-specific.css
+

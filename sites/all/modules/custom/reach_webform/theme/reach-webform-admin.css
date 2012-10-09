@@ -1,0 +1,16 @@
+.field-reach,
+.field-reach-fb{
+  padding-left: 20px;
+  background: url(images/reach.ico) 0 center no-repeat;
+}
+
+.field-reach-fb{
+  background-image: url(images/facebook.ico);
+}
+
+div.field-reach,
+div.field-reach-fb{
+  width: 1px;
+  height: 20px;
+  float: left;
+}

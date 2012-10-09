@@ -1,0 +1,85 @@
+/* Adds styling for the media browser dialog */
+/* line 5, ../sass/elegant-backend-media-browser.sass */
+.ui-widget-overlay {
+  background-color: white;
+  filter: progid:DXImageTransform.Microsoft.Alpha(Opacity=70);
+  opacity: 0.7; }
+
+/* line 9, ../sass/elegant-backend-media-browser.sass */
+.media-modal-frame {
+  border: 1px solid #aaaaaa; }
+
+/* line 12, ../sass/elegant-backend-media-browser.sass */
+#media-browser-page {
+  border-radius: 0;
+  padding: 0; }
+
+/* line 16, ../sass/elegant-backend-media-browser.sass */
+.media-item {
+  height: 130px; }
+
+/* line 19, ../sass/elegant-backend-media-browser.sass */
+#media-browser-tabset {
+  padding: 0;
+  font: normal "Lucida Grande", "Lucida Sans Unicode", sans-serif; }
+  /* line 23, ../sass/elegant-backend-media-browser.sass */
+  #media-browser-tabset ul.ui-tabs-nav {
+    border: none;
+    background: url("../images/gradient.png") repeat scroll 0 -60px #eeeeee;
+    height: 25px;
+    padding-top: 20px; }
+    /* line 30, ../sass/elegant-backend-media-browser.sass */
+    #media-browser-tabset ul.ui-tabs-nav li a {
+      padding: 2px 1em;
+      border: 1px solid #aaaaaa;
+      border-bottom: none;
+      border-radius: 0;
+      background: url("../images/gradient.png") repeat scroll 0 0 transparent;
+      color: black;
+      margin-left: 0.5em;
+      font-size: 0.9em; }
+    /* line 40, ../sass/elegant-backend-media-browser.sass */
+    #media-browser-tabset ul.ui-tabs-nav li.ui-tabs-selected a {
+      background: #f7f8fd; }
+  /* line 43, ../sass/elegant-backend-media-browser.sass */
+  #media-browser-tabset .media-browser-tab {
+    background: #f7f8fd;
+    margin-bottom: 50px;
+    border: none;
+    border-top: 1px solid #aaaaaa; }
+    /* line 49, ../sass/elegant-backend-media-browser.sass */
+    #media-browser-tabset .media-browser-tab input.form-submit,
+    #media-browser-tabset .media-browser-tab a.fake-cancel,
+    #media-browser-tabset .media-browser-tab a.fake-ok,
+    #media-browser-tabset .media-browser-tab .media-browser-internet-submit {
+      bottom: 8px;
+      position: absolute;
+      padding: 3px 17px !important;
+      height: 24px;
+      line-height: 24px;
+      margin: 0 !important;
+      font-size: 1em;
+      border-radius: 0; }
+    /* line 62, ../sass/elegant-backend-media-browser.sass */
+    #media-browser-tabset .media-browser-tab input.form-submit,
+    #media-browser-tabset .media-browser-tab .media-browser-internet-submit {
+      height: 32px !important; }
+    /* line 66, ../sass/elegant-backend-media-browser.sass */
+    #media-browser-tabset .media-browser-tab .fake-cancel {
+      bottom: 8px; }
+    /* line 70, ../sass/elegant-backend-media-browser.sass */
+    #media-browser-tabset .media-browser-tab .fake-cancel {
+      left: 120px; }
+  /* line 73, ../sass/elegant-backend-media-browser.sass */
+  #media-browser-tabset #scrollbox, #media-browser-tabset .scrollbox {
+    background-color: #f9faff; }
+  /* line 76, ../sass/elegant-backend-media-browser.sass */
+  #media-browser-tabset #scrollbox .media-thumbnail, #media-browser-tabset .scrollbox .media-thumbnail {
+    background-color: white;
+    width: 100px; }
+  /* line 80, ../sass/elegant-backend-media-browser.sass */
+  #media-browser-tabset .scrollbox {
+    height: 300px;
+    overflow: auto;
+    overflow-x: hidden;
+    margin-top: 5px; }

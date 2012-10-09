@@ -1,0 +1,256 @@
+/* About Default Styles
+ * ---------------------
+ * default.css is used to establish general rules, browser reset, or admin user interface styles.
+ * Browser Reset
+ * -------------
+ * For a more complete reset, go to http://developer.yahoo.com/yui/reset/ */
+/* line 10, ../sass/default.sass */
+* {
+  margin: 0;
+  padding: 0; }
+
+/* Override annoying settings in system.css */
+/* line 15, ../sass/default.sass */
+ul.menu {
+  padding-left: 0; }
+  /* line 18, ../sass/default.sass */
+  ul.menu li {
+    margin: 0;
+    padding: 0; }
+    /* line 22, ../sass/default.sass */
+    ul.menu li a, ul.menu li a:hover {
+      text-decoration: none;
+      display: block; }
+
+/* line 27, ../sass/default.sass */
+ul li.leaf {
+  list-style: none;
+  list-style-image: none; }
+
+/* Clear Floats Without Structural Markup
+ * ---------------------------------------
+ * http://www.positioniseverything.net/easyclearing.html */
+/* line 36, ../sass/default.sass */
+.clearfix {
+  display: inline-block; }
+  /* line 38, ../sass/default.sass */
+  .clearfix:after {
+    content: ".";
+    display: block;
+    height: 0;
+    clear: both;
+    visibility: hidden; }
+
+/* Hides from IE-mac \ */
+/* line 46, ../sass/default.sass */
+* html .clearfix {
+  height: 1%; }
+
+/* line 49, ../sass/default.sass */
+.clearfix {
+  display: block; }
+
+/* End hide from IE-mac */
+/* clear classes */
+/* line 55, ../sass/default.sass */
+.clearleft, .clearl, .cleft {
+  clear: left; }
+
+/* line 58, ../sass/default.sass */
+.clearright, .clearr, .cright {
+  clear: right; }
+
+/* line 61, ../sass/default.sass */
+.clear, .clearboth, .clearall {
+  clear: both; }
+
+/* Float classes */
+/* line 65, ../sass/default.sass */
+.floatleft, .fleft, .floatl {
+  float: left;
+  margin: 0 10px 5px 0; }
+
+/* line 69, ../sass/default.sass */
+.floatright, .fright, .floatr {
+  float: right;
+  margin: 0 0 5px 10px; }
+
+/* "Skip to Main Content" link
+ * ---------------------------
+ * This link useful for both visually impaired people and those with mobility impairments
+ * who cannot use a mouse. http://www.webaim.org/techniques/css/invisiblecontent/ */
+/* line 79, ../sass/default.sass */
+#skip a:link, #skip a:hover, #skip a:visited {
+  position: absolute;
+  left: -10000px;
+  top: auto;
+  width: 1px;
+  height: 1px;
+  overflow: hidden; }
+/* line 86, ../sass/default.sass */
+#skip a:active, #skip a:focus {
+  position: static;
+  width: auto;
+  height: auto; }
+
+/* bug fix with views 2 edit links. */
+/* line 92, ../sass/default.sass */
+div.view div.views-admin-links {
+  width: auto; }
+
+/* Rollover edit links for blocks. */
+/* line 96, ../sass/default.sass */
+div.block {
+  position: relative; }
+  /* line 98, ../sass/default.sass */
+  div.block .edit {
+    display: none;
+    position: absolute;
+    right: -20px;
+    top: -5px;
+    z-index: 40;
+    padding: 3px 8px 0;
+    font-size: 10px;
+    line-height: 16px;
+    background-color: white;
+    border: 1px solid #cccccc;
+    /*let's get fancy! */
+    -moz-border-radius: 3px;
+    -webkit-border-radius: 3px;
+    -moz-box-shadow: 0 1px 3px #888888;
+    -webkit-box-shadow: -1px 1px 2px #666666; }
+    /* line 114, ../sass/default.sass */
+    div.block .edit a {
+      display: block;
+      border: 0;
+      padding: 0;
+      margin: 0; }
+  /* line 119, ../sass/default.sass */
+  div.block:hover .edit {
+    display: block; }
+
+/* Wireframe styles. */
+/* line 124, ../sass/default.sass */
+.with-wireframes #header,
+.with-wireframes #content-top,
+.with-wireframes #content-top > *,
+.with-wireframes #content-header,
+.with-wireframes #content-header > *,
+.with-wireframes #content-area,
+.with-wireframes #content-area > *,
+.with-wireframes #content-bottom,
+.with-wireframes #content-bottom > *,
+.with-wireframes #primary,
+.with-wireframes #secondary,
+.with-wireframes #sidebar-left-inner,
+.with-wireframes #sidebar-right-inner,
+.with-wireframes .block {
+  padding: 2px;
+  border: 1px solid #bbbbbb; }
+/* line 140, ../sass/default.sass */
+.with-wireframes .node {
+  border-bottom: 1px solid #bbbbbb;
+  margin-bottom: 10px; }
+/* line 143, ../sass/default.sass */
+.with-wireframes .block {
+  margin-bottom: 3px; }
+/* line 145, ../sass/default.sass */
+.with-wireframes #content-top,
+.with-wireframes #content-header,
+.with-wireframes #content-area,
+.with-wireframes #content-bottom {
+  margin: 0 3px 3px; }
+/* line 150, ../sass/default.sass */
+.with-wireframes #footer {
+  margin-top: 3px;
+  padding: 2px;
+  border: 1px solid #cccccc; }
+/* line 155, ../sass/default.sass */
+.with-wireframes.with-navigation #content,
+.with-wireframes.with-navigation .sidebar {
+  margin-top: 50px; }
+/* line 158, ../sass/default.sass */
+.with-wireframes #navigation {
+  height: 50px; }
+
+/* Forms
+ * Most of this is taken from seven */
+/* line 165, ../sass/default.sass */
+input.form-autocomplete,
+input.form-text,
+input.form-file,
+textarea.form-textarea,
+select.form-select {
+  padding: 5px 2px;
+  border: 1px solid #cccccc;
+  border-top-color: #999999;
+  background: white;
+  color: #333333;
+  line-height: 1.5em; }
+  /* line 177, ../sass/default.sass */
+  input.form-autocomplete:focus,
+  input.form-text:focus,
+  input.form-file:focus,
+  textarea.form-textarea:focus,
+  select.form-select:focus {
+    color: black;
+    border-color: #aaccee; }
+
+/* line 181, ../sass/default.sass */
+form.infieldlabels label.processed {
+  padding: 5px; }
+
+/* line 184, ../sass/default.sass */
+select {
+  -webkit-appearance: menulist;
+  box-sizing: border-box;
+  -webkit-box-align: center;
+  border: 1px solid;
+  white-space: pre;
+  -webkit-rtl-ordering: logical;
+  color: black;
+  background-color: white;
+  cursor: default; }
+
+/* line 195, ../sass/default.sass */
+input.form-submit,
+a.button {
+  cursor: pointer;
+  padding: 4px 17px;
+  margin-bottom: 1em;
+  margin-right: 1em;
+  color: #5a5a5a;
+  text-align: center;
+  font-weight: normal;
+  line-height: 1.5em;
+  font-size: 1.077em;
+  font-family: "Lucida Grande", Verdana, sans-serif;
+  border: 1px solid #b4b4b4;
+  border-bottom: 1px solid #e4e4e4;
+  border-left-color: #d2d2d2;
+  border-right-color: #d2d2d2;
+  background-image: -webkit-gradient(linear, 50% 0%, 50% 100%, color-stop(0%, #f2f2f2), color-stop(100%, #e1e1e1));
+  background-image: -webkit-linear-gradient(top, #f2f2f2, #e1e1e1);
+  background-image: -moz-linear-gradient(top, #f2f2f2, #e1e1e1);
+  background-image: -o-linear-gradient(top, #f2f2f2, #e1e1e1);
+  background-image: -ms-linear-gradient(top, #f2f2f2, #e1e1e1);
+  background-image: linear-gradient(top, #f2f2f2, #e1e1e1);
+  background-color: #e1e1e1;
+  -moz-border-radius: 6px;
+  -webkit-border-radius: 6px;
+  -o-border-radius: 6px;
+  -ms-border-radius: 6px;
+  -khtml-border-radius: 6px;
+  border-radius: 6px; }
+  /* line 215, ../sass/default.sass */
+  input.form-submit:hover,
+  a.button:hover {
+    border-top: 1px solid #b4b4b4;
+    border-bottom: 1px solid #e4e4e4; }
+  /* line 219, ../sass/default.sass */
+  input.form-submit:active,
+  a.button:active {
+    background: #666666;
+    color: white;
+    border-color: #555555;
+    text-shadow: #222222 0px -1px 0px; }

@@ -1,0 +1,8 @@
+name = Media Browser Youtube
+description = Provides a Youtube browser tab to the media browser
+package = Media
+core = 7.x
+dependencies[] = media
+dependencies[] = media_browser_internet
+files[] = media_browser_youtube.module
+

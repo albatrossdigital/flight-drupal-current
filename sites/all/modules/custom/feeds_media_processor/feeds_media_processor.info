@@ -1,0 +1,8 @@
+;$Id: 
+name = Feeds Media Processor
+description = Allows media file entities to be imported via feeds.
+package = Feeds
+dependencies[] = feeds
+dependencies[] = media
+core = 7.x
+

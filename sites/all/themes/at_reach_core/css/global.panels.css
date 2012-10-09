@@ -1,0 +1,13 @@
+/*
+ * @file
+ * Panels, AT Panels/GPanels
+ */
+@media -sass-debug-info{filename{font-family:file\:\/\/\/var\/aegir\/platforms\/albatross-panopoly\/sites\/all\/themes\/at_reach_core\/sass\/global\.panels\.sass}line{font-family:\00003133}}
+.panel-pane {
+  margin-bottom: 20px;
+}
+
+@media -sass-debug-info{filename{font-family:file\:\/\/\/var\/aegir\/platforms\/albatross-panopoly\/sites\/all\/themes\/at_reach_core\/sass\/global\.panels\.sass}line{font-family:\00003154}}
+.block-panels_mini {
+  padding: 0;
+}

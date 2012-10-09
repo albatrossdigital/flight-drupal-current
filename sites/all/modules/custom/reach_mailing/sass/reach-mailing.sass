@@ -1,0 +1,47 @@
+@import compass/css3
+
+.email-list 
+  a
+    display: block
+    +border-radius(5px)
+    color: #fff
+    background-color: #666
+    padding: 2px 7px 3px
+    text-decoration: none !important
+    font-size: .9em
+    float: left
+    width: 200px
+    margin: 7px 7px 0 0
+    
+    &:hover
+      background-color: #333
+
+.view-mailing-recipients
+  .view-header a
+    float: right
+    padding-left: 1em
+
+#block-crm-mailing-mailing-preview
+  clear: both
+  padding-top: 2em
+  position: relative
+
+  ul.ui-tabs-nav
+    padding-bottom: 5px
+  
+  a.preview-edit-link
+    position: absolute
+    right: 10px
+    top: .8em
+
+#mailing-node-form
+  input#edit-submit,
+  .vertical-tabs
+    display: none
+
+form#crm-mailing-overview-unsent-form
+  min-height: 500px
+  
+  .form-item.form-type-date-popup
+    border: none
+

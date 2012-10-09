@@ -1,0 +1,5 @@
+name = "Reach Social Field"
+description = "Creates a field to link entities to Facebook, Flickr and Google entities."
+core = 7.x
+
+

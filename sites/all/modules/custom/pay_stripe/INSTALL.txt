@@ -1,0 +1,9 @@
+
+Installation instructions
+=========================
+
+Download the Stripe PHP library from https://github.com/stripe/stripe-php and copy it into sites/all/modules
+so that the file sites/all/libraries/stripe/lib/Stripe.php exists.  We use the libraries module, so you can also
+place the library in sites/sitename.com/libraries.
+
+Install the module as normal at Admin -> Modules.

@@ -1,0 +1,68 @@
+<?php
+
+/**
+ * Implements hook_init().
+ *
+ * Hack to load necessary classes.
+ */
+function pay_stripe_init() {
+  if (drupal_match_path($_GET['q'], "admin/config/pay/method\nadmin/config/pay/method/*\nadmin/reports/dblog\nadmin/reports/dblog/*")) {
+    _pay_stripe_includes();
+  }
+}
+
+/**
+ * Implements hook_pay_method_handler_info().
+ */
+function pay_stripe_pay_method_handler_info() {
+  $path = drupal_get_path('module', 'pay_stripe');
+  return array(
+    'pay_stripe_method_gateway' => array(
+      'title' => t('Stripe'),
+      'description' => t('Payment processing using the Stripe payment gateway', array('!stripe' => l('Stripe', 'http://stripe.com'))),
+      'parent' => 'pay_method_gateway',
+      'module' => 'pay_stripe',
+      'path' => $path,
+    ),
+  );
+}
+
+/**
+ * Returns an array to add to $form['#attached']['js'].
+ *
+ * @param $pubkey
+ *   A Stripe pubkey returned from stripe_get_pubkey().
+ * @param $selector
+ *   A jQuery (xpath) selector to the <form> tag.
+ */
+/*function stripe_attached_js($pubkey, $selector = '.stripe-form') {
+  return array(
+    'https://js.stripe.com/v1/' => array(
+      'type' => 'external',
+    ),
+    drupal_get_path('module', 'stripe') . '/stripe.js',
+    // And set our key.
+    'jQuery(document).ready(function () { Stripe.setPublishableKey("' . $pubkey . '"); });' => array(
+      'type' => 'inline', 'scope' => 'footer', 'weight' => 5
+    ),
+    array(
+      'data' => array('stripe' => 
+        array(
+          'form_selector' => $selector,
+          'pubkey' => $pubkey,
+        ),
+      ),
+      'type' => 'setting',
+    ),
+  );
+}*/
+
+/**
+ * Include the pertinant files.
+ */
+function _pay_stripe_includes() {
+  module_load_include('inc', 'pay', 'includes/handlers/pay');
+  module_load_include('inc', 'pay', 'includes/handlers/pay_method');
+  module_load_include('inc', 'pay', 'includes/handlers/pay_method_gateway');
+}
+

@@ -1,0 +1,14 @@
+name = Reach
+description = Albatross Reach is a Action-oriented CRM for Drupal
+core = 7.x
+package = Reach
+php = 5.2.4
+dependencies[] = features
+dependencies[] = taxonomy
+dependencies[] = views
+features[ctools][] = views:views_default:3.0
+features[features_api][] = api:1
+features[taxonomy][] = groups
+features[views_view][] = reach_actions
+features[views_view][] = reach_actions_by_party
+features[views_view][] = reach_actions_by_user

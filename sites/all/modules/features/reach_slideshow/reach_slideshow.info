@@ -1,0 +1,5 @@
+name = "Reach Slideshow"
+description = "Extends the rotating_banner module"
+core = "7.x"
+package = "Flight"
+dependencies[] = "rotating_banner"

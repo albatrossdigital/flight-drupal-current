@@ -1,0 +1,5 @@
+core = "7.x"
+dependencies[] = "reach_mailing"  
+description = "Reach Mailing Sendgrid mailer"
+name = "reach_mailing_sendgrid"
+package = "Reach"

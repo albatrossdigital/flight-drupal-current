@@ -1,0 +1,217 @@
+<?php
+/**
+ * @file
+ */
+
+
+/**
+ * Implementatation of hook_form_alter.
+ *
+ * Add the form settings.
+ */
+function webform_beautifier_form_alter(&$form, &$form_state, $form_id) {
+  
+  // Update the node/edit form and add the additional settings
+  if (isset($form['#node_edit_form']) && $form['#node_edit_form'] && in_array($form['#node']->type, variable_get('webform_node_types', array()))) {
+    
+    if (!($defaults = $form['#node']->webform_beautifier)) {
+      $defaults = array(
+        'labels' => 'above',
+        'display' => 'vertical',
+        'block_labels' => 'infield',
+        'block_display' => 'horizontal',
+      );
+    }
+    
+    $form['webform_beautifier'] = array(
+      '#type' => 'fieldset',
+      '#title' => t('Form Display Settings'),
+      '#collapsible' => TRUE,
+      '#collapsed' => FALSE,
+      '#tree' => TRUE,
+      '#group' => 'additional_settings',
+    );
+    $form['webform_beautifier']['labels'] = array(
+      '#type' => 'select',
+      '#title' => t('Label Position'),
+      '#options' => array(
+        'above' => t('Above'),
+        'inline' => t('Inline'),
+        'infield' => t('In-Field'),
+      ),
+      '#default_value' => $defaults['labels'],
+    );
+    $form['webform_beautifier']['display'] = array(
+      '#type' => 'select',
+      '#title' => t('Display Style'),
+      '#options' => array(
+        'vertical' => t('Vertical'),
+        'horizontal' => t('Horizontal'),
+      ),
+      '#default_value' => $defaults['display'],
+    );
+    
+    $form['webform_beautifier']['block'] = array(
+      '#type' => 'checkbox',
+      '#title' => t('Available as block'),
+      '#description' => t('If enabled this webform will be available as a block.'),
+      '#default_value' => (isset($form['#node']->webform['block'])) ? $form['#node']->webform['block'] : 0,
+    );
+    $form['webform_beautifier']['block_settings'] = array(
+      '#type' => 'fieldset',
+      '#title' => t('Block Display Settings'),
+      '#collapsible' => TRUE,
+      '#collapsed' => FALSE,
+      '#tree' => TRUE,
+      '#states' => array(
+        'visible' => array(
+          ':input[name="webform_beautifier[block]"]' => array('checked' => TRUE),
+        ),
+      ),
+    );
+    $form['webform_beautifier']['block_settings']['block_labels'] = array(
+      '#type' => 'select',
+      '#title' => t('Label Position'),
+      '#options' => array(
+        'above' => t('Above'),
+        'inline' => t('Inline'),
+        'infield' => t('In-Field'),
+      ),
+      '#default_value' => $defaults['block_labels'],
+      
+    );
+    $form['webform_beautifier']['block_settings']['block_display'] = array(
+      '#type' => 'select',
+      '#title' => t('Display Style'),
+      '#options' => array(
+        'vertical' => t('Vertical'),
+        'horizontal' => t('Horizontal'),
+      ),
+      '#default_value' => $defaults['block_display'],
+    );
+    
+  }
+  
+  // Update the webform form with the form_beautifier stying
+  if (strpos($form_id, 'webform_client_form_') !== FALSE) {
+    $settings = $form['#node']->webform_beautifier;
+    
+    // See if block display
+    if (arg(1) != $settings['nid']) {
+      $settings['labels'] = $settings['block_labels'];
+      $settings['display'] = $settings['block_display'];
+    }
+    
+    // Set the label style
+    switch ($settings['labels']) {
+      case 'above':
+        break;
+      case 'infield':
+        form_beautifier_add_infieldlabels($form);
+        break;
+      case 'inline':
+        form_beautifier_add_inlinelabels($form);
+        break;
+    }
+    
+    // Set the form style
+    switch ($settings['display']) {
+      case 'horizontal':
+        $form['#attributes']['class'][] = 'webform-horizontal';
+        drupal_add_css(drupal_get_path('module', 'webform_beautifier') . '/theme/webform-beautifier-horizontal.css'); 
+        break;
+      case 'vertical':
+        break;
+    }
+  }
+}
+
+/**
+ * Implementatation of hook_node_load.
+ *
+ * Add the webform_beautifier info to $node.
+ */
+function webform_beautifier_node_load($nodes, $types) {
+  
+  // Quick check to see if we need to do anything at all for these nodes.
+  $webform_types = webform_variable_get('webform_node_types');
+  if (count(array_intersect($types, $webform_types)) == 0) {
+    return;
+  }
+  
+  // Select all webform_beautifier entries that match these node IDs.
+  $result = db_select('webform_beautifier')
+    ->fields('webform_beautifier')
+    ->condition('nid', array_keys($nodes), 'IN')
+    ->execute()
+    ->fetchAllAssoc('nid', PDO::FETCH_ASSOC);
+  
+  foreach ($result as $nid => $settings) {
+    // Load the basic information for each node.
+    $nodes[$nid]->webform_beautifier = $settings;
+    $nodes[$nid]->webform_beautifier['record_exists'] = TRUE;
+  }
+
+}
+
+/**
+ * Implementatation of hook_node_update.
+ */
+function webform_beautifier_node_update($node) {
+  if (isset($node->webform_beautifier)) {
+    if (!$node->original->webform_beautifier['record_exists']) {
+      webform_beautifier_node_insert($node);
+    } else {
+      db_update('webform_beautifier')->fields(_webform_beautifier_prepare_fields($node))->condition('nid', $node->nid)->execute();
+    }
+  }
+}
+
+/**
+ * Implementatation of hook_node_insert.
+ */
+function webform_beautifier_node_insert($node) {
+  if (isset($node->webform_beautifier)) {
+    $fields = _webform_beautifier_prepare_fields($node);
+    $fields['nid'] = $node->nid;
+    db_insert('webform_beautifier')->fields($fields)->execute();
+  }
+}
+
+/**
+ * Helper function prepares the $fields array for hook_node_update and hook_node_insert.
+ */
+function _webform_beautifier_prepare_fields(&$node) {
+  $fields = $node->webform_beautifier;
+  if ($fields['block_settings']) {
+    $fields += $fields['block_settings'];
+  }
+  unset($fields['block_settings']);
+  $node->webform['block'] = $fields['block'];
+  unset($fields['block']);
+  unset($fields['record_exists']);
+  return $fields;
+}
+
+
+/**
+ * Implementatation of hook_node_delete.
+ */
+function webform_beautifier_node_delete($node) {
+  db_delete('webform_beautifier')->condition('nid', $node->nid)->execute();
+}
+
+/**
+ * Implements hook_preprocess_block().
+ */
+function webform_beautifier_preprocess_block(&$vars) {
+  //add webform title specific class to webform blocks
+  if($vars['block']->module == 'webform' && !empty($vars['elements']['#node'])) {
+    // Replace with dashes anything that isn't A-Z, numbers, dashes, or underscores.
+    $string = strtolower(preg_replace('/[^a-zA-Z0-9_-]+/', '-', 'block-' . $vars['block']->module . '-' . $vars['elements']['#node']->title));
+    $vars['classes_array'][] = $string;
+  }
+}
+
+
+

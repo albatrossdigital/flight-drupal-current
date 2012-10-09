@@ -1,0 +1,103 @@
+<?php
+
+/**
+ * @file
+ * This is an example outlining how a module can define blocks that can be
+ * displayed on various pages of a site, or how to alter blocks provided by
+ * other modules.
+ */
+
+
+/**
+ * Implements hook_block_info().
+ *
+ * This hook declares what blocks are provided by the module.
+ */
+function user_dropdown_menu_block_info() {
+  $blocks['dropdown'] = array(
+    'info' => t('User Drop-down Menu'),
+    'cache' => DRUPAL_NO_CACHE,
+  );
+
+  return $blocks;
+}
+
+/**
+ * Implements hook_block_configure().
+ *
+ * This hook declares configuration options for blocks provided by this module.
+ */
+function user_dropdown_menu_block_configure($delta = '') {
+  $form = array();
+  if ($delta == 'dropdown') {
+    $form['menu'] = array(
+      '#type' => 'select',
+      '#title' => t('Menu to use'),
+      '#options' => menu_get_menus(),
+      '#default_value' => variable_get('user_dropdown_menu_menu',  'user-menu'),
+      '#required' => TRUE,
+    );
+    $form['title'] = array(
+      '#type' => 'textfield',
+      '#title' => t('Block title'),
+      '#description' => t('Enter a block title.  Note that if you add a block title to the block information, this setting will be overridden. You may use the token replacements below in your menu.'),
+      '#default_value' => variable_get('user_dropdown_menu_title',  t('Hi, [user:name]')),
+    );
+    $form['tokens'] = array(
+      '#theme' => 'token_tree',
+      '#token_types' => array('user'),
+    );
+    $form['css'] = array(
+      '#type' => 'checkbox',
+      '#title' => t('Add stylesheet'),
+      '#default_value' => variable_get('user_dropdown_menu_css',  TRUE),
+    );
+  }
+  return $form;
+}
+
+/**
+ * Implements hook_block_save().
+ *
+ * This hook declares how the configured options for a block
+ * provided by this module are saved.
+ */
+function user_dropdown_menu_block_save($delta = '', $edit = array()) {
+  if ($delta == 'dropdown') {
+    variable_set('user_dropdown_menu_menu', $edit['menu']);
+    variable_set('user_dropdown_menu_title', $edit['title']);
+    variable_set('user_dropdown_menu_css', $edit['css']);
+  }
+  return;
+}
+
+/**
+ * Implements hook_block_view().
+ *
+ * This hook generates the contents of the blocks themselves.
+ */
+function user_dropdown_menu_block_view($delta = '') {
+  $block = array();
+  
+  switch ($delta) {
+    
+    case 'dropdown':
+      global $user;
+      if ($user->uid) {
+        $user = user_load($user->uid);
+        $block['title'] = token_replace(variable_get('user_dropdown_menu_title',  t('Hi, [user:name]')), array('user' => $user));
+        $block['content'] = menu_block_view(variable_get('user_dropdown_menu_menu',  'user-menu'));
+        
+        if (variable_get('user_dropdown_menu_css',  TRUE)){
+          drupal_add_css(drupal_get_path('module', 'user_dropdown_menu') . '/css/user-dropdown-menu-black.css');
+        }
+        
+        drupal_add_js(drupal_get_path('module', 'user_dropdown_menu') . '/js/user-dropdown-menu.js');
+        
+      }
+      break;
+  }
+  return $block;
+}
+
+

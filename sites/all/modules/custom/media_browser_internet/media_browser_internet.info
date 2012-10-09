@@ -1,0 +1,7 @@
+name = Media Browser Internet Sources
+description = Provides browsers for various 3rd party internet sites
+package = Media
+core = 7.x
+dependencies[] = media
+files[] = media_browser_internet.module
+

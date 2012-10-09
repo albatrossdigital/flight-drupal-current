@@ -1,0 +1,523 @@
+<?php
+/**
+ * @file
+ */
+
+// Drupal needs this blank file.
+
+define('REACH_CRM_COOKIE', 'reach_crm_party_pid');
+define('REACH_CRM_COOKIE_EXPIRES', 31536000);  // 1 year
+
+
+/**
+ * Implements hook_ctools_plugin_directory().
+ * Add our custom Party Name Label ctools plugin.
+ */
+function reach_crm_party_ctools_plugin_directory($owner, $plugin_type) {
+  if ($plugin_type == 'party_name_label') { 
+    return 'plugins/party_name_label';
+  }
+}
+
+/**
+ * Implements hook_admin_paths().
+ */
+function reach_crm_party_admin_paths() {
+  $paths = array(
+    'party/*' => TRUE,
+  );
+  return $paths;
+}
+
+
+
+/**
+ * Return the entity type.
+ * Required.
+ */
+function reach_crm_party_reach_crm_contact_type() {
+  return 'party';
+}
+
+/**
+ * Return the entity type.
+ *
+ * @param array $entity
+ *   The contact entity.
+ */
+function reach_crm_party_reach_crm_contact_email($entity) {
+  return $entity->field_email[LANGUAGE_NONE][0]['email'];
+}
+
+
+
+
+function reach_crm_party_get_party($email, $first_name = NULL, $last_name = NULL) {
+  /*$query = db_select('party', 'p')
+    ->fields('p', array('pid'))
+    ->condition('f.field_email_email', $email, '=')
+    ->range(0, 1);
+  $query->join('field_data_field_email', 'f', 'f.entity_type = :type AND f.entity_id = p.pid', array(':type' => 'party'));*/
+  
+  $result = db_query('SELECT p.pid FROM {party} p
+                     LEFT JOIN {field_data_field_email} f ON f.entity_type = :type AND f.entity_id = p.pid
+                     WHERE f.field_email_email = :email LIMIT 1;', array(':type' => 'party', ':email' => $email))->fetch();
+  if ($result){
+    return $result->pid;
+  }
+  return;
+}
+
+/**
+ * Wrapper for party_load().
+ * To make it easier to plug in a different CRM if we want to.
+ */
+function reach_crm_party_load($id) {
+  return party_load($id);
+}
+
+/**
+ * Wrapper for party_page_view().
+ * To make it easier to plug in a different CRM if we want to.
+ */
+function reach_crm_party_view($id, $view_mode = 'full') {
+  module_load_include('inc', 'party', 'party.pages');
+  //dpm($view_mode);
+  return party_page_view(party_load($id), $view_mode);
+}
+
+
+/**
+ * Implements hook_reach_crm_contact_find()
+ * De-dupe on email.
+ */
+function reach_crm_party_reach_crm_contact_find($text) {
+  $query = new EntityFieldQuery();
+  $query->entityCondition('entity_type', 'party')
+    ->fieldCondition('field_email', 'email', $text, '=');
+  $result = $query->execute();
+  
+  if (empty($result['party'])) {
+    return FALSE;
+  }
+  
+  $id = array_keys($result['party']);
+  return $id[0];
+}
+
+
+/**
+ * Implements hook_reach_crm_contact_save_update()
+ * Update or save a new contact entity.
+ * @TODO: this should be done in rules probably.
+ */
+function reach_crm_party_reach_crm_contact_save_update($values, $type, $set_cookie = TRUE, $points = NULL) {
+  global $language;
+  
+  $query = new EntityFieldQuery();
+  $query->entityCondition('entity_type', 'party')
+    ->fieldCondition('field_email', 'email', $values['field_email']['und'][0]['email'], '=');
+  $result = $query->execute();
+  if (!empty($result)) {
+    $id = array_keys($result['party']);
+    $id = $pid[0];
+  } else {
+    $id = NULL;
+  }
+
+  
+  if ($id){
+    $party = reach_crm_load($id);
+    foreach ($values as $key => $value) {
+      $party->{$key} = $value;
+    }
+    if ($points) {
+      $party->field_points['und'][0]['value'] += $points;
+    }
+  } else {
+    $party = (object) $values;
+    $party->type = $type;
+  }
+
+  $party = entity_get_controller('party')->save($party);
+
+  return $party;
+}
+
+
+
+// CURRENTLY HAPPENING IN reach_crm.module
+/*
+function reach_crm_party_party_save_update($values, $type = 'individual', $set_cookie = TRUE, $points = NULL) {
+  global $language;
+  if ($pid = reach_crm_party_get_party($values['field_email']['und'][0]['email'])) {
+    $party = party_load($pid);
+    foreach ($values as $key => $value) {
+      $party->{$key} = $value;
+    }
+    if ($points) {
+      $party->field_points['und'][0]['value'] += $points;
+    }
+  } else {
+    $party = (object) $values;
+    $party->type = $type;
+  }
+  $party = entity_get_controller('party')->save($party);
+  
+  if (variable_get('reach_crm_party_cookie', TRUE) && $party->pid) {
+    if ($set_cookie) {
+      setcookie (REACH_CRM_COOKIE, $party->pid, time() + REACH_CRM_COOKIE_EXPIRES);
+    } else {
+      setcookie (REACH_CRM_COOKIE, NULL, time());
+      setcookie (REACH_CRM_COOKIE . '_data', NULL, time());
+    }
+  }
+  
+  return $party;
+}*/
+
+
+/**
+ * Save an action.
+ * 
+ * $type
+ *   The action bundle type.
+ * $endpoints
+ *   An array of endpoints:
+ *     array(
+ *       'bundle' => 'node',
+ *       'type' => 'form',
+ *       'id' => 1,
+ *     );
+ * $relation data
+ *   An array of additional fields/parameters to add to the relation.
+ */
+function reach_crm_party_save_action($type, $endpoints, $points = NULL, $data = array()) {
+  /*
+  $action = new stdClass();
+  $action->is_new = TRUE;
+  $action->type = $type;
+  
+  
+  
+  if (!is_null($points)) {
+    $action->field_points['und'][0]['value'] = $points;
+  }
+  
+  foreach ($data as $key => $item) {
+    $action->{$key} = $item;
+  }
+dpm($action);*/
+  //if (!entity_save('action', $action)){
+  //  return FALSE;
+  //}
+  
+  $values = $data;
+  $values['type'] = $type;
+  foreach ($endpoints as $type => $id) {
+    $values['field_' . $type][LANGUAGE_NONE][0]['target_id'] = $id;
+  }
+  
+  /***********************************************
+  
+  JEFFFFFFFFFFFFFFFFFF
+  try this for entity creation.... the cool way to do it
+  
+  try {
+    $data = entity_property_values_create_entity($args['type'], $values);
+    return array('entity_created' => $data);
+  }
+  catch (EntityMetadataWrapperException $e) {
+    throw new RulesEvaluationException('Unable to create entity @type": ' . $e->getMessage(), array('@type' => $args['type']), $element);
+  }
+  
+  ***********************************************/
+  
+  action_create($values);
+  dpm($action);
+  
+  //if (!action_save($action)) {
+    //return FALSE;
+  //}
+  
+  dpm($action);
+  
+  return $action;
+}
+
+
+
+/**
+ * Implements hook_block_info().
+ */
+function reach_crm_party_block_info() {
+  $blocks['overview'] = array(
+    'info' => t('Reach Overview'),
+  );
+  return $blocks;
+}
+
+
+/**
+ * Implements hook_block_view().
+ */
+function reach_crm_party_block_view($delta = '') {
+  switch ($delta) {
+    case 'overview':
+      //$block['title'] = t('Take Action');
+      $block['content'] = drupal_get_form('reach_social_single_form');
+      
+      $data = array();
+      $categories = array(
+        'actions' => NULL,
+        'form submissions' => 'form_submitted',
+        'donations' => 'donation',
+        'shares' => 'share',
+      );
+      
+      foreach ($categories as $label => $table) {
+        $query = "SELECT COUNT(r.rid) AS number, SUM(p.field_points_value) AS points FROM relation r
+               LEFT JOIN field_data_field_points p ON p.entity_type = 'relation' AND p.entity_id = r.rid ";
+        $where = ' WHERE 1=1 ';
+        if ($table) {
+          //TODO: Fix: hacky
+          $where .= "AND r.relation_type = '$table' ";
+        }
+        if (arg(0) == 'party') {
+          $query .= "LEFT JOIN field_data_endpoints e ON e.endpoints_entity_type = 'party' AND e.entity_id = r.rid 
+                     $where AND e.endpoints_entity_id = :pid ";
+          $data[$label] = db_query($query, array(
+            ':pid' => arg(1),
+          ))->fetchAssoc();
+        } else {
+          $data[$label] = db_query($query . $where)->fetchAssoc();
+        }
+      }
+      
+      
+      //TODO: theme()
+      foreach ($data as $label => $values) {
+        $values['points'] = $values['points'] ? $values['points'] : 0;
+        $return .= '<div class="reach-stat"><span class="reach-number">' . $values['number'] . ' ' . 
+                    $label . ' for</span> <span class="reach-points">'. $values['points'] . ' points</div>';
+      }
+      
+      $block['content'] = $return;
+      break;
+  }
+  return $block;
+}
+
+
+
+
+/**
+ * Define the reach_crm_party_points field.
+ */
+
+/**
+ * @defgroup reach_crm_party Example: Field Types API
+ * @ingroup examples
+ * @{
+ * Examples using Field Types API.
+ *
+ * This is updated from Barry Jaspan's presentation at Drupalcon Paris,
+ * @link http://acquia.com/community/resources/acquia-tv/intro-field-api-module-developers Video Presentation @endlink
+ *
+ * Providing a field requires:
+ * - Defining a field:
+ *   - hook_field_info()
+ *   - hook_field_schema()
+ *   - hook_field_validate()
+ *   - hook_field_is_empty()
+ *
+ * - Defining a formatter for the field (the portion that outputs the field for
+ *   display):
+ *   - hook_field_formatter_info()
+ *   - hook_field_formatter_view()
+ *
+ * - Defining a widget for the edit form:
+ *   - hook_field_widget_info()
+ *   - hook_field_widget_form()
+ *
+ * Our module defines the field in reach_crm_party_field_info(),
+ * reach_crm_party_field_validate() and reach_crm_party_field_is_empty().
+ * reach_crm_party_field_schema() is implemented in reach_crm_party.install.
+ *
+ * Our module sets up a formatter in reach_crm_party_field_formatter_info() and
+ * reach_crm_party_field_formatter_view(). These are the API hooks that present
+ * formatted and themed output to the user.
+
+ * And finally, our module defines the widet in
+ * reach_crm_party_field_widget_info() and reach_crm_party_field_widget_form().
+ * The widget is the form element used to receive input from the user
+ * when the field is being populated.
+ *
+ * @see field_types
+ * @see field
+ */
+
+/***************************************************************
+ * Field Type API hooks
+ ***************************************************************/
+
+/**
+ * Implements hook_field_info().
+ *
+ * Provides the description of the field.
+ */
+function reach_crm_party_field_info() {
+  return array(
+    // We name our field as the associative name of the array.
+    'reach_crm_party_points' => array(
+      'label' => t('Reach Points'),
+      'description' => t('The point value for this particular activity.'),
+      'default_widget' => 'reach_crm_party_text',
+      'default_formatter' => 'reach_crm_party_simple_text',
+      'property_type' => 'value',
+      'getter' => 'entity_metadata_field_verbatim_get',
+      'setter' => 'entity_metadata_field_verbatim_set',
+    ),
+  );
+}
+
+/**
+ * Implements hook_field_validate().
+ *
+ * This hook gives us a chance to validate content that's in our
+ * field. We're really only interested in the $items parameter, since
+ * it holds arrays representing content in the field we've defined.
+ * We want to verify that the items only contain RGB hex values like
+ * this: #RRGGBB. If the item validates, we do nothing. If it doesn't
+ * validate, we add our own error notification to the $errors parameter.
+ *
+ * @see reach_crm_party_field_widget_error()
+ */
+/*function reach_crm_party_field_validate($entity_type, $entity, $field, $instance, $langcode, $items, &$errors) {
+  foreach ($items as $delta => $item) {
+    if (!empty($item['rgb'])) {
+      if (! preg_match('@^#[0-9a-f]{6}$@', $item['rgb'])) {
+        $errors[$field['field_name']][$langcode][$delta][] = array(
+          'error' => 'reach_crm_party_invalid',
+          'message' => t('Color must be in the HTML format #abcdef.'),
+        );
+      }
+    }
+  }
+}*/
+
+
+/**
+ * Implements hook_field_is_empty().
+ *
+ * hook_field_is_emtpy() is where Drupal asks us if this field is empty.
+ * Return TRUE if it does not contain data, FALSE if it does. This lets
+ * the form API flag an error when required fields are empty.
+ */
+function reach_crm_party_field_is_empty($item, $field) {
+  return empty($item['value']);
+}
+
+/**
+ * Implements hook_field_formatter_info().
+ */
+function reach_crm_party_field_formatter_info() {
+  return array(
+    'reach_crm_party_points_text' => array(
+      'label' => t('Display the points value'),
+      'field types' => array('reach_crm_party_points'),
+    ),
+  );
+}
+
+/**
+ * Implements hook_field_formatter_view().
+ */
+function reach_crm_party_field_formatter_view($entity_type, $entity, $field, $instance, $langcode, $items, $display) {
+  $element = array();
+
+  switch ($display['type']) {
+    // This formatter simply outputs the field as text and with a color.
+    case 'reach_crm_party_points_text':
+      
+      foreach ($items as $delta => $item) {
+        $element[$delta] = array(
+          '#type' => 'html_tag',
+          '#tag' => 'div',
+          '#value' => $item['value'],
+        );
+      }
+      break;
+
+  }
+
+  return $element;
+}
+
+/**
+ * Implements hook_field_widget_info().
+ */
+function reach_crm_party_field_widget_info() {
+  return array(
+    'reach_crm_party_points_text' => array(
+      'label' => t('Textfield'),
+      'field types' => array('reach_crm_party_points'),
+    ),
+    'reach_crm_party_points_hidden' => array(
+      'label' => t('Hidden'),
+      'field types' => array('reach_crm_party_points'),
+    ),
+  );
+}
+
+/**
+ * Implements hook_field_widget_form().
+ */
+function reach_crm_party_field_widget_form(&$form, &$form_state, $field, $instance, $langcode, $items, $delta, $element) {
+  $value = isset($items[$delta]['value']) ? $items[$delta]['value'] : '';
+
+  $widget = $element;
+  $widget['#delta'] = $delta;
+
+  switch ($instance['widget']['type']) {
+
+    case 'reach_crm_party_points_text':
+      $widget += array(
+        '#type' => 'textfield',
+        '#default_value' => $value,
+      );
+      break;
+      
+    case 'reach_crm_party_points_hidden':
+      $widget += array(
+        '#type' => 'hidden',
+        '#value' => $value,
+      );
+      break;
+
+  }
+
+  $element['value'] = $widget;
+  return $element;
+}
+
+
+
+/**
+ * Implements hook_field_widget_error().
+ *
+ * hook_field_widget_error() lets us figure out what to do with errors
+ * we might have generated in hook_field_validate(). Generally, we'll just
+ * call form_error().
+ *
+ * @see reach_crm_party_field_validate()
+ * @see form_error()
+ */
+/*function reach_crm_party_field_widget_error($element, $error, $form, &$form_state) {
+  switch ($error['error']) {
+    case 'reach_crm_party_invalid':
+      form_error($element, $error['message']);
+      break;
+  }
+}*/
+

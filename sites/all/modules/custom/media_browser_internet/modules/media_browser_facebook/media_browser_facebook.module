@@ -1,0 +1,211 @@
+<?php
+
+define(MEDIA_FACEBOOK_API, 'https://graph.facebook.com/');
+define(MEDIA_FACEBOOK_CONNECTOR, 'facebook');
+
+/**
+ * Returns the base Open Graph API url.
+ */
+/*function _media_browser_facebook_url() {
+  return 'https://graph.facebook.com/me/photos?access_token=AAAAAAITEghMBADtQUEkoCzf6zO7Hv8oMFZAAD2Ss9G2rztZAVZBvrNYfZCD6ekPBiXkRE1DwJGZAZC9IHPihedybGKkq1Y1acJYf5EyUKsaQZDZD';
+}*/
+
+/**
+ * Implements hook_media_browser_plugin_info().
+ */
+function media_browser_facebook_media_browser_plugin_info() {
+  $plugins = array();
+  if ((user_access('administer media') || user_access('media browser facebook')) && (media_browser_internet_cid(MEDIA_FACEBOOK_CONNECTOR) || user_access('connect with oauthconnector_facebook'))) {
+    $plugins['media_browser_facebook'] = array(
+      '#weight' => -10,
+      '#title' => t('Facebook'),
+    );
+  }
+  return $plugins;
+}
+
+/**
+ * Implement hook_permission().
+ */
+function media_browser_facebook_permission() {
+  return array(
+    'media browser facebook' => array(
+      'title' => t('media browser facebook'),
+      'description' => t('media browser facebook'),
+    ),
+  );
+}
+
+/**
+ * Implements hook_media_browser_plugin_view().
+ */
+function media_browser_facebook_media_browser_plugin_view($plugin_name, $params) {
+  $path = drupal_get_path('module', 'media_browser_facebook');
+  $media_path = drupal_get_path('module', 'media');
+  //$media_browser_internet_path = drupal_get_path('module', 'media_browser_internet');
+
+  $types = isset($params['types']) ? $params['types'] : array();
+  $multiselect = isset($params['multiselect']) ? $params['multiselect'] : FALSE;
+
+  $redirect = array('media/browser', array('query' => array('render' => 'media-popup')));
+  switch ($plugin_name) {
+    case 'media_browser_facebook':
+      $url = MEDIA_FACEBOOK_API;
+      $form = $params;
+      $form['#title'] = t('Library');
+      $form['#attached'] = array(
+        'js' => array(
+          //media_browser_internet_path . '/js/jquery.mediaBrowserInternet.js',
+          $path . '/media-browser-facebook.js',
+        ),
+        'css' => array(
+          $media_path . '/js/plugins/media.library.css',
+        ),
+        'library' => array(
+          array('qtip', 'qtip'),
+          array('waypoints', 'waypoints'),
+          array('media_browser_internet', 'browser'),
+        ),
+      );
+        
+      $form['#settings'] = array(
+        'selector' => 'media-browser-internet-list',
+        'viewMode' => 'thumbnails',
+        'container' => '#facebook-container',
+        'params' => array('access_token' => media_browser_internet_token(MEDIA_FACEBOOK_CONNECTOR)),
+        'sections' => array(),
+      );
+      
+      
+      if ($cid = media_browser_internet_cid(MEDIA_FACEBOOK_CONNECTOR)) {
+      
+        $form['#settings']['sections']['stream'] = array(
+          'label' => t('My Photo Stream'),
+          'search' => array(
+            'url' => $url . 'me/photos',
+          ),
+          'thumbEvent' => 'click',
+          'form' => array(
+            'text' => array(
+              '#type' => 'textfield',
+              //'#title' => '',
+            ),
+          ),
+        );
+        $form['#settings']['sections']['albums'] = array(
+          'label' => t('My Albums'),
+          'categories' => array(
+            'url' => $url . 'me/albums',
+            'itemUrl' => $url . '',
+          ),
+          'items' => array(
+            'url' => $url . '[id]/photos',
+          ),
+          'search' => array(
+            'url' => $url . 'me/photos',
+          ),
+        );
+        
+      } elseif (user_access('connect with oauthconnector_facebook')) {
+      
+        $form['#settings']['sections']['connect'] = array(
+          'label' => t('My Uploads'),
+          'content' => theme('media_browser_internet_connect', array('service' => t('Facebook'), 'section' => t('Facebook media'))),
+        );
+        
+      } //if
+      
+      $form['#markup'] = drupal_render(drupal_get_form('media_browser_facebook_form'));
+        
+      break;
+  }
+
+  return $form;
+}
+
+
+
+/**
+ * Creates the hidden form.
+ */
+function media_browser_facebook_form($form, &$form_state) {
+
+  $form = array();
+  $form['files'] = array(
+    '#type' => hidden,
+    '#attributes' => array('id' => 'youtube-files'),
+  );
+  $form['markup'] = array(
+    '#type' => 'markup',
+    '#markup' => '<div id="youtube-container"><div class="scrollbox"><div class="breadcrumb"></div><ul class="media-browser-internet-list media-list-thumbnails"></ul><div class="ajax-status"></div></div></div>',
+  );
+  
+  $form['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Submit'),
+    '#attributes' => array('id' => 'facebook-submit', 'class' => array('media-browser-internet-submit')),
+  );
+
+  return $form;
+}
+
+
+
+/**
+ * Saves the image(s) from Facebook.
+ */
+function media_browser_facebook_form_submit($form, &$form_state) {
+  $embed_code = $form_state['values']['embed_code'];
+  try {
+    // Save the remote file
+    $provider = media_internet_get_provider($embed_code);
+    // Providers decide if they need to save locally or somewhere else.
+    // This method returns a file object
+    $file = $provider->save();
+  }
+  catch (Exception $e) {
+    form_set_error('embed_code', $e->getMessage());
+    return;
+  }
+
+  if (!$file->fid) {
+    form_set_error('embed_code', t('Unknown error: unable to add file. Please check URL or embed code and try again.'));
+    return;
+  }
+
+  $form_state['redirect'] = array('media/browser', array('query' => array('render' => 'media-popup', 'fid' => $file->fid)));
+  
+  
+  
+  $form_state['values']['files'] = is_array($form_state['values']['files']) ? $form_state['values']['files'] : array($form_state['values']['files']);
+  watchdog('flicrk', 'var <pre>!vars</pre>', array('!vars' => print_r($form_state['values']['files'], 1)));
+  
+  foreach ($form_state['values']['files'] as $file_data) {
+    parse_str($file_data, $file_data);
+    
+    // Call Flickr's api to get more info about file
+    // TODO: Do with feeds?
+    $data = array(
+      'method' => 'flickr.photos.getInfo',
+      'photo_id' => $file_data['id'],
+      'api_key' => media_browser_internet_key(MEDIA_FLICKR_CONNECTOR),
+    );
+    $flickr_data = oauthconnector_endpoint_call_for_user(MEDIA_FLICKR_API, $data, MEDIA_FLICKR_CONNECTOR, $account=NULL, 'GET', $format='XML');
+    $metadata = array(
+      'title' => (string) $flickr_data->photo->title,
+      'description' => (string) $flickr_data->photo->description,
+      'credit' =>  (string) $flickr_data->photo->owner->{'@attributes'}->realname,
+      'license' => _media_browser_flickr_cc_map((int) $flickr_data->photo->{'@attributes'}->license),
+    );
+    
+                watchdog('media_browser_internet', '$flickr_data: <pre>!f</pre>', array('!f' => print_r($flickr_data,1)));
+    
+    $uri = 'http://farm' . $file_data['farm'] . '.static.flickr.com/' . $file_data['server'] . '/' . $file_data['id'] . '_' . $file_data['secret'] . '_b.jpg';
+    $file = media_browser_internet_file_create_by_uri($uri, $metadata['title'], $metadata);
+    //$file->media_description[LANGUAGE_NONE][0]['value'] = (string) $flickr_data->photo->description;
+
+  }
+  $form_state['redirect'] = array('media/browser', array('query' => array('render' => 'media-popup', 'fid' => $file->fid)));
+}
+
+

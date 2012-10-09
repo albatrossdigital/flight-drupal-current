@@ -1,0 +1,9 @@
+; $Id: menu_toolbar_coop.info,v 1.5.4.1 2010/11/10 20:32:18 jsfwd Exp $
+name = Menu Toolbar Coop
+description = "Makes it so admin_menu and toolbar cooperate"
+core = 7.x
+
+files[] = menu_toolbar_coop.module
+files[] = menu_toolbar_coop.js
+
+

@@ -1,0 +1,14 @@
+name = Reach Mailing Party
+description = Adds the recipient views to use Party entities as recipients
+core = 7.x
+package = Features
+php = 5.2.4
+dependencies[] = ctools
+dependencies[] = reach_mailing
+dependencies[] = views
+dependencies[] = views_linkarea
+dependencies[] = party
+features[ctools][] = views:views_default:3.0
+features[features_api][] = api:1
+features[views_view][] = mailing_add_recipients
+features[views_view][] = mailing_recipients

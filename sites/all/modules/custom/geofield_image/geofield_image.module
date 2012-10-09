@@ -1,0 +1,386 @@
+<?php
+
+/**
+ * Implements hook_views_api().
+ */
+
+function geofield_image_views_api() {
+  return array(
+    'api' => '3.0-alpha1',
+    'path' => drupal_get_path('module', 'geofield_image') . '/includes',
+  );
+}
+
+/**
+ * Implements hook_field_formatter_info().
+ */
+
+function geofield_image_field_formatter_info() {
+  return array(
+    'geofield_image_map' => array(
+      'label' => t('Geofield Static Map Image'),
+      'field types' => array('geofield'),
+      'settings' => array(
+        'geofield_image_width' => '300',
+        'geofield_image_height' => '300',
+        'geofield_image_zoom' => -1,
+        'geofield_image_marker_color' => 'FF0000',
+        'geofield_image_marker_size' => 'small',
+        'geofield_image_alt' => '',
+        'geofield_image_title' => '',
+        'geofield_image_link' => '',
+        'geofield_image_link_title' => '',
+      ),
+    ),
+    'geofield_image_streetview' => array(
+      'label' => t('Geofield Static Streetview Image'),
+      'field types' => array('geofield'),
+      'settings' => array(
+        'geofield_image_width' => '300',
+        'geofield_image_height' => '300',
+        'geofield_image_alt' => '',
+        'geofield_image_title' => '',
+        'geofield_image_link' => '',
+        'geofield_image_link_title' => '',
+      ),
+    ),
+  );
+}
+
+/**
+ * Implements hook_field_formatter_view().
+ */
+
+function geofield_image_field_formatter_view($entity_type, $entity, $field, $instance, $langcode, $items, $display) {
+  $element = array();
+
+  // We need this info in order to handle fields on multiple entity types.
+  $entity_info = entity_get_info($entity_type);
+  $entity_vars = get_object_vars($entity);
+  $entity_id = $entity_vars[$entity_info['entity keys']['id']];
+
+  $settings = $display['settings'];
+  
+  
+  if ($display['type'] == 'geofield_image_streetview') {
+    
+    foreach ($items as $key => $item) {
+      $params = geofield_image_streetview_settings_do($settings);
+      
+      if ($item['geo_type'] == 'point') {
+        $params['location'] = $item['lat'] .','. $item['lon'];
+      } else {
+        drupal_set_message('The Streeview image field only supports point geofield types.', 'error');
+      }
+      
+      $settings['path'] = url('http://maps.googleapis.com/maps/api/streetview', array('query' => $params));
+      $settings['link'] = _geofield_get_url($settings, $entity, $params['location']);
+      $element[$key]['#markup'] = theme('geofield_image', $settings);
+    }
+    
+  } else {
+    $params = geofield_image_map_settings_do($settings);
+    
+    $markers = array();
+    foreach ($items as $item) {
+      if ($item['geo_type'] == 'point') {
+        $markers[] = $item['lat'] .','. $item['lon'];
+      } else {
+        drupal_set_message('The static map field only supports point geofield types at this time.', 'error');
+      }
+    }
+    
+    $params['markers'] = 'size=' . $params['markers']['size'] . '&color=' . $params['markers']['color'] . '|' . implode('|', $markers);
+    
+    $settings['path'] = url('http://maps.googleapis.com/maps/api/staticmap', array('query' => $params));
+    // TODO: make this not just dependant on the first value:
+    $settings['link'] = _geofield_get_url($settings, $entity, $items[0]['lat'] .','. $items[0]['lon']);
+
+    $element[0]['#markup'] = theme('geofield_image', $settings);
+  }
+
+  return $element;
+}
+
+function _geofield_get_url($settings, $entity, $latlon) {
+  switch ($settings['geofield_image_link']) {
+    case 'node':
+      if ($entity->nid) {
+        return 'node/' . $entity->nid;
+      } else {
+        return;
+      }
+      break;
+    case 'map':
+      if ($latlon) {
+        return 'http://maps.google.com/maps?q=' . urlencode($latlon);
+      } else {
+        return;
+      }
+  }
+}
+
+/**
+ * Implements hook_theme().
+ */
+function geofield_image_theme() {
+  return array(
+    'geofield_image' => array(
+      'variables' => array('path' => '', 'geofield_image_width' => '', 'geofield_image_height' => '', 'geofield_image_alt' => '', 'geofield_image_title' => '', 'link' => '', 'geofield_link_title' => '', ),
+    ),
+  );
+}
+
+/**
+ * Themes a geofield.
+ */
+function theme_geofield_image($variables) {
+  $element = theme('image', array(
+    'path' => $variables['path'], 
+    'width' => $variables['geofield_image_width'],
+    'height' => $variables['geofield_image_height'],
+    'alt'  => $variables['geofield_image_alt'],
+    'title' => $variables['geofield_image_title'],
+  ));
+  
+  if ($variables['link']) {
+    $element = l($element, $variables['link'], array('html' => TRUE, 'attributes' => array('title' => $variables['geofield_link_title'])));
+  }
+  
+  return $element;
+}
+
+/**
+ * Implements hook_field_formatter_settings_form().
+ */
+function geofield_image_field_formatter_settings_form($field, $instance, $view_mode, $form, &$form_state) {
+  $display = $instance['display'][$view_mode];
+  $settings = $display['settings'];
+  
+  if ($display['type'] == 'geofield_image_streetview') {
+    $element = geofield_image_settings_form($settings);
+  } else {
+    $element = geofield_image_map_settings_form($settings);
+  }
+  return $element;
+}
+
+/**
+ * Implements hook_field_formatter_settings_summary().
+ */
+function geofield_image_field_formatter_settings_summary($field, $instance, $view_mode) {
+  $display = $instance['display'][$view_mode];
+  $settings = $display['settings'];
+  $summary = array();
+
+  if ($settings['geofield_image_maptype']) {
+    $summary[] = t('Map type: @t', array('@t' => $settings['geofield_image_maptype']));
+  }
+  if ($settings['geofield_image_width']) {
+    $summary[] = t('Width: @wpx', array('@w' => $settings['geofield_image_width']));
+  }
+  if ($settings['geofield_image_height']) {
+    $summary[] = t('Height: @hpx', array('@h' => $settings['geofield_image_height']));
+  }
+  if ($settings['geofield_image_zoom']) {
+    $summary[] = t('Zoom: @z', array('@z' => ($settings['geofield_image_zoom'] == -1) ? 'Auto' : $settings['geofield_image_zoom']));
+  }
+  if ($settings['geofield_image_link']) {
+    $summary[] = t('Link: @z', array('@z' => $settings['geofield_image_link']));
+  }
+
+  return implode('<br />', $summary);
+
+}
+
+function geofield_image_settings_form($settings, $element = array()) {
+  $element['geofield_image_width'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Image width'),
+    '#default_value' => $settings['geofield_image_width'],
+    '#size' => 3,
+    '#maxlength' => 3,
+    '#field_suffix' => 'px',
+    '#description' => t('The width of the image, in pixels.'),
+    '#required' => TRUE,
+  );
+  $element['geofield_image_height'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Image height'),
+    '#default_value' => $settings['geofield_image_height'],
+    '#size' => 3,
+    '#maxlength' => 3,
+    '#field_suffix' => 'px',
+    '#description' => t('The height of the image, in pixels.'),
+    '#required' => TRUE,
+  );
+  $element['geofield_image_link'] = array(
+    '#type' => 'select',
+    '#title' => t('Image link'),
+    '#default_value' => $settings['geofield_image_link'],
+    '#options' => array(
+      '' => t('No link'),
+      'node' => t('Link to the node view page'),
+      'map' => t('Link to the Google Map'),
+      // TODO: 'other' => t('Other (specify below)'),
+    ),
+    '#description' => t('Select a link destination when the user clicks on the image.'),
+  );
+  $element['geofield_image_alt'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Image Alt Text'),
+    '#default_value' => $settings['geofield_image_alt'],
+  );
+  $element['geofield_image_title'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Image Title'),
+    '#default_value' => $settings['geofield_image_title'],
+  );
+
+  return $element;
+
+}
+
+function geofield_image_map_settings_form($settings, $element = array()) {
+  $element = geofield_image_settings_form($settings, $element);
+  $element['geofield_image_maptype'] = array(
+    '#type' => 'select',
+    '#title' => t('Image Type'),
+    '#default_value' => $settings['geofield_image_maptype'],
+    '#options' => array(
+      'map' => t('Standard street map'),
+      'satellite' => t('Standard satellite map'),
+      'hybrid' => t('Hybrid satellite map'),
+      'physical' => t('Terrain map'),
+    ),
+    '#weight' => -1,
+  );
+  $element['geofield_image_zoom'] = array(
+    '#type' => 'select',
+    '#title' => t('Zoom'),
+    '#default_value' => $settings['geofield_image_zoom'],
+    '#options' => drupal_map_assoc(range(-1, 17)),
+    '#description' => t('The default zoom level of a Google map.'),
+  );
+  $element['geofield_image_zoom']['#options'][-1] = t('Auto');
+  $element['geofield_image_marker_size'] = array(
+    '#type' => 'select',
+    '#title' => t('Marker size'),
+    '#default_value' => $settings['geofield_image_marker_size'],
+    '#options' => array('tiny', 'mid', 'small',),
+    '#description' => t('The size of marker from the set.'),
+  );
+  $element['geofield_image_marker_color'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Marker color'),
+    '#default_value' => $settings['geofield_image_marker_color'],
+    '#field_prefix' => '#',
+    '#description' => t('The 24-bit color of the marker.  Enter any hex code.'),
+    '#size' => 6,
+  );
+  return $element;
+}
+
+function geofield_image_map_settings_do($settings) {
+
+  $params = array(
+    'size' => $settings['geofield_image_width'] . 'x' . $settings['geofield_image_height'],
+    'zoom' => ($settings['geofield_image_zoom'] >= 0) ? $settings['geofield_image_zoom'] : '',
+    'maptype' => $settings['geofield_image_maptype'],
+    'markers' => array(
+      'size' => $settings['geofield_image_marker_size'],
+      'color' => '0x' . $settings['geofield_image_marker_color'],
+    ),
+    'sensor' => 'false',
+  );
+  return $params;
+
+}
+
+
+function geofield_image_streetview_settings_do($settings) {
+
+  $params = array(
+    'size' => $settings['geofield_image_width'] . 'x' . $settings['geofield_image_height'],
+    'sensor' => 'false',
+  );
+  return $params;
+
+}
+
+/**
+ * Processes a series of points.
+ *
+ * $datum = array(
+ *   'geo' => (geom_field),
+ *   'options' => array(
+ *     'title' => 'title text',
+ *     'description' => 'popup text',
+ *   ),
+ * );
+ */
+
+/*function geofield_image_process_points($items = array()) {
+  $data = array();
+
+  geofield_load_geophp();
+
+  foreach ($items as $delta => $item) {
+    switch ($item['geo']['geo_type']) {
+      case 'point':
+        $datum = array(
+          'type' => 'point',
+          'points' => array(
+            array(
+              'lat' => $item['geo']['lat'],
+              'lon' => $item['geo']['lon'],
+            ),
+          ),
+        );
+
+        $datum['points'][0]['text'] = (isset($item['options']['description']) ? $item['options']['description'] : '');
+
+        $data[] = $datum;
+      break;
+      case 'linestring':
+        $geom = geoPHP::load($item['geo']['wkt'], 'wkt');
+        $components = $geom->getComponents();
+
+        $datum = array(
+          'type' => $item['geo']['geo_type'],
+          'points' => array()
+        );
+
+        foreach ($components as $component) {
+          $datum['points'][] = array(
+            'lat' => $component->getY(),
+            'lon' => $component->getX(),
+          );
+        }
+
+        $data[] = $datum;
+      break;
+      case 'polygon':
+        $geom = geoPHP::load($item['geo']['wkt'], 'wkt');
+        $tmp = $geom->getComponents();
+        $components = $tmp[0]->getComponents();
+
+        $datum = array(
+          'type' => $item['geo']['geo_type'],
+          'points' => array()
+        );
+
+        foreach ($components as $component) {
+          $datum['points'][] = array(
+            'lat' => $component->getY(),
+            'lon' => $component->getX(),
+          );
+        }
+
+        $data[] = $datum;
+      break;
+    }
+  }
+
+  return $data;
+}*/

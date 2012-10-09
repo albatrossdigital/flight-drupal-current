@@ -1,0 +1,225 @@
+<?php
+/**
+ * @file
+ */
+
+// Drupal needs this blank file.
+include_once('reach_crm.features.inc');
+
+
+define('REACH_CRM_COOKIE', 'reach_crm_cookie');
+define('REACH_CRM_COOKIE_EXPIRES', 31536000);  // 1 year
+
+
+/**
+ * Implementation of hook_permission().
+ */
+function reach_crm_permission() {
+  return array(
+    'administer reach_crm' => array(
+      'title' => t('Administer reach_crm'), 
+      'description' => t('Perform administration tasks for the reach_crm CRM system.'),
+    ),
+  );
+}
+
+/**
+ * Implementation of hook_menu().
+ */
+function reach_crm_menu() {
+  
+  $items['admin/config/crm/reach_crm'] = array(
+    'title' => 'Reach CRM',
+    'description' => 'Manage settings for the Reach CRM system.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('reach_crm_admin_form'),
+    'access callback' => 'user_access',
+    'access arguments' => array('administer reach_crm'),
+    'file' => 'reach_crm.admin.inc',
+    'type' => MENU_NORMAL_ITEM,
+  );
+
+  return $items;
+}
+
+/**
+ * Implements hook_admin_paths().
+ */
+function reach_crm_admin_paths() {
+  $paths = array(
+    'reach/*' => TRUE,
+    'reach' => TRUE,
+  );
+  return $paths;
+}
+
+
+/**
+ * Gets the type of the contact entity.
+ */
+function reach_crm_contact_type() {
+  $invoke = module_invoke_all('reach_crm_contact_type');
+  return $invoke[0];
+}
+
+/**
+ * Returns the contact entity.
+ */
+function reach_crm_load($id) {
+  $return = entity_load(reach_crm_contact_type(), array($id));
+  return $return[$id];
+}
+
+
+/**
+ * Returns the contact entity.
+ */
+function reach_crm_contact_id($entity) {
+  $return = entity_extract_ids(reach_crm_contact_type(), $entity);
+  return $return[0];
+}
+
+
+
+/**
+ * Returns the email address for a contact entity.
+ *
+ * @param array $entity
+ *   The contact entity.
+ */
+function reach_crm_contact_email($entity) {
+  $invoke = module_invoke_all('reach_crm_contact_email', $entity);
+  return $invoke[0];
+}
+
+
+/**
+ * Returns the the view contact page.
+ * Essentially a wrapper for entity_view().
+ *
+ * @see entity_view();
+ */
+function reach_crm_view($id, $view_mode = 'full', $langcode = NULL, $page = NULL) {
+  $entities = array(reach_crm_load($id));
+  return entity_view(reach_crm_contact_type(), $entities, $view_mode, $langcode, $page);
+}
+
+
+function reach_crm_contact_save_update($values, $type = 'supporter', $set_cookie = TRUE, $points = NULL) {
+  $invoke = module_invoke_all('reach_crm_contact_save_update', $values, $type, $points = NULL);
+  $contact = $invoke[0];
+  
+  /*if (variable_get('reach_crm_cookie', TRUE) && $contact->pid) {
+    if ($set_cookie) {
+      setcookie (REACH_CRM_COOKIE, $party->pid, time() + REACH_CRM_COOKIE_EXPIRES);
+    } else {
+      setcookie (REACH_CRM_COOKIE, NULL, time());
+      setcookie (REACH_CRM_COOKIE . '_data', NULL, time());
+    }
+  }*/
+  return $contact;
+}
+
+
+/**
+ * Returns the contact entity by looking up the contact saved on the cookie.
+ */
+function reach_crm_contact_load_cookie() {
+  $cookie = drupal_json_decode($_COOKIE[REACH_CRM_COOKIE . '_data']);
+  if (!empty($cookie['contact_id'])) {
+    return reach_crm_load($cookie['contact_id']);
+  }
+  return;
+}
+
+
+/**
+ * Implements hook_block_info().
+ */
+function reach_crm_block_info() {
+  $blocks['overview'] = array(
+    'info' => t('Reach Overview'),
+  );
+  return $blocks;
+}
+
+
+/**
+ * Implements hook_block_view().
+ */
+function reach_crm_block_view($delta = '') {
+  switch ($delta) {
+    case 'overview':
+      //$block['title'] = t('Take Action');
+      $block['content'] = drupal_get_form('reach_social_single_form');
+      
+      $data = array();
+      $categories = array(
+        'Total Points' => NULL,
+        'Donations' => 'donation',
+        'Form Submissions' => 'form_submission',
+        'Social Shares' => 'share',
+      );
+     
+      foreach ($categories as $label => $table) {
+        $fields = $table ? 'COUNT(a.action_id)' : 'SUM(p.field_action_points_value)';
+        $query = "SELECT $fields AS value FROM action a
+               LEFT JOIN field_data_field_action_points p ON p.entity_type = 'action' AND p.entity_id = a.action_id ";
+        $where = ' WHERE 1=1 ';
+        if ($table) {
+          //TODO: Fix: hacky
+          $where .= "AND a.type = '$table' ";
+        }
+        if (arg(0) == 'redhen') {
+          $query .= "LEFT JOIN field_data_field_action_contact c ON c.entity_type = 'action' AND c.entity_id = a.action_id 
+                     $where AND c.field_action_contact_target_id = :contact_id ";
+          $data[$label] = db_query($query, array(
+            ':contact_id' => arg(2),
+          ))->fetchAssoc();
+        } else {
+          $data[$label] = db_query($query . $where)->fetchAssoc();
+        }
+      }
+
+      //TODO: theme()
+      foreach ($data as $label => $values) {
+        $values['value'] = $values['value'] ? $values['value'] : 0;
+        $return .= '<div class="reach-stat ' . drupal_clean_css_identifier('reach-stat-' . strtolower($label)) . '"><span class="reach-label">' . t($label) . '</span><span class="reach-value">' . $values['value'] . '</span></div>';
+      }
+      
+      $block['content'] = $return;
+      break;
+  }
+  return $block;
+}
+
+
+
+/**
+ * Implementation of hook_theme().
+ */
+function reach_crm_theme() {
+
+  $module_path = drupal_get_path('module', 'reach_crm');
+
+  $base = array(
+    'path' => "$module_path/theme",
+  );
+  return array(
+    'reach_crm_action' => $base + array(
+       'template' => 'reach-crm-action',
+       'variables' => array('text' => '', 'points' => 0, 'link' => ''),
+     ),
+  );
+}
+
+/**
+ * Returns a link to a given entity.
+ */
+function reach_crm_entity_link($entity, $entity_type, $label = NULL) {
+  $info = entity_get_info($entity_type);
+  $label = !empty($label) ? t($label) : empty($info['label callback']) ? ($entity_type == 'node' ? $entity->title : $entity_type) : $info['label callback']($entity);
+  $path = entity_uri($entity_type, $entity);
+  $path = $path['path'];
+  return l($label, $path);
+}

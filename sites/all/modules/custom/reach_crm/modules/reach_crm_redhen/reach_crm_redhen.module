@@ -1,0 +1,99 @@
+<?php
+/**
+ * @file
+ * Implements the reach_crm hooks
+ */
+
+include_once 'reach_crm_redhen.features.inc';
+
+/**
+ * Implements hook_admin_paths().
+ */
+function reach_crm_redhen_admin_paths() {
+  $paths = array(
+    'redhen/*' => TRUE,
+    'redhen' => TRUE,
+  );
+  return $paths;
+}
+
+
+/**
+ * Return the entity type.
+ * Required.
+ */
+function reach_crm_redhen_reach_crm_contact_type() {
+  return 'redhen_contact';
+}
+
+/**
+ * Return the entity type.
+ *
+ * @param array $entity
+ *   The contact entity.
+ */
+function reach_crm_redhen_reach_crm_contact_email($entity) {
+  return $entity->email;
+}
+
+
+/**
+ * Implements hook_reach_crm_contact_save_update()
+ * Update or save a new contact entity.
+ * @TODO: this should be done in rules probably.
+ */
+function reach_crm_redhen_reach_crm_contact_save_update($values, $type, $points) {
+  global $language;
+  $entity_type = reach_crm_contact_type();
+  
+  // Search for existing contact entities
+  $query = new EntityFieldQuery();
+  $query->entityCondition('entity_type', $entity_type)
+    ->fieldCondition('redhen_contact_email', 'value', $values['field_email']['und'][0]['email'], '=');
+  $result = $query->execute();
+
+  if (!empty($result)) {
+    $id = array_keys($result[$entity_type]);
+    $id = $id[0];
+  } else {
+    $id = NULL;
+  }
+  
+  // The email field is different for Redhen
+  //$values['email'] = $values['field_email']['und'][0]['email'];
+  $values['redhen_contact_email']['und'] = (!is_array($values['redhen_contact_email']['und'])) ? array() : $values['redhen_contact_email']['und'];
+  $values['redhen_contact_email']['und'][] = array(
+    'value' => $values['field_email']['und'][0]['email'],
+    'bulk' => TRUE,
+    'default' => TRUE,
+    'label_id' => 0,
+    'label' => 'home',
+  );
+  unset($values['field_email']);
+  $values['first_name'] = $values['field_first_name']['und'][0]['value'];
+  unset($values['field_first_name']);
+  $values['last_name'] = $values['field_last_name']['und'][0]['value'];
+  unset($values['field_last_name']);
+
+  // Update the existing entity
+  if ($id){
+    $contact = reach_crm_load($id);
+    foreach ($values as $key => $value) {
+      $contact->{$key} = $value;
+    }
+    if ($points) {
+      $contact->field_points['und'][0]['value'] += $points;
+    }
+  } 
+  
+  // Create a new entity
+  else {
+    $contact = (object) $values;
+    $contact->type = $type;
+  }
+  
+  // Save the entity
+  $contact = entity_get_controller($entity_type)->save($contact);
+
+  return $contact;
+}

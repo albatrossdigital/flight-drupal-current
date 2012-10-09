@@ -1,0 +1,19 @@
+@media -sass-debug-info{filename{font-family:file\:\/\/\/var\/aegir\/platforms\/albatross-panopoly\/sites\/all\/themes\/at_reach_core\/sass\/global\.comments\.sass}line{font-family:\0000310}}
+#comments {
+  margin: 1.5em 0;
+}
+
+@media -sass-debug-info{filename{font-family:file\:\/\/\/var\/aegir\/platforms\/albatross-panopoly\/sites\/all\/themes\/at_reach_core\/sass\/global\.comments\.sass}line{font-family:\0000329}}
+.comment {
+  margin-bottom: 20px;
+}
+
+@media -sass-debug-info{filename{font-family:file\:\/\/\/var\/aegir\/platforms\/albatross-panopoly\/sites\/all\/themes\/at_reach_core\/sass\/global\.comments\.sass}line{font-family:\0000380}}
+.comment-preview {
+  background-color: #ffffea;
+}
+
+@media -sass-debug-info{filename{font-family:file\:\/\/\/var\/aegir\/platforms\/albatross-panopoly\/sites\/all\/themes\/at_reach_core\/sass\/global\.comments\.sass}line{font-family:\00003119}}
+.new {
+  color: #cc0000;
+}

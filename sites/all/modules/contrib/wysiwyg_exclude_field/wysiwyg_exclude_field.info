@@ -1,0 +1,12 @@
+name = "Wysiwyg Exclude Field"
+description = "Allows admin to choose if a field need to load wysiwyg profile."
+package = "User interface"
+core = "7.x"
+
+dependencies[] = wysiwyg
+; Information added by drupal.org packaging script on 2012-08-20
+version = "7.x-1.0-alpha1"
+core = "7.x"
+project = "wysiwyg_exclude_field"
+datestamp = "1345501941"
+

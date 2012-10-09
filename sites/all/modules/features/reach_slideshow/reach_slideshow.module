@@ -1,0 +1,113 @@
+<?php
+/**
+ * @file
+ */
+
+// Drupal needs this blank file.
+
+function reach_slideshow_theme_registry_alter(&$theme_registry) {
+  if(isset($theme_registry['rotating_banner_slide_image'])) {
+    $theme_registry['rotating_banner_slide_image']['theme path'] = drupal_get_path('module', 'reach_slideshow');
+    $theme_registry['rotating_banner_slide_image']['function'] = 'reach_slideshow_rotating_banner_slide_image';
+  }
+}
+
+function reach_slideshow_preprocess_rotating_banner_slide(&$vars) {
+  if(isset($vars['background_image']) && isset($vars['banner']->rbid)) {
+    $vars['background_image']->rbid = $vars['banner']->rbid;
+  }
+}
+
+function reach_slideshow_preprocess_rotating_banner_slide_textbox(&$vars) {
+  global $theme_key;
+  if($vars['type'] == 'rb-textbox-type-header' && $vars['content'] == 'Banner Headline') {
+    $vars['content'] = '';
+  }
+  else if($vars['type'] == 'rb-textbox-type-text' && !empty($vars['content']) && arg(0) != 'admin' && $theme_key == 'flight') {
+    $vars['content'] .= '<div class="buttonize-link">Learn more</div>';
+  }
+}
+
+/**
+ * Creates an image tag and wraps it in a link if a link exists
+ *
+ * @param {Array} variables
+ *   Array of properties associated with the background image
+ *
+ * @return {String}
+ *   A string that when printed produces HTML.
+ */
+function reach_slideshow_rotating_banner_slide_image($variables) {
+  $background_image = $variables['background_image'];
+  $link = $variables['link'];
+  $output = '';
+  
+  if ($background_image) {
+    $image_url = file_create_url($background_image->uri);
+  }
+  
+  if ($image_url) {
+    $img_theme = 'image';
+    $img_settings = array(
+      'path' => $image_url, 
+      'attributes' => array(
+        'class' => 'rb-background-image',
+      ),
+    );
+    if(isset($background_image->rbid)) {
+      $theme = !empty($user->theme) ? $user->theme : variable_get('theme_default');
+      $settings = theme_get_setting('slideshow', $theme);
+      if($style = $settings['image_style'][$background_image->rbid]) {
+        $img_theme = 'image_style';
+        $img_settings['path'] = $background_image->uri;
+        $img_settings['style_name'] = $style;
+      }
+    }
+    $output .= "\n" . theme($img_theme, $img_settings);
+  }
+  if ($link) {
+    $output = l($output, $link, array('html' => TRUE, 'attributes' => array('class' => array('rb-link'))));
+  }
+  return $output;
+}
+
+/**
+ * Implementatation of hook_form_alter.
+ *
+ * Add the form settings.
+ */
+function reach_slideshow_form_rotating_banner_slide_add_alter(&$form, &$form_state, $form_id) {
+  return reach_slideshow_form_rotating_banner_slide_edit_alter($form, $form_state, $form_id);
+}
+function reach_slideshow_form_rotating_banner_slide_edit_alter(&$form, &$form_state, $form_id) {
+  
+  // Get the default theme's settings
+  $theme = !empty($user->theme) ? $user->theme : variable_get('theme_default');
+  $settings = theme_get_setting('slideshow', $theme);
+  
+  // Disable and set values on the form.
+  $disabled = t('Disabled by your current theme');
+  if ($settings['layout'] === FALSE) {
+    $form['layout']['#disabled'] = TRUE;
+    $form['layout']['#weight'] = 9;
+    $form['layout']['#description'] = $disabled;
+  } elseif (is_array($settings['layout'])) {
+    // TODO: Allow limiting and/or setting the select options here?
+  }
+  if ($settings['text'] === FALSE) {
+    $form['layout-text-editor']['text']['#disabled'] = TRUE;
+    $form['layout-text-editor']['text']['#weight'] = 9;
+    $form['layout-text-editor']['text']['#default_value'] = '';
+    $form['layout-text-editor']['text']['#description'] = $disabled;
+  }
+  if ($settings['headline'] === FALSE) {
+    $form['layout-text-editor']['header']['#disabled'] = TRUE;
+    $form['layout-text-editor']['header']['#weight'] = 9;
+    $form['layout-text-editor']['header']['#default_value'] = '';
+    $form['layout-text-editor']['header']['#description'] = $disabled;
+  }
+  $form['submit']['#weight'] = 10;
+  
+  // Add the theme's css file
+  $form['#attached']['css'][] = drupal_get_path('theme', $theme) . '/css/slideshow.css';
+}

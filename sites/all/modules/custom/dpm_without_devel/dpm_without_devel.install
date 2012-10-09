@@ -1,0 +1,10 @@
+<?php
+/*
+ * Implements dpm_without_devel()
+ */
+function dpm_without_devel_install() {
+  db_update('system')
+    ->fields(array('weight' => 100))
+    ->condition('name', 'dpm_without_devel', '=')
+    ->execute();
+}

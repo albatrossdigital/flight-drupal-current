@@ -1,0 +1,501 @@
+<?php
+
+/**
+ * @file
+ * Module for the Action Entity - a starting point to create your own Entity
+ * and associated administration interface
+ */  
+
+
+/**
+ * Implement hook_entity_info().
+ *
+ * We define two entities here - the actual entity that will hold our domain
+ * specific information and an entity that holds information about the different
+ * types of entities. See here: http://drupal.org/node/977380 for a discussion on this
+ * choice.
+ */
+function action_entity_info() {
+  $return['action'] = array(
+    'label' => t('Action'),
+    // The entity class and controller class extend the classes provided by the
+    // Entity API
+    'entity class' => 'Action',
+    'controller class' => 'ActionController',
+    'base table' => 'action',
+    'fieldable' => TRUE,
+    'entity keys' => array(
+        'id' => 'action_id',
+        'bundle' => 'type',
+    ),
+    // Bundles are defined by the action types below
+    'bundles' => array(),
+    // Bundle keys tell the FieldAPI how to extract information from the bundle objects
+    'bundle keys' => array(
+      'bundle' => 'type',
+    ),
+    'label callback' => 'entity_class_label',
+    'uri callback' => 'entity_class_uri',
+    'creation callback' => 'action_create',
+    'access callback' => 'action_access',
+    'module' => 'action',
+    // The information below is used by the ActionUIController (which extends the EntityDefaultUIController)
+    'admin ui' => array(
+      'path' => 'admin/content/actions',
+      'file' => 'action.admin.inc',
+      'controller class' => 'ActionUIController',
+      'menu wildcard' => '%action',
+    ),
+  );
+  // The entity that holds information about the entity types	  
+  $return['action_type'] = array(
+    'label' => t('Action Type'),
+    'entity class' => 'ActionType',
+    'controller class' => 'ActionTypeController',
+    'base table' => 'action_type',
+    'fieldable' => FALSE,
+    'bundle of' => 'action',
+    'exportable' => TRUE,
+    'entity keys' => array(
+      'id' => 'id',
+      'name' => 'type',
+      'label' => 'label',
+    ),
+    'access callback' => 'action_type_access',
+    'module' => 'action',
+    // Enable the entity API's admin UI.
+    'admin ui' => array(
+      'path' => 'admin/structure/action_types',
+      'file' => 'action_type.admin.inc',
+      'controller class' => 'ActionTypeUIController',
+    ),
+  );
+
+  return $return;
+}
+
+
+/**
+ * Implements hook_entity_info_alter().
+ *
+ * We are adding the info about the action types via a hook to avoid a recursion
+ * issue as loading the action types requires the entity info as well.
+ *
+ * @todo This needs to be improved
+ */
+function action_entity_info_alter(&$entity_info) {
+  foreach (action_get_types() as $type => $info) {
+    $entity_info['action']['bundles'][$type] = array(
+      'label' => $info->label,
+      'admin' => array(
+        'path' => 'admin/structure/action_types/manage/%action_type',
+        'real path' => 'admin/structure/action_types/manage/' . $type,
+        'bundle argument' => 4,
+        'access arguments' => array('administer action types'),
+      ),
+    );
+  }
+}
+  
+
+/**
+ * Implements hook_permission().
+ */
+function action_permission() {
+  // We set up permisssions to manage entity types, manage all entities and the
+  // permissions for each individual entity
+  $permissions = array(
+    'administer action types' => array(
+      'title' => t('Administer action types'),
+      'description' => t('Create and delete fields for action types, and set their permissions.'),
+    ),
+    'administer actions' => array(
+      'title' => t('Administer actions'),
+      'description' => t('Edit and delete all actions'),
+    ),  
+  );
+  
+  //Generate permissions per action 
+  foreach (action_get_types() as $type) {
+    $type_name = check_plain($type->type);
+    $permissions += array(
+      "edit any $type_name action" => array(
+        'title' => t('%type_name: Edit any action', array('%type_name' => $type->label)),
+      ),
+      "view any $type_name action" => array(
+        'title' => t('%type_name: View any action', array('%type_name' => $type->label)),
+      ),
+    );
+  }
+  return $permissions;  
+}
+
+
+/**
+ * Determines whether the given user has access to a action.
+ *
+ * @param $op
+ *   The operation being performed. One of 'view', 'update', 'create', 'delete'
+ *   or just 'edit' (being the same as 'create' or 'update').
+ * @param $action
+ *   Optionally a action or a action type to check access for. If nothing is
+ *   given, access for all actions is determined.
+ * @param $account
+ *   The user to check for. Leave it to NULL to check for the global user.
+ * @return boolean
+ *   Whether access is allowed or not.
+ */
+function action_access($op, $action = NULL, $account = NULL) {
+  if (user_access('administer actions', $account)) {
+    return TRUE;
+  }
+  if (isset($action) && $type_name = $action->type) {
+    $op = ($op == 'view') ? 'view' : 'edit';
+    if (user_access("$op any $type_name action", $account)) {
+      return TRUE;
+    }
+  }
+  return FALSE;
+}
+
+
+/**
+ * Access callback for the entity API.
+ */
+function action_type_access($op, $type = NULL, $account = NULL) {
+  return user_access('administer action types', $account);
+}
+
+
+/**
+ * Gets an array of all action types, keyed by the type name.
+ *
+ * @param $type_name
+ *   If set, the type with the given name is returned.
+ * @return ActionType[]
+ *   Depending whether $type isset, an array of action types or a single one.
+ */
+function action_get_types($type_name = NULL) {
+  // entity_load will get the Entity controller for our action entity and call the load
+  // function of that object - we are loading entities by name here.
+  $types = entity_load_multiple_by_name('action_type', isset($type_name) ? array($type_name) : FALSE);
+  return isset($type_name) ? reset($types) : $types;
+}
+
+
+/**
+ * Menu argument loader; Load a action type by string.
+ *
+ * @param $type
+ *   The machine-readable name of a action type to load.
+ * @return
+ *   A action type array or FALSE if $type does not exist.
+ */
+function action_type_load($type) {
+  return action_get_types($type);
+}
+
+
+/**
+ * Fetch a action object. Make sure that the wildcard you choose 
+ * in the action entity definition fits the function name here.
+ *
+ * @param $action_id
+ *   Integer specifying the action id.
+ * @param $reset
+ *   A boolean indicating that the internal cache should be reset.
+ * @return
+ *   A fully-loaded $action object or FALSE if it cannot be loaded.
+ *
+ * @see action_load_multiple()
+ */
+function action_load($action_id, $reset = FALSE) {
+  $actions = action_load_multiple(array($action_id), array(), $reset);
+  return reset($actions);
+}
+
+
+/**
+ * Load multiple actions based on certain conditions.
+ *
+ * @param $action_ids
+ *   An array of action IDs.
+ * @param $conditions
+ *   An array of conditions to match against the {action} table.
+ * @param $reset
+ *   A boolean indicating that the internal cache should be reset.
+ * @return
+ *   An array of action objects, indexed by action_id.
+ *
+ * @see entity_load()
+ * @see action_load()
+ */
+function action_load_multiple($action_ids = array(), $conditions = array(), $reset = FALSE) {
+  return entity_load('action', $action_ids, $conditions, $reset);
+}
+
+
+/**
+ * Deletes a action.
+ */
+function action_delete(Action $action) {
+  $action->delete();
+}
+
+
+/**
+ * Delete multiple actions.
+ *
+ * @param $action_ids
+ *   An array of action IDs.
+ */
+function action_delete_multiple(array $action_ids) {
+  entity_get_controller('action')->delete($action_ids);
+}
+
+
+/**
+ * Create a action object.
+ */
+function action_create($values = array()) {
+  return entity_get_controller('action')->create($values);
+}
+
+
+/**
+ * Saves a action to the database.
+ *
+ * @param $action
+ *   The action object.
+ */
+function action_save(Action $action) {
+  return $action->save();
+}
+
+
+/**
+ * Saves a action type to the db.
+ */
+function action_type_save(ActionType $type) {
+  $type->save();
+}
+
+
+/**
+ * Deletes a action type from the db.
+ */
+function action_type_delete(ActionType $type) {
+  $type->delete();
+}
+
+
+/**
+ * URI callback for actions
+ */
+function action_uri(Action $action){
+  return array(
+    'path' => 'action/' . $action->action_id,
+  );
+}
+
+
+/**
+ * Menu title callback for showing individual entities
+ */
+function action_page_title(Action $action){
+  return $action->name;
+}
+
+
+/**
+ * Sets up content to show an individual action
+ * @todo - get rid of drupal_set_title();
+ */
+function action_page_view($action, $view_mode = 'full') {    
+  $controller = entity_get_controller('action');  
+  $content = $controller->view(array($action->action_id => $action));
+  drupal_set_title($action->name);
+  return $content;
+}
+
+/**
+ * Implements hook_entity_presave().
+ * Set the created/updated datetimes.
+ */
+function action_entity_presave($entity, $type) {
+  if ($type == 'action') {
+    $time = time();
+    $entity->created = $data->created ? $data->created : $time;
+    $entity->changed = $data->changed ? $data->changed : $time;
+  }
+}
+
+
+/**
+ * Implements hook_views_api().
+ */
+function action_views_api() {
+  return array(
+    'api' => 3,
+    'path' => drupal_get_path('module', 'action') . '/views',
+  );
+}
+
+
+/**
+ * Implement hook_theme().
+ */
+function action_theme() {
+  return array(
+    'action_add_list' => array(
+      'variables' => array('content' => array()),
+      'file' => 'action.admin.inc',
+    ),
+    'action' => array(
+      'render element' => 'elements',
+      'template' => 'action',
+    ),
+   'action_sample_data' => array(
+      'variables' => array('action_sample_data', 'action' => NULL),
+      'template' => 'action-sample-data',
+    ),
+
+
+  );
+}  
+
+
+/**
+ * Implements hook_menu_local_tasks_alter().
+ */
+function action_menu_local_tasks_alter(&$data, $router_item, $root_path) {
+  // Add action link 'admin/structure/actions/add' on 'admin/structure/actions'.
+  if ($root_path == 'admin/content/actions') {
+    $item = menu_get_item('admin/content/actions/add');
+    if ($item['access']) {
+      $data['actions']['output'][] = array(
+        '#theme' => 'menu_local_action',
+        '#link' => $item,
+      );
+    }
+  }
+}
+
+
+/**
+ * The class used for action entities
+ */
+class Action extends Entity {
+  
+  public function __construct($values = array()) {
+    parent::__construct($values, 'action');
+  }
+
+  protected function defaultLabel() {
+    return $this->name;
+  }
+
+  protected function defaultUri() {
+    return array('path' => 'action/' . $this->action_id);
+  }
+  
+  
+}
+
+
+/**
+ * The class used for action type entities
+ */
+class ActionType extends Entity {
+  
+  public $type;
+  public $label;
+  
+  public function __construct($values = array()) {
+    parent::__construct($values, 'action_type');
+  }
+  
+}
+
+
+/**
+ * The Controller for Action entities
+ */
+class ActionController extends EntityAPIController {
+  public function __construct($entityType) {
+    parent::__construct($entityType);
+  }
+
+
+  /**
+   * Create a action - we first set up the values that are specific
+   * to our action schema but then also go through the EntityAPIController
+   * function.
+   * 
+   * @param $type
+   *   The machine-readable type of the action.
+   *
+   * @return
+   *   A action object with all default fields initialized.
+   */
+  public function create(array $values = array()) {
+    // Add values that are specific to our Action
+    $values += array( 
+      'action_id' => '',
+      'is_new' => TRUE,
+      'title' => '',
+      'created' => '',
+      'changed' => '',
+      'data' => '',
+    );
+    
+    $action = parent::create($values);
+    return $action;
+  }
+  
+  /**
+   * Overriding the buldContent function to add entity specific fields
+   */
+  public function buildContent($entity, $view_mode = 'full', $langcode = NULL, $content = array()) {
+    $content = parent::buildContent($entity, $view_mode, $langcode, $content);
+    $content['action_sample_data'] =  array(
+      '#markup' => theme('action_sample_data', array('action_sample_data' => check_plain($entity->data['sample_data']), 'action' => $entity)),
+    );
+
+    return $content;
+  }
+  
+}
+
+
+/**
+ * The Controller for Action entities
+ */
+class ActionTypeController extends EntityAPIControllerExportable {
+  public function __construct($entityType) {
+    parent::__construct($entityType);
+  }
+  
+   /**
+   * Create a action type - we first set up the values that are specific
+   * to our action type schema but then also go through the EntityAPIController
+   * function.
+   * 
+   * @param $type
+   *   The machine-readable type of the action.
+   *
+   * @return
+   *   A action type object with all default fields initialized.
+   */
+  public function create(array $values = array()) {
+    // Add values that are specific to our Action
+    $values += array( 
+      'id' => '',
+      'is_new' => TRUE,
+      'data' => '',
+    );
+    $action_type = parent::create($values);
+    return $action_type;
+  }
+
+}

@@ -1,0 +1,242 @@
+<?php
+
+define(MEDIA_YOUTUBE_API, 'https://gdata.youtube.com/feeds/api/');
+define(MEDIA_YOUTUBE_INCLUDE, 'https://www.youtube.com/player_api');
+define(MEDIA_YOUTUBE_CONNECTOR, 'google');
+
+
+/**
+ * Implements hook_media_browser_plugin_info().
+ */
+function media_browser_youtube_media_browser_plugin_info() {
+  $plugins = array();
+  if (user_access('administer media') || user_access('media browser internet youtube')) {
+    $plugins['media_browser_youtube'] = array(
+      '#weight' => -10,
+      '#title' => t('Youtube'),
+    );
+  }
+  return $plugins;
+}
+
+/**
+ * Implement hook_permission().
+ */
+function media_browser_youtube_permission() {
+  return array(
+    'media browser youtube' => array(
+      'title' => t('media browser youtube'),
+      'description' => t('media browser youtube'),
+    ),
+  );
+}
+
+/**
+ * Implements hook_media_browser_plugin_view().
+ */
+function media_browser_youtube_media_browser_plugin_view($plugin_name, $params) {
+  $path = drupal_get_path('module', 'media_browser_youtube');
+  $media_path = drupal_get_path('module', 'media');
+  $media_browser_internet_path = drupal_get_path('module', 'media_browser_internet');
+
+  $types = isset($params['types']) ? $params['types'] : array();
+  $multiselect = isset($params['multiselect']) ? $params['multiselect'] : FALSE;
+
+  $redirect = array('media/browser', array('query' => array('render' => 'media-popup')));
+  switch ($plugin_name) {
+    case 'media_browser_youtube':
+      drupal_add_js(MEDIA_YOUTUBE_INCLUDE, 'external');
+      
+      $form = is_array($params) ? $params : array();
+      $form['#title'] = t('Library');
+      $form['#attached'] = array(
+        'js' => array(
+          $path . '/media-browser-youtube.js',
+          array(MEDIA_YOUTUBE_INCLUDE, 'external'),
+        ),
+        'css' => array(
+          $media_path . '/js/plugins/media.library.css',
+        ),
+        'library' => array(
+          array('qtip', 'qtip'),
+          array('waypoints', 'waypoints'),
+          array('media_browser_internet', 'browser'),
+        ),
+      );
+      
+      $form['#settings'] = array(
+        'selector' => 'media-browser-internet-list',
+        'viewMode' => 'thumbnails',
+        'container' => '#youtube-container',
+        'params' => array('alt' => 'json', 'v' => 2, 'access_token' => media_browser_internet_token(MEDIA_YOUTUBE_CONNECTOR)),
+        'sections' => array(),
+      );
+      
+      $form['#settings']['sections']['community'] = array(
+        'label' => t('Community'),
+        'search' => array(
+          'url' => MEDIA_YOUTUBE_API . 'videos',
+        ),
+        'thumbEvent' => 'click',
+        'form' => array(
+          'q' => array(
+            '#type' => 'textfield',
+            //'#title' => '',
+          ),
+          'orderby' => array(
+            '#type' => 'select',
+            '#title' => 'Sort By',
+            '#options' => array(
+              'relevance' => t('Relevance'),
+              'published' => t('Post Date'),
+              'viewCount' => t('Most Viewed'),
+              'rating' => t('Hightest Rated'),
+            ),
+            '#default_value' => 'relevance',
+          ),
+          'license' => array(
+            '#type' => 'select',
+            '#title' => 'license',
+            '#options' => array(
+              'cc' => t('Creative Commons'),
+              'youtube' => t('Standard Youtube License'),
+              '' => t('No License Restrictions'),
+            ),
+            '#default_value' => 'cc',
+          ),
+        ),
+      );
+      
+      
+      if ($cid = media_browser_internet_cid(MEDIA_YOUTUBE_CONNECTOR)) 
+      {
+        $form['#settings']['sections']['uploads'] = array(
+          'label' => t('My Uploads'),
+          'search' => array(
+            'url' => MEDIA_YOUTUBE_API . 'users/default/uploads',
+          ),
+          'form' => array(
+            'q' => array(
+              '#type' => 'textfield',
+            ),
+          ),
+        );
+            
+        $form['#settings']['sections']['favorites'] = array(
+          'label' => t('My Favs'),
+          'search' => array(
+            'url' => MEDIA_YOUTUBE_API . 'users/default/favorites',
+          ),
+          'form' => array(
+            /*('q' => array(
+              '#type' => 'textfield',
+            ),*/
+          ),
+        );
+        
+      } elseif (user_access('connect with oauthconnector_youtube')) {
+      
+        $form['#settings']['sections']['connect'] = array(
+          'label' => t('My Uploads'),
+          'content' => theme('media_browser_internet_connect', array('service' => t('Google'), 'section' => t('your YouTube Uploads and Favorite Videos'))),
+        );
+        
+      } //if
+      
+      
+      $form['#markup'] = drupal_render(drupal_get_form('media_browser_youtube_form'));
+      
+      return $form;
+      
+      break;
+  }
+
+  return array();
+}
+
+
+
+/**
+ * Creates the hidden form.
+ */
+function media_browser_youtube_form($form, &$form_state) {
+
+  $form = array();
+  $form['files'] = array(
+    '#type' => hidden,
+    '#attributes' => array('id' => 'youtube-files'),
+  );
+  $form['markup'] = array(
+    '#type' => 'markup',
+    '#markup' => '<div id="youtube-container"><div class="scrollbox"><div class="breadcrumb"></div><ul class="media-browser-internet-list media-list-thumbnails"></ul><div class="ajax-status"></div></div></div>',
+  );
+  
+  $form['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Submit'),
+    '#attributes' => array('id' => 'youtube-submit', 'class' => array('media-browser-internet-submit')),
+  );
+
+  return $form;
+}
+
+
+
+/**
+ * Saves the image(s) from youtube.
+ */
+function media_browser_youtube_form_submit($form, &$form_state) {
+  $embed_code = $form_state['values']['embed_code'];
+  try {
+    // Save the remote file
+    $provider = media_internet_get_provider($embed_code);
+    // Providers decide if they need to save locally or somewhere else.
+    // This method returns a file object
+    $file = $provider->save();
+  }
+  catch (Exception $e) {
+    form_set_error('embed_code', $e->getMessage());
+    return;
+  }
+
+  if (!$file->fid) {
+    form_set_error('embed_code', t('Unknown error: unable to add file. Please check URL or embed code and try again.'));
+    return;
+  }
+
+  $form_state['redirect'] = array('media/browser', array('query' => array('render' => 'media-popup', 'fid' => $file->fid)));
+  
+  
+  
+  $form_state['values']['files'] = is_array($form_state['values']['files']) ? $form_state['values']['files'] : array($form_state['values']['files']);
+  watchdog('flicrk', 'var <pre>!vars</pre>', array('!vars' => print_r($form_state['values']['files'], 1)));
+  
+  foreach ($form_state['values']['files'] as $file_data) {
+    parse_str($file_data, $file_data);
+    
+    // Call Flickr's api to get more info about file
+    // TODO: Do with feeds?
+    $data = array(
+      'method' => 'flickr.photos.getInfo',
+      'photo_id' => $file_data['id'],
+      'api_key' => media_browser_internet_key(MEDIA_FLICKR_CONNECTOR),
+    );
+    $flickr_data = oauthconnector_endpoint_call_for_user(MEDIA_FLICKR_API, $data, MEDIA_FLICKR_CONNECTOR, $account=NULL, 'GET', $format='XML');
+    $metadata = array(
+      'title' => (string) $flickr_data->photo->title,
+      'description' => (string) $flickr_data->photo->description,
+      'credit' =>  (string) $flickr_data->photo->owner->{'@attributes'}->realname,
+      'license' => _media_browser_flickr_cc_map((int) $flickr_data->photo->{'@attributes'}->license),
+    );
+    
+                watchdog('media_browser_internet', '$flickr_data: <pre>!f</pre>', array('!f' => print_r($flickr_data,1)));
+    
+    $uri = 'http://farm' . $file_data['farm'] . '.static.flickr.com/' . $file_data['server'] . '/' . $file_data['id'] . '_' . $file_data['secret'] . '_b.jpg';
+    $file = media_browser_internet_file_create_by_uri($uri, $metadata['title'], $metadata);
+    //$file->media_description[LANGUAGE_NONE][0]['value'] = (string) $flickr_data->photo->description;
+
+  }
+  $form_state['redirect'] = array('media/browser', array('query' => array('render' => 'media-popup', 'fid' => $file->fid)));
+}
+
+

@@ -1,0 +1,129 @@
+@mixin sprite($left, $top, $url: url(../images/sprite.png))
+  background-image: $url
+  background-position: $left $top
+  background-repeat: no-repeat
+  
+@mixin sprite-block($width, $height, $left, $top, $url: url(../images/sprite.png?a))
+  width: $width
+  height: $height
+  display: block
+  text-indent: -1000em
+  overflow: hidden
+  @include sprite($left, $top, $url)
+
+@mixin fixed-background($image: url(../images/bg.jpg), $color: #fff)
+  color: #fff
+  background: $color $image no-repeat center center fixed
+  +background-size(cover)
+
+@mixin fade-background($start, $stop, $position: top)
+  //+linear-gradient(color-stops($start, $stop), $position)
+  background-color: $start
+
+
+@mixin auto-fade-background($color, $position: top)
+  +fade-background(lighten($color, 20%), $color, $position)
+
+
+@mixin auto-fade-background-hover($color)
+  +auto-fade-background($color, top)
+  
+  &:hover
+    +auto-fade-background($color, bottom)
+
+
+@mixin link-clear($color)
+  &,
+  a
+    color: $color !important
+    text-decoration: none !important
+  
+@mixin list-clear
+  &,
+  ul,
+  li
+    margin: 0
+    padding: 0
+    list-style: none
+    list-style-image: none
+
+@mixin list-float($float: left, $margin-horizontal: 10px, $margin-vertical: 0)
+  +list-clear
+  >li
+    margin: $margin-vertical $margin-horizontal !important
+    float: $float 
+
+
+/***********************************
+ * FONT MIXINS
+ ***********************************/
+
+
+@mixin font_face_otari()
+  @font-face
+    font-family: 'otari'
+    src: url('../../../../all/themes/albatross/fonts/otari-bold-limited_copy-webfont.eot')
+    src: url('../../../../all/themes/albatross/fonts/otari-bold-limited_copy-webfont.eot?#iefix') format('embedded-opentype'), url('../../../../all/themes/albatross/fonts/otari-bold-limited_copy-webfont.woff') format('woff'), url('../../../../all/themes/albatross/fonts/otari-bold-limited_copy-webfont.ttf') format('truetype'), url('../../../../all/themes/albatross/fonts/otari-bold-limited_copy-webfont.svg#OtariBold-Limited') format('svg')
+    font-weight: normal
+    font-style: normal
+    
+@mixin font_face_pacifico()
+  @font-face
+    font-family: 'pacifico'
+    src: url('../../../../all/themes/albatross/fonts/pacifico_copy-webfont.eot')
+    src: url('../../../../all/themes/albatross/fonts/pacifico_copy-webfont.eot?#iefix') format('embedded-opentype'), url('../../../../all/themes/albatross/fonts/pacifico_copy-webfont.woff') format('woff'), url('../../../../all/themes/albatross/fonts/pacifico_copy-webfont.ttf') format('truetype'), url('../../../../all/themes/albatross/fonts/pacifico_copy-webfont.svg#PacificoRegular') format('svg')
+    font-weight: normal
+    font-style: normal
+
+@mixin font_face_nevis()
+  @font-face
+    font-family: 'nevis'
+    src: url('../../../../all/themes/albatross/fonts/nevis-webfont.eot')
+    src: url('../../../../all/themes/albatross/fonts/nevis-webfont.eot?#iefix') format('embedded-opentype'), url('../../../../all/themes/albatross/fonts/nevis-webfont.woff') format('woff'), url('../../../../all/themes/albatross/fonts/nevis-webfont.ttf') format('truetype'), url('../../../../all/themes/albatross/fonts/nevis-webfont.svg#webfontHubXaE9b') format('svg')
+    font-weight: normal
+    font-style: normal
+    
+@mixin font_face_copse()
+  @font-face
+    font-family: 'CopseRegular'
+    src: url('../../../../all/themes/albatross/fonts/Copse-Regular-webfont.eot')
+    src: url('../../../../all/themes/albatross/fonts/Copse-Regular-webfont.eot?#iefix') format('embedded-opentype'), url('../../../../all/themes/albatross/fonts/Copse-Regular-webfont.woff') format('woff'), url('../../../../all/themes/albatross/fonts/Copse-Regular-webfont.ttf') format('truetype'), url('../../../../all/themes/albatross/fonts/Copse-Regular-webfont.svg#CopseRegular') format('svg')
+    font-weight: normal
+    font-style: normal
+
+@mixin font_face_arvo()
+  @font-face
+    font-family: 'Arvo'
+    src: url('../../../../all/themes/albatross/fonts/Arvo-Regular-webfont.eot')
+    src: url('../../../../all/themes/albatross/fonts/Arvo-Regular-webfont.eot?#iefix') format('embedded-opentype'), url('../../../../all/themes/albatross/fonts/Arvo-Regular-webfont.woff') format('woff'), url('../../../../all/themes/albatross/fonts/Arvo-Regular-webfont.ttf') format('truetype'), url('../../../../all/themes/albatross/fonts/Arvo-Regular-webfont.svg#ArvoRegular') format('svg')
+    font-weight: normal
+    font-style: normal
+
+  @font-face
+    font-family: 'Arvo'
+    src: url('../../../../all/themes/albatross/fonts/Arvo-Italic-webfont.eot')
+    src: url('../../../../all/themes/albatross/fonts/Arvo-Italic-webfont.eot?#iefix') format('embedded-opentype'), url('../../../../all/themes/albatross/fonts/Arvo-Italic-webfont.woff') format('woff'), url('../../../../all/themes/albatross/fonts/Arvo-Italic-webfont.ttf') format('truetype'), url('../../../../all/themes/albatross/fonts/Arvo-Italic-webfont.svg#ArvoItalic') format('svg')
+    font-weight: normal
+    font-style: italic
+    
+  @font-face
+    font-family: 'Arvo'
+    src: url('../../../../all/themes/albatross/fonts/Arvo-Bold-webfont.eot')
+    src: url('../../../../all/themes/albatross/fonts/Arvo-Bold-webfont.eot?#iefix') format('embedded-opentype'), url('../../../../all/themes/albatross/fonts/Arvo-Bold-webfont.woff') format('woff'), url('../../../../all/themes/albatross/fonts/Arvo-Bold-webfont.ttf') format('truetype'), url('../../../../all/themes/albatross/fonts/Arvo-Bold-webfont.svg#ArvoRegular') format('svg')
+    font-weight: bold
+    font-style: normal
+    
+  @font-face
+    font-family: 'Arvo'
+    src: url('../../../../all/themes/albatross/fonts/Arvo-BoldItalic-webfont.eot')
+    src: url('../../../../all/themes/albatross/fonts/Arvo-BoldItalic-webfont.eot?#iefix') format('embedded-opentype'), url('../../../../all/themes/albatross/fonts/Arvo-BoldItalic-webfont.woff') format('woff'), url('../../../../all/themes/albatross/fonts/Arvo-BoldItalic-webfont.ttf') format('truetype'), url('../../../../all/themes/albatross/fonts/Arvo-BoldItalic-webfont.svg#ArvoItalic') format('svg')
+    font-weight: bold
+    font-style: italic
+    
+@mixin font_face_comfortaa()
+  @font-face
+    font-family: 'Comfortaa'
+    src: url('../../../../all/themes/albatross/fonts/comfortaa_bold_copy-webfont')
+    src: url('../../../../all/themes/albatross/fonts/comfortaa_bold_copy-webfont.eot?#iefix') format('embedded-opentype'), url('../../../../all/themes/albatross/fonts/comfortaa_bold_copy-webfont.woff') format('woff'), url('../../../../all/themes/albatross/fonts/comfortaa_bold_copy-webfont.ttf') format('truetype'), url('../../../../all/themes/albatross/fonts/comfortaa_bold_copy-webfont.svg#ArvoItalic') format('svg')
+    font-weight: normal
+    font-style: normal

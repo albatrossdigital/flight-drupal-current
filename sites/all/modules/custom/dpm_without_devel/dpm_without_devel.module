@@ -1,0 +1,106 @@
+<?php
+// $Id
+
+
+/**
+ * Print a variable to the 'message' area of the page. Uses drupal_set_message()
+ */
+if (!function_exists('dpm')&& !module_exists('devel')) {
+  function dpm($input, $name = NULL) {
+    if (user_access('access devel information')) {
+      $export = kprint_r($input, TRUE, $name);
+      drupal_set_message($export);
+    }
+  }
+}
+
+if (!function_exists('kprint_r') && !module_exists('devel')) {
+  function kprint_r($input, $return = FALSE, $name = NULL, $function = 'print_r') {
+    // We do not want to krumo() strings and integers and such
+    if (merits_krumo($input)) {
+      if (user_access('access devel information')) {
+        return $return ? (isset($name) ? $name .' => ' : '') . krumo_ob($input) : krumo($input);
+      }
+    }
+    else {
+      return dprint_r($input, $return, $name, $function);
+    }
+  }
+}
+
+// Return boolean. No need for cache here.
+if (!function_exists('has_krumo')) {
+  function has_krumo() {
+    // see README.txt or just download from http://krumo.sourceforge.net/
+    @include_once DRUPAL_ROOT . '/' . drupal_get_path('module', 'dpm_without_devel') .'/krumo/class.krumo.php';
+    return function_exists('krumo') && !drupal_is_cli();
+  }
+}
+
+/**
+ * Decide whether or not to print a debug variable using krumo().
+ *
+ * @param $input
+ * @return boolean
+ */
+if (!function_exists('merits_krumo')) {
+  function merits_krumo($input) {
+    return (is_object($input) || is_array($input)) && has_krumo() && variable_get('devel_krumo_skin', '') != 'disabled';
+  }
+}
+
+
+// Save krumo htlm using output buffering.
+if (!function_exists('krumo_ob')) {
+  function krumo_ob($object) {
+    ob_start();
+    krumo($object);
+    $output = ob_get_contents();
+    ob_end_clean();
+    return $output;
+  }
+}
+
+
+/**
+ * Pretty-print a variable to the browser (no krumo).
+ * Displays only for users with proper permissions. If
+ * you want a string returned instead of a print, use the 2nd param.
+ */
+if (!function_exists('dprint_r')) {
+  function dprint_r($input, $return = FALSE, $name = NULL, $function = 'print_r', $check= TRUE) {
+    if (user_access('access devel information')) {
+      if ($name) {
+        $name .= ' => ';
+      }
+      if ($function == 'drupal_var_export') {
+        include_once DRUPAL_ROOT . '/includes/utility.inc';
+        $output = drupal_var_export($input);
+      }
+      else {
+        ob_start();
+        $function($input);
+        $output = ob_get_clean();
+      }
+
+      if ($check) {
+        $output = check_plain($output);
+      }
+      if (count($input, COUNT_RECURSIVE) > DEVEL_MIN_TEXTAREA) {
+          // don't use fapi here because sometimes fapi will not be loaded
+          $printed_value = "<textarea rows=30 style=\"width: 100%;\">\n". $name . $output .'</textarea>';
+      }
+      else {
+        $printed_value = '<pre>'. $name . $output .'</pre>';
+      }
+
+      if ($return) {
+        return $printed_value;
+      }
+      else {
+        print $printed_value;
+      }
+    }
+  }
+}
+

@@ -26,17 +26,17 @@ function elegant_backend_wysiwyg_editor_settings_alter(&$settings, &$context) {
       $theme . '/style.css',
       $theme . '/blue.css',
     );*/
-    
+
     // AutoGrow
-    // TODO: Make this work
-    /*$settings['extraPlugins'] = 'autogrow';
+    $settings['extraPlugins'] = 'autogrow';
     $settings['removePlugins'] = 'resize';
     $settings['autoGrow_onStartup'] = TRUE;
-    $settings['autoGrow_maxHeight'] = '800px';*/
+    $settings['autoGrow_maxHeight'] = 800;
+    $settings['height'] = 200;
   }
   drupal_add_css(drupal_get_path('module', 'elegant_backend') . '/css/elegant-backend-wysiwyg.css');
   drupal_add_js(drupal_get_path('module', 'elegant_backend') . '/js/elegant-backend-wysiwyg.js', array('weight' => 1000));
-  
+
   if (module_exists('qtip')) {
     drupal_add_js(drupal_get_path('module', 'elegant_backend') . '/js/elegant-backend-qtip.js');
   }

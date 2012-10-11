@@ -1,0 +1,388 @@
+<?php
+/**
+ * @file
+ * fieldable panel panes install file
+ */
+
+/**
+ * Implements hook_requirements().
+ */
+function fieldable_panels_panes_requirements($phase) {
+  if ($phase != 'runtime') {
+    return;
+  }
+
+  ctools_include('export');
+  $requirements = array();
+
+  $hook = 'entity_info_alter';
+  $items = ctools_export_crud_load_all('fieldable_panels_panes_type');
+
+  // Check each module that implements 'entity_info_alter' to see if they
+  // provide a bundle for Fieldable Panels Panes.
+  foreach (module_implements($hook) as $module) {
+    $info = array();
+    $function = $module . '_' . $hook;
+
+    $function($info);
+
+    if (isset($info['fieldable_panels_pane']['bundles']) && is_array($info['fieldable_panels_pane']['bundles'])) {
+
+      // For each bundle provided, we track some meta-information to provide decent reporting.
+      foreach ($info['fieldable_panels_pane']['bundles'] as $bundle_name => $bundle_info) {
+        $offenders[] = array(
+          'module' => $module,
+          'bundle label' => $bundle_info['label'],
+          'duplicate' => isset($items[$bundle_name]),
+          'obsolete path' => strpos($bundle_info['admin']['path'], 'admin/structure/panels/entity/manage') !== FALSE,
+          'function' => $function,
+        );
+      }
+    }
+  }
+
+  if (!empty($offenders)) {
+    $items = array();
+    foreach ($offenders as $offender) {
+      $string = array();
+      $replacements = array(
+        '%module' => $offender['module'],
+        '%bundle' => $offender['bundle label'],
+        '%function' => $offender['function'] . '()',
+        '!add_page' => l(t('Add type page'), 'admin/structure/panels/fieldable-panels-panes/add'),
+      );
+      $string[] = t('The module %module provides the bundle %bundle in %function.', $replacements);
+
+      // If bundle admin paths are set in the wrong position, invalid tabs can
+      // render in the wrong position and cause all kinds of confusion.
+      if ($offender['obsolete path']) {
+        $string[] = t('It also contains an obsolete admin path which can throw some notices.');
+      }
+
+      // The upgrade path will handle migrating code-provided bundles into the
+      // database. There is no harm in having them both the alter hook and in
+      // the database, we're just notifying that the former doesn't need to exist
+      // anymore.
+      if ($offender['duplicate']) {
+        $string[] = t('It should now be safe to remove the bundle from %function.', $replacements);
+      }
+      else {
+        // Otherwise, if a bundle is provided in an alter hook AFTER the
+        // upgrade process, we recommend creating a type for it in the UI so
+        // that the module can handle the necessary processing and logic.
+        $string[] = t('It is recommended that a type be created for %bundle in the !add_page so the module can handle all the necessary processing.', $replacements);
+      }
+
+      $items[] = implode(' ', $string);
+    }
+
+    $requirements['fieldable_panels_panes'] = array(
+      'title' => t('Fieldable Panels Panes'),
+      'severity' => REQUIREMENT_WARNING,
+      'value' => theme('item_list', array('items' => $items)),
+      'description' => t('It is still possible to provide bundles in entity_info_alter(), however, it has limited support. Upgrading from a previous version of Fieldable Panels Panes would have updated those bundles to be managed by the bundle user interface (meaning the bundles in entity_info_alter() can safely be removed.) There is, however, no harm in having both exists, unless the bundle provided defines an obsolete path, in which case invalid menu tabs might render in the wrong places.'),
+    );
+  }
+
+  return $requirements;
+}
+
+/**
+ * Implements hook_install().
+ */
+function fieldable_panels_panes_install() {
+  ctools_include('export');
+
+  $item = ctools_export_crud_new('fieldable_panels_panes_type');
+  $item->name = 'fieldable_panels_pane';
+  $item->title = t('Panels Pane');
+  ctools_export_crud_save('fieldable_panels_panes_type', $item);
+}
+
+
+/**
+ * Implements hook_uninstall().
+ */
+function fieldable_panels_panes_uninstall() {
+  $results = db_query('SELECT name FROM {fieldable_panels_panes_type}');
+  foreach ($results as $type) {
+    field_attach_delete_bundle('fieldable_panels_pane', $type->name);
+  }
+}
+
+/**
+ * Implements hook_schema().
+ */
+function fieldable_panels_panes_schema() {
+  $schema = array();
+
+  $schema['fieldable_panels_panes'] = array(
+    'description' => 'Entity table for panel pane content with fields.',
+    'fields' => array(
+      'fpid' => array(
+        'description' => 'The primary identifier for the entity.',
+        'type' => 'serial',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'vid' => array(
+        'description' => 'The current version in use for this entity.',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'bundle' => array(
+        'description' => 'The bundle of the entity.',
+        'type' => 'varchar',
+        'length' => 255,
+      ),
+      'title' => array(
+        'description' => 'The title of the entity.',
+        'type' => 'varchar',
+        'length' => 255,
+      ),
+      'link' => array(
+        'description' => 'Whether or not this entity title will link to another page.',
+        'type' => 'int',
+        'size' => 'tiny',
+      ),
+      'path' => array(
+        'description' => 'The path the title should link to.',
+        'type' => 'varchar',
+        'length' => 255,
+      ),
+      'reusable' => array(
+        'description' => 'Whether or not this entity will appear in the Add Content dialog.',
+        'type' => 'int',
+        'size' => 'tiny',
+      ),
+      'admin_title' => array(
+        'description' => 'The title it will appear in the Add Content dialog as.',
+        'type' => 'varchar',
+        'length' => 255,
+      ),
+      'admin_description' => array(
+        'description' => 'The description it will appear in the Add Content dialog with.',
+        'type' => 'text',
+      ),
+      'category' => array(
+        'description' => 'The category it will appear in the Add Content dialog under.',
+        'type' => 'text',
+      ),
+      'view_access' => array(
+        'type' => 'text',
+        'size' => 'big',
+        'description' => 'Access rules to describe if the user has view access to this entity.',
+        'serialize' => TRUE,
+        'object default' => array(),
+      ),
+      'edit_access' => array(
+        'type' => 'text',
+        'size' => 'big',
+        'description' => 'Access rules to describe if the user has view access to this entity.',
+        'serialize' => TRUE,
+        'object default' => array(),
+      ),
+      'created' => array(
+        'description' => 'The Unix timestamp when the entity was created.',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'changed' => array(
+        'description' => 'The Unix timestamp when the entity was most recently saved.',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'uuid' => array(
+        'type' => 'char',
+        'length' => 36,
+        'default' => '',
+        'description' => 'The Universally Unique Identifier.',
+      ),
+    ),
+    'primary key' => array('fpid'),
+    'indexes' => array(
+      'reusable' => array('reusable'),
+    ),
+  );
+
+  $schema['fieldable_panels_panes_revision'] = array(
+    'description' => 'Entity revision table for panel pane content with fields.',
+    'fields' => array(
+      'fpid' => array(
+        'description' => 'The id this revision belongs to',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'vid' => array(
+        'description' => 'The primary identifier for this version.',
+        'type' => 'serial',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'timestamp' => array(
+        'description' => 'The Unix timestamp when the revision was most recently saved.',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'uid' => array(
+        'description' => 'The author of the revision.',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'title' => array(
+        'description' => 'The title of the entity.',
+        'type' => 'varchar',
+        'length' => 255,
+      ),
+      'log' => array(
+        'description' => t('A log message associated with the revision.'),
+        'type' => 'text',
+        'size' => 'big',
+      ),
+      'vuuid' => array(
+        'type' => 'char',
+        'length' => 36,
+        'default' => '',
+        'description' => 'The Universally Unique Identifier.',
+      ),
+    ),
+    'primary key' => array('vid'),
+    'indexes' => array(
+      'fpid' => array('fpid', 'vid'),
+    ),
+  );
+
+  $schema['fieldable_panels_panes_type'] = array(
+    'description' => 'Entity bundle table for panel pane content.',
+    'fields' => array(
+      'name' => array(
+        'description' => 'The machine-readable name of this type.',
+        'type' => 'varchar',
+        'length' => 32,
+        'not null' => TRUE,
+        'default' => '',
+      ),
+      'title' => array(
+        'description' => 'The human-readable name of this type.',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'default' => '',
+        'translatable' => TRUE,
+      ),
+      'description' => array(
+        'description' => 'A brief description of this type.',
+        'type' => 'text',
+        'size' => 'big',
+        'not null' => TRUE,
+      ),
+    ),
+    'export' => array(
+      'admin_title' => 'title',
+      'admin_description' => 'description',
+      'api' => array(
+        'owner' => 'fieldable_panels_panes',
+        'api' => 'fieldable_panels_panes_type',
+        'minimum_version' => 1,
+        'current_version' => 1,
+      ),
+    ),
+    'primary key' => array('name'),
+  );
+
+  return $schema;
+}
+
+/**
+ * Add UUID support.
+ */
+function fieldable_panels_panes_update_7101(&$sandbox) {
+
+  // Make sure to add UUID field
+  if (!db_field_exists('fieldable_panels_panes', 'uuid')) {
+    db_add_field('fieldable_panels_panes', 'uuid', array('type' => 'char', 'length' => 36, 'default' => '', 'description' => 'The Universally Unique Identifier.'));
+  }
+
+  // Make sure to add VUUID field
+  if (!db_field_exists('fieldable_panels_panes_revision', 'vuuid')) {
+    db_add_field('fieldable_panels_panes_revision', 'vuuid', array('type' => 'char', 'length' => 36, 'default' => '', 'description' => 'The Universally Unique Identifier.'));
+  }
+}
+
+/**
+ * Delete stale revisions.
+ */
+function fieldable_panels_panes_update_7102(&$sandbox) {
+  $existing = db_select('fieldable_panels_panes', 'f');
+  $existing->fields('f', array('fpid'));
+
+  db_delete('fieldable_panels_panes_revision')
+    ->condition('fpid', $existing, 'NOT IN')
+    ->execute();
+}
+
+/**
+ * Reset the theme registry.
+ */
+function fieldable_panels_panes_update_7103(&$sandbox) {
+  // All caches are flushed during the update process, so we do nothing.
+  return t('Theme registry cache has been cleared.');
+}
+
+/**
+ * Update menu paths.
+ */
+function fieldable_panels_panes_update_7104(&$sandbox) {
+  // We don't have to flush caches manually since the update process will flush
+  // all caches anyway.
+  return t('Menu cache has been flushed.');
+}
+
+/**
+ * Add support to link pane titles to paths.
+ */
+function fieldable_panels_panes_update_7105() {
+  db_add_field('fieldable_panels_panes', 'link', array('type' => 'int', 'size' => 'tiny', 'description' => 'Whether or not this entity title will link to another page.'));
+  db_add_field('fieldable_panels_panes', 'path', array('type' => 'varchar', 'length' => 255, 'description' => 'The path the title should link to.'));
+}
+
+/**
+ * Adding Fieldable Panels Panes Type table and saving existing bundles to
+ * database.
+ */
+function fieldable_panels_panes_update_7106(&$sandbox) {
+  ctools_include('export');
+  $messages = array();
+
+  // Add the new table for storing bundles.
+  $schema = drupal_get_schema('fieldable_panels_panes_type', TRUE);
+  db_create_table('fieldable_panels_panes_type', $schema);
+  $messages[] = t('Table %table_name has been added.', array('%table_name' => 'fieldable_panels_panes_type'));
+
+  // Store possible existing bundles provided by other modules.
+  $bundles = array();
+  $entity_info = entity_get_info('fieldable_panels_pane');
+  foreach ($entity_info['bundles'] as $bundle_name => $bundle_info) {
+    $bundles[] = $bundle_info['label'];
+
+    $item = ctools_export_crud_new('fieldable_panels_panes_type');
+    $item->name = $bundle_name;
+    $item->title = $bundle_info['label'];
+    ctools_export_crud_save('fieldable_panels_panes_type', $item);
+  }
+
+  if (!empty($bundles)) {
+    $messages[] = format_plural(count($bundles), 'Added existing bundle %bundle_names to database.', 'Added existing bundles %bundle_names to database.', array('%bundle_names' => implode(', ', $bundles)));
+  }
+
+  return implode('<br />', $messages);
+}

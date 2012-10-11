@@ -20,7 +20,7 @@
  * @see template_preprocess()
  * @see template_preprocess_toolbar()
  */
- dpm($toolbar);
+// dpm($toolbar);
 ?>
 <div id="toolbar" class="<?php print $classes; ?> clearfix">
   <div class="toolbar-menu clearfix">

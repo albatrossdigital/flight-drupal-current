@@ -82,9 +82,9 @@ dependencies[] = "qtip"
 
 // Reach Core
 dependencies[] = "reach_config"
-;dependencies[] = "reach_administration"
-;dependencies[] = "reach_wysiwyg"
-;dependencies[] = "reach_media"
+dependencies[] = "reach_wysiwyg"
+dependencies[] = "reach_media"
+dependencies[] = "reach_administration"
 ;dependencies[] = "reach_webform"
 ;dependencies[] = "reach_social"
 ;dependencies[] = "reach_social_blocks"

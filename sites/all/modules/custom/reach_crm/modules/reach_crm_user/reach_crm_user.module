@@ -1,0 +1,64 @@
+<?php
+/**
+ * @file
+ * Code for the Reach CRM User feature.
+ */
+
+include_once 'reach_crm_user.features.inc';
+
+
+/**
+ * Return the entity type.
+ * Required.
+ */
+function reach_crm_user_reach_crm_contact_type() {
+  return 'user';
+}
+
+/**
+ * Return the entity type.
+ *
+ * @param array $entity
+ *   The contact entity.
+ */
+function reach_crm_user_reach_crm_contact_email($entity) {
+  return $entity->mail;
+}
+
+
+
+/**
+ * Implements hook_reach_crm_contact_save_update()
+ * Update or save a new contact entity.
+ * @TODO: this should be done in rules probably.
+ */
+function reach_crm_user_reach_crm_contact_save_update($values, $type, $points) {
+  global $user;
+
+  $entity_type = reach_crm_contact_type();
+
+  // The email field is different for Redhen
+  $values['mail'] = $values['field_email']['und'][0]['email'];
+
+  $contact = $values['mail'] ? user_load_by_mail($values['mail']) : ($user->uid ? $user : NULL);
+dpm($contact);
+dpm($values);
+  // Update the existing entity
+  if ($contact->uid){
+    $contact = user_save($contact, $values);
+    //if ($points) {
+    //  $contact->field_points['und'][0]['value'] += $points;
+    //}
+  }
+
+  // Currently does not create a new entity
+  else {
+    //$contact = (object) $values;
+    //$contact->type = $type;
+  }
+
+  // Save the entity
+   //entity_get_controller($entity_type)->save($contact);
+
+  return $contact;
+}

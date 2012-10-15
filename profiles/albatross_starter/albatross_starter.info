@@ -1,126 +1,107 @@
 name = Albatross Starter
-description = The base Albatross Digital profile based on the Panopoly distro
-core = 7.x
+description = The base Albatross Digital profile
 
-; Panopoly - Core
-dependencies[] = menu
-dependencies[] = image
-dependencies[] = list
-dependencies[] = number
-dependencies[] = options
-dependencies[] = path
-dependencies[] = taxonomy
-dependencies[] = search
-dependencies[] = field
-dependencies[] = field_ui
-dependencies[] = file
-dependencies[] = block
-dependencies[] = dblog
+// Core
+dependencies[] = "block"
+dependencies[] = "dblog"
+dependencies[] = "menu"
+dependencies[] = "contextual"
+dependencies[] = "dashboard"
+dependencies[] = "dblog"
+dependencies[] = "overlay"
+dependencies[] = "path"
+dependencies[] = "shortcut"
+dependencies[] = "toolbar"
+dependencies[] = "field_ui"
+dependencies[] = "taxonomy"
+;dependencies[] = "rdf"
 
-; Panopoly - Contrib - Foundation
-dependencies[] = ctools
-dependencies[] = panels
-dependencies[] = panels_ipe
-dependencies[] = panels_breadcrumbs
-dependencies[] = pm_existing_pages
-dependencies[] = page_manager
-;dependencies[] = fieldable_panels_panes
-dependencies[] = panelizer
-dependencies[] = views
-dependencies[] = views_content
-dependencies[] = views_ui
-dependencies[] = token
+// Contrib
+dependencies[] = "admin_menu"
+dependencies[] = "admin_menu_toolbar"
+dependencies[] = "block_everything"
+dependencies[] = "contextual"
+dependencies[] = "contextual_flyout_links"
+;dependencies[] = "debut"
+dependencies[] = "devel"
+dependencies[] = "extlink"
+dependencies[] = "filter_tips_dialog"
+dependencies[] = "improved_text_trim"
+dependencies[] = "libraries"
+dependencies[] = "list"
+dependencies[] = "email"
+dependencies[] = "select_or_other"
+dependencies[] = "number"
+dependencies[] = "options"
+dependencies[] = "overlay"
+;dependencies[] = "save_draft"
+dependencies[] = "context"
+dependencies[] = "context_ui"
+dependencies[] = "seo_ui"
+dependencies[] = "strongarm"
+dependencies[] = "token"
+dependencies[] = "views"
+dependencies[] = "xmlsitemap"
+;dependencies[] = "views_load_more"
+dependencies[] = "webform"
+dependencies[] = "ds"
 
-; Panopoly - Contrib - Field UI and Content Types
-dependencies[] = tablefield
-dependencies[] = link
-dependencies[] = date
-dependencies[] = date_api
-dependencies[] = date_popup
-dependencies[] = date_views
-dependencies[] = views_slideshow
-dependencies[] = views_slideshow_cycle
-dependencies[] = simple_gmap
-dependencies[] = field_group
-dependencies[] = file_entity
+// Albatross
+;dependencies[] = "block_titlelink"
+dependencies[] = "menu_toolbar_coop"
+dependencies[] = "redirect"
+dependencies[] = "simplified_menu_admin"
+dependencies[] = "stringoverrides"
+dependencies[] = "token"
+dependencies[] = "page_title"
+dependencies[] = "googleanalytics"
+dependencies[] = "draggableviews"
+dependencies[] = "views"
+dependencies[] = "views_ui"
+dependencies[] = "filter_perms"
+dependencies[] = "module_filter"
+dependencies[] = "wysiwyg"
+dependencies[] = "debut_wysiwyg"
+dependencies[] = "elegant_backend"
+dependencies[] = "menu_block"
+dependencies[] = "twitter_pull"
+;dependencies[] = "superfish"
 
-; Panopoly - Contrib - Media
-dependencies[] = media
-dependencies[] = media_internet
-dependencies[] = mediafield
-dependencies[] = media_youtube
-dependencies[] = media_vimeo
+// Openpublic
+dependencies[] = "pathauto"
+;dependencies[] = "entitycache"
+dependencies[] = "colorbox"
+dependencies[] = "qtip"
+;dependencies[] = "defaultcontent"
 
-; Panopoly - Contrib - Menus and URLS
-dependencies[] = pathauto
-dependencies[] = menu_block
+// Reach CRM
+;dependencies[] = "redhen"
+;dependencies[] = "reach_crm"
+;dependencies[] = "reach_crm_redhen"
 
-; Panopoly - Contrib - User Experience
-dependencies[] = wysiwyg
-dependencies[] = wysiwyg_filter
-dependencies[] = caption_filter
-dependencies[] = image_resize_filter
-dependencies[] = date_popup_authored
-dependencies[] = admin
-dependencies[] = module_filter
-dependencies[] = views_bulk_operations
-dependencies[] = simplified_menu_admin
-dependencies[] = references_dialog
-dependencies[] = backports
+// Reach Core
+dependencies[] = "reach_config"
+;dependencies[] = "reach_administration"
+;dependencies[] = "reach_wysiwyg"
+;dependencies[] = "reach_media"
+;dependencies[] = "reach_webform"
+;dependencies[] = "reach_social"
+;dependencies[] = "reach_social_blocks"
+;dependencies[] = "reach_social_blocks_analytics"
+;dependencies[] = "block_everything"
 
-; Panopoly - Contrib - Search
-dependencies[] = facetapi
-dependencies[] = search_api
-dependencies[] = search_api_solr
-dependencies[] = search_api_facetapi
-dependencies[] = search_api_views
-dependencies[] = search_api_db
+// Reach Features
+;dependencies[] = "reach_action"
+;dependencies[] = "reach_page"
+;dependencies[] = "reach_slideshow"
+;dependencies[] = "reach_form"
+;dependencies[] = "reach_donation"
+;dependencies[] = "reach_mailing"
+;dependencies[] = "reach_mailing_analytics"
+;dependencies[] = "reach_blog"
+;dependencies[] = "reach_contact"
+;dependencies[] = "reach_event"
+;dependencies[] = "reach_splash"
+;dependencies[] = "reach_fundraiser"
+;dependencies[] = "reach_breaking_news"
 
-; Panopoly - Contrib - Products
-dependencies[] = apps
-dependencies[] = features
-dependencies[] = entity
-dependencies[] = uuid
-dependencies[] = defaultcontent
-dependencies[] = strongarm
-dependencies[] = libraries
-
-; Panopoly - Contrib - Development
-dependencies[] = devel
-dependencies[] = devel_generate
-
-; Panopoly - Contrib - Theme
-dependencies[] = conditional_styles
-dependencies[] = respondjs
-
-
-
-
-; **************************************
-; * Albatross-specific modules below
-; **************************************
-
-; Albatross - Contrib - Foundation
-dependencies[] = ds
-dependencies[] = redirect
-dependencies[] = stringoverrides
-dependencies[] = googleanalytics
-dependencies[] = entitycache
-
-; Albatross - Contrib - User Interface
-dependencies[] = admin_menu
-dependencies[] = admin_menu_toolbar
-dependencies[] = extlink
-dependencies[] = filter_perms
-dependencies[] = qtip
-;dependencies[] = reach_wysiwyg
-
-;dependencies[] = superfish
-
-; Albatross - Contrib - Field UI and Content Types
-dependencies[] = email
-dependencies[] = select_or_other
-
-; Albatross - Contrib - Views addons
-dependencies[] = views_load_more
-dependencies[] = draggableviews

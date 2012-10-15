@@ -113,7 +113,7 @@ function albatross_starter_install() {
 
   // Hack: Some modules don't get enabled even though they're in the profile .info file
   // TODO: Figure out a better way to enable modules in the profile
-  module_enable(array('superfish'));  //'reach_core',
+  module_enable(array('superfish'));
 
 
   cache_clear_all();

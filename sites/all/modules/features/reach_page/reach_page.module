@@ -1,8 +1,0 @@
-<?php
-/**
- * @file
- * Code for the Reach Page feature.
- */
-
-include_once('reach_page.features.inc');
-

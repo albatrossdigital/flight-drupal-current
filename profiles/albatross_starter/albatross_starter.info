@@ -81,15 +81,15 @@ dependencies[] = "qtip"
 ;dependencies[] = "reach_crm_redhen"
 
 // Reach Core
-dependencies[] = "reach_config"
 dependencies[] = "reach_wysiwyg"
 dependencies[] = "reach_media"
 dependencies[] = "reach_administration"
+dependencies[] = "block_everything"
+dependencies[] = "reach_config"
 ;dependencies[] = "reach_webform"
 ;dependencies[] = "reach_social"
 ;dependencies[] = "reach_social_blocks"
 ;dependencies[] = "reach_social_blocks_analytics"
-;dependencies[] = "block_everything"
 
 // Reach Features
 ;dependencies[] = "reach_action"

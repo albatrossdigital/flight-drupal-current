@@ -1,15 +1,4 @@
 <?php
-/**
- * @file
- * reach_config.features.inc
- */
 
-/**
- * Implements hook_ctools_plugin_api().
- */
-function reach_config_ctools_plugin_api() {
-  list($module, $api) = func_get_args();
-  if ($module == "bean_admin_ui" && $api == "bean") {
-    return array("version" => "5");
-  }
-}
+// This file is deprecated and can be removed.
+// Please remove include_once('reach_config.features.inc') in reach_config.module as well.

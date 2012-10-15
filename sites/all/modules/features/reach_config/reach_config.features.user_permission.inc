@@ -13,9 +13,7 @@ function reach_config_user_default_permissions() {
   // Exported permission: access administration pages.
   $permissions['access administration pages'] = array(
     'name' => 'access administration pages',
-    'roles' => array(
-      0 => 'administrator',
-    ),
+    'roles' => array(),
     'module' => 'system',
   );
 
@@ -24,7 +22,6 @@ function reach_config_user_default_permissions() {
     'name' => 'access content',
     'roles' => array(
       0 => 'anonymous user',
-      1 => 'authenticated user',
     ),
     'module' => 'node',
   );
@@ -32,12 +29,7 @@ function reach_config_user_default_permissions() {
   // Exported permission: access content overview.
   $permissions['access content overview'] = array(
     'name' => 'access content overview',
-    'roles' => array(
-      0 => 'administrator',
-      1 => 'blogger',
-      2 => 'contributor',
-      3 => 'editor',
-    ),
+    'roles' => array(),
     'module' => 'node',
   );
 
@@ -46,8 +38,6 @@ function reach_config_user_default_permissions() {
     'name' => 'access contextual links',
     'roles' => array(
       0 => 'administrator',
-      1 => 'contributor',
-      2 => 'editor',
     ),
     'module' => 'contextual',
   );
@@ -57,8 +47,6 @@ function reach_config_user_default_permissions() {
     'name' => 'access dashboard',
     'roles' => array(
       0 => 'administrator',
-      1 => 'contributor',
-      2 => 'editor',
     ),
     'module' => 'dashboard',
   );
@@ -77,9 +65,6 @@ function reach_config_user_default_permissions() {
     'name' => 'access overlay',
     'roles' => array(
       0 => 'administrator',
-      1 => 'blogger',
-      2 => 'contributor',
-      3 => 'editor',
     ),
     'module' => 'overlay',
   );
@@ -89,9 +74,6 @@ function reach_config_user_default_permissions() {
     'name' => 'access toolbar',
     'roles' => array(
       0 => 'administrator',
-      1 => 'blogger',
-      2 => 'contributor',
-      3 => 'editor',
     ),
     'module' => 'toolbar',
   );
@@ -152,16 +134,16 @@ function reach_config_user_default_permissions() {
   // Exported permission: administer taxonomy.
   $permissions['administer taxonomy'] = array(
     'name' => 'administer taxonomy',
-    'roles' => array(),
+    'roles' => array(
+      0 => 'administrator',
+    ),
     'module' => 'taxonomy',
   );
 
   // Exported permission: administer themes.
   $permissions['administer themes'] = array(
     'name' => 'administer themes',
-    'roles' => array(
-      0 => 'administrator',
-    ),
+    'roles' => array(),
     'module' => 'system',
   );
 
@@ -175,65 +157,29 @@ function reach_config_user_default_permissions() {
   // Exported permission: create url aliases.
   $permissions['create url aliases'] = array(
     'name' => 'create url aliases',
-    'roles' => array(
-      0 => 'administrator',
-    ),
+    'roles' => array(),
     'module' => 'path',
   );
 
   // Exported permission: customize shortcut links.
   $permissions['customize shortcut links'] = array(
     'name' => 'customize shortcut links',
-    'roles' => array(
-      0 => 'administrator',
-    ),
+    'roles' => array(),
     'module' => 'shortcut',
   );
 
   // Exported permission: delete revisions.
   $permissions['delete revisions'] = array(
     'name' => 'delete revisions',
-    'roles' => array(
-      0 => 'administrator',
-    ),
+    'roles' => array(),
     'module' => 'node',
-  );
-
-  // Exported permission: edit site follow links.
-  $permissions['edit site follow links'] = array(
-    'name' => 'edit site follow links',
-    'roles' => array(
-      0 => 'administrator',
-    ),
-    'module' => 'follow',
   );
 
   // Exported permission: revert revisions.
   $permissions['revert revisions'] = array(
     'name' => 'revert revisions',
-    'roles' => array(
-      0 => 'administrator',
-    ),
+    'roles' => array(),
     'module' => 'node',
-  );
-
-  // Exported permission: search content.
-  $permissions['search content'] = array(
-    'name' => 'search content',
-    'roles' => array(
-      0 => 'anonymous user',
-      1 => 'authenticated user',
-    ),
-    'module' => 'search',
-  );
-
-  // Exported permission: use advanced search.
-  $permissions['use advanced search'] = array(
-    'name' => 'use advanced search',
-    'roles' => array(
-      0 => 'administrator',
-    ),
-    'module' => 'search',
   );
 
   // Exported permission: view own unpublished content.
@@ -241,9 +187,6 @@ function reach_config_user_default_permissions() {
     'name' => 'view own unpublished content',
     'roles' => array(
       0 => 'administrator',
-      1 => 'blogger',
-      2 => 'contributor',
-      3 => 'editor',
     ),
     'module' => 'node',
   );
@@ -251,9 +194,7 @@ function reach_config_user_default_permissions() {
   // Exported permission: view revisions.
   $permissions['view revisions'] = array(
     'name' => 'view revisions',
-    'roles' => array(
-      0 => 'administrator',
-    ),
+    'roles' => array(),
     'module' => 'node',
   );
 
@@ -262,9 +203,6 @@ function reach_config_user_default_permissions() {
     'name' => 'view the administration theme',
     'roles' => array(
       0 => 'administrator',
-      1 => 'blogger',
-      2 => 'contributor',
-      3 => 'editor',
     ),
     'module' => 'system',
   );

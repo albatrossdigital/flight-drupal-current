@@ -13,50 +13,39 @@ function reach_media_user_default_permissions() {
   // Exported permission: add media from remote sources.
   $permissions['add media from remote sources'] = array(
     'name' => 'add media from remote sources',
-    'roles' => array(
-      0 => 'administrator',
-    ),
+    'roles' => array(),
     'module' => 'media_internet',
   );
 
-  // Exported permission: administer media.
-  $permissions['administer media'] = array(
-    'name' => 'administer media',
+  // Exported permission: administer files.
+  $permissions['administer files'] = array(
+    'name' => 'administer files',
     'roles' => array(),
-    'module' => 'media',
+    'module' => 'file_entity',
   );
 
-  // Exported permission: edit media.
-  $permissions['edit media'] = array(
-    'name' => 'edit media',
-    'roles' => array(
-      0 => 'administrator',
-      1 => 'contributor',
-      2 => 'editor',
-    ),
-    'module' => 'media',
+  // Exported permission: edit file.
+  $permissions['edit file'] = array(
+    'name' => 'edit file',
+    'roles' => array(),
+    'module' => 'file_entity',
   );
 
   // Exported permission: import media.
   $permissions['import media'] = array(
     'name' => 'import media',
-    'roles' => array(
-      0 => 'administrator',
-      1 => 'blogger',
-      2 => 'contributor',
-      3 => 'editor',
-    ),
+    'roles' => array(),
     'module' => 'media',
   );
 
-  // Exported permission: view media.
-  $permissions['view media'] = array(
-    'name' => 'view media',
+  // Exported permission: view file.
+  $permissions['view file'] = array(
+    'name' => 'view file',
     'roles' => array(
       0 => 'anonymous user',
       1 => 'authenticated user',
     ),
-    'module' => 'media',
+    'module' => 'file_entity',
   );
 
   return $permissions;

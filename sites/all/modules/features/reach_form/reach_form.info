@@ -10,6 +10,7 @@ dependencies[] = entityreference
 dependencies[] = features
 dependencies[] = improved_text_trim
 dependencies[] = media
+dependencies[] = mediafield
 dependencies[] = number
 dependencies[] = reach_webform
 dependencies[] = rules

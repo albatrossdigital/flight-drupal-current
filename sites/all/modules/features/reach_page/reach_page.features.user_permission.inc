@@ -14,9 +14,8 @@ function reach_page_user_default_permissions() {
   $permissions['create page content'] = array(
     'name' => 'create page content',
     'roles' => array(
-      0 => 'administrator',
-      1 => 'contributor',
-      2 => 'editor',
+      0 => 'contributor',
+      1 => 'editor',
     ),
     'module' => 'node',
   );
@@ -25,8 +24,7 @@ function reach_page_user_default_permissions() {
   $permissions['delete any page content'] = array(
     'name' => 'delete any page content',
     'roles' => array(
-      0 => 'administrator',
-      1 => 'editor',
+      0 => 'editor',
     ),
     'module' => 'node',
   );
@@ -44,8 +42,7 @@ function reach_page_user_default_permissions() {
   $permissions['edit any page content'] = array(
     'name' => 'edit any page content',
     'roles' => array(
-      0 => 'administrator',
-      1 => 'editor',
+      0 => 'editor',
     ),
     'module' => 'node',
   );

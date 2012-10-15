@@ -2,6 +2,7 @@ name = Reach Contact
 description = Extends reach form to add support for a location based contact page
 core = 7.x
 package = Reach
+php = 5.2.4
 dependencies[] = ds
 dependencies[] = reach_form
 dependencies[] = strongarm

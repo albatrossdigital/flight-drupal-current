@@ -14,8 +14,7 @@ function reach_form_user_default_permissions() {
   $permissions['create form content'] = array(
     'name' => 'create form content',
     'roles' => array(
-      0 => 'administrator',
-      1 => 'editor',
+      0 => 'editor',
     ),
     'module' => 'node',
   );
@@ -24,8 +23,7 @@ function reach_form_user_default_permissions() {
   $permissions['delete any form content'] = array(
     'name' => 'delete any form content',
     'roles' => array(
-      0 => 'administrator',
-      1 => 'editor',
+      0 => 'editor',
     ),
     'module' => 'node',
   );
@@ -41,8 +39,7 @@ function reach_form_user_default_permissions() {
   $permissions['edit any form content'] = array(
     'name' => 'edit any form content',
     'roles' => array(
-      0 => 'administrator',
-      1 => 'editor',
+      0 => 'editor',
     ),
     'module' => 'node',
   );

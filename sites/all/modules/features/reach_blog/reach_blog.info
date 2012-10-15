@@ -10,6 +10,7 @@ dependencies[] = ds
 dependencies[] = features
 dependencies[] = image
 dependencies[] = media
+dependencies[] = reach_form
 dependencies[] = reach_social_blocks
 dependencies[] = strongarm
 dependencies[] = taxonomy

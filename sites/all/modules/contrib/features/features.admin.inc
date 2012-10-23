@@ -1,7 +1,20 @@
 <?php
 
 /**
- * Form callback for features export form. Acts as a router based on the form_state.
+ * @file
+ * @todo.
+ */
+
+/**
+ * Form constructor for features export form.
+ *
+ * Acts as a router based on the form_state.
+ *
+ * @param object|null $feature
+ *   The feature object, if available. NULL by default.
+ *
+ * @see features_export_build_form_submit()
+ * @ingroup forms
  */
 function features_export_form($form, $form_state, $feature = NULL) {
   module_load_include('inc', 'features', 'features.export');
@@ -13,7 +26,13 @@ function features_export_form($form, $form_state, $feature = NULL) {
   );
   $form['info'] = array(
     '#type' => 'fieldset',
+    '#title' => t('General Information'),
     '#tree' => FALSE,
+    '#weight' => 2,
+    '#collapsible' => FALSE,
+    '#collapsed' => FALSE,
+    '#prefix' => "<div id='features-export-info'>",
+    '#suffix' => '</div>',
   );
   $form['info']['name'] = array(
     '#title' => t('Name'),
@@ -60,44 +79,243 @@ function features_export_form($form, $form_state, $feature = NULL) {
     '#size' => 30,
     '#element_validate' => array('features_export_form_validate_field'),
   );
-  $form['info']['project_status_url'] = array(
+  $form['advanced'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Advanced Options'),
+    '#tree' => FALSE,
+    '#collapsible' => TRUE,
+    '#collapsed' => TRUE,
+    '#weight' => 10,
+    '#prefix' => "<div id='features-export-advanced'>",
+    '#suffix' => '</div>',
+  );
+  $form['advanced']['project_status_url'] = array(
     '#title' => t('URL of update XML'),
-    '#description' => t('Example: http://mywebsite.com/fserver'),
+    '#description' => t('URL of Feature Server.  For Example: http://mywebsite.com/fserver'),
     '#type' => 'textfield',
     '#required' => FALSE,
     '#default_value' => !empty($feature->info['project status url']) ? $feature->info['project status url'] : '',
-    '#size' => 30,
     '#element_validate' => array('features_export_form_validate_field'),
   );
 
-  // User-selected feature source components.
-  $components = features_get_components();
-  uasort($components, 'features_compare_component_name');
+  // build the Component Listing panel on the right
+  _features_export_form_components($form, $form_state);
+
+  $form['buttons'] = array(
+    '#theme' => 'features_form_buttons',
+    '#tree' => FALSE,
+    '#weight' => 99,
+    '#prefix' => "<div id='features-export-buttons'>",
+    '#suffix' => '</div>',
+  );
+  $form['buttons']['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Download feature'),
+    '#weight' => 10,
+    '#submit' => array('features_export_build_form_submit'),
+  );
+
+  return $form;
+}
+
+/**
+ * Return the render array elements for the Components selection on the Export form
+ * @param  array $feature    - feature associative array
+ * @param  array $components - array of components in feature
+ */
+function _features_export_form_components(&$form, &$form_state) {
+  drupal_add_css(drupal_get_path('module', 'features') . '/features.css');
+  drupal_add_js(drupal_get_path('module', 'features') . '/features.js');
+
+  $feature = $form['#feature'];
 
   $form['export'] = array(
     '#type' => 'fieldset',
+    '#title' => t('Components'),
+    '#description' => t('Expand each component section and select which items should be included in this feature export.'),
     '#tree' => FALSE,
-    '#theme' => 'features_form_export',
+    '#prefix' => "<div id='features-export-wrapper'>",
+    '#suffix' => '</div>',
+    '#collapsible' => FALSE,
+    '#collapsed' => FALSE,
+    '#weight' => 1,
   );
-  $form['export']['components'] = array(
-    '#title' => t('Edit components'),
-    '#type' => 'select',
-    '#options' => array('------'),
-    '#attributes' => array('class' => array('features-select-components')),
+
+  // filter field used in javascript, so javascript will unhide it
+  $form['export']['features_filter'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Filter'),
+    '#default_value' => '',
+    '#hidden' => TRUE,
+    '#prefix' => "<div id='features-filter' class='element-invisible'>",
+    '#suffix' => "<span class='features-filter-clear'>" . t('Clear') .
+      " </span></div>",
   );
-  $form['export']['sources'] = array(
-    '#tree' => TRUE,
-    '#theme' => 'features_form_components',
+
+  // this refresh button will rebuild the form.
+  // this button is hidden by javascript since it is only needed when
+  // javascript is not available
+  $form['export']['features_refresh'] = array(
+    '#type' => 'submit',
+    '#value' => t('Refresh'),
+    '#name' => 'features-refresh',
+    '#attributes' => array(
+      'title' => t("Refresh the list of auto-detected items."),
+      'class' => array('features-refresh-button'),
+    ),
+    '#weight' => -1,
+    '#submit' => array('features_export_form_rebuild'),
+    '#prefix' => "<div class='features-refresh-wrapper'>",
+    '#suffix' => "</div>",
+    '#ajax' => array(
+      'callback' => 'features_export_form_ajax',
+      'wrapper' => 'features-export-wrapper',
+      'event' => 'refresh_components',
+    ),
   );
+  // generate the export array for the current feature and user selections
+  $export = _features_export_build($feature, $form_state);
+
+  $sections = array('included', 'detected', 'added');
+  foreach ($export['components'] as $component => $component_info) {
+    $label = (isset($component_info['name']) ?
+      $component_info['name'] . " <span>(" . check_plain($component) . ")</span>" : check_plain($component));
+
+    $count = 0;
+    foreach ($sections as $section) {
+      $count += count($component_info['options'][$section]);
+    }
+    $extra_class = ($count == 0) ? 'features-export-empty' : '';
+    $component_name = str_replace('_', '-', check_plain($component));
+
+    if ($count + count($component_info['options']['sources']) > 0) {
+
+      $form['export'][$component] = array(
+        '#markup' => '',
+        '#tree' => TRUE,
+        );
+      $form['export'][$component]['sources'] = array(
+        '#type' => 'fieldset',
+        '#title' => $label,
+        '#tree' => TRUE,
+        '#collapsible' => TRUE,
+        '#collapsed' => TRUE,
+        '#attributes' => array('class' => array('features-export-component')),
+        '#prefix' => "<div class='features-export-parent component-$component'>",
+      );
+
+      $form['export'][$component]['sources']['selected'] = array(
+        '#type' => 'checkboxes',
+        '#id' => "edit-sources-$component_name",
+        '#options' => features_dom_encode_options($component_info['options']['sources']),
+        '#default_value' => features_dom_encode_options($component_info['selected']['sources'], FALSE),
+        '#attributes' => array(
+          'class' => array('component-select'),
+        ),
+      );
+
+      foreach ($sections as $section) {
+        $form['export'][$component][$section] = array(
+          '#type' => 'checkboxes',
+          '#options' => !empty($component_info['options'][$section]) ?
+            features_dom_encode_options($component_info['options'][$section]) : array(),
+          '#default_value' => !empty($component_info['selected'][$section]) ?
+            features_dom_encode_options($component_info['selected'][$section], FALSE) : array(),
+          '#attributes' => array('class' => array('component-' . $section)),
+        );
+      }
+      $form['export'][$component][$sections[0]]['#prefix'] =
+        "<div class='component-list features-export-list $extra_class'>";
+      $form['export'][$component][$sections[count($sections)-1]]['#suffix'] = '</div></div>';
+    }
+  }
+}
+
+/**
+ * Return the full feature export array based upon user selections in form_state
+ * @param  array $feature    Feature array to be exported
+ * @param  array $form_state Optional form_state information for user selections
+ *   can be updated to reflect new selection status
+ * @return array             New export array to be exported
+ *   array['components'][$component_name] = $component_info
+ *     $component_info['options'][$section] is list of available options
+ *     $component_info['selected'][$section] is option state TRUE/FALSE
+ *   $section = array('sources', included', 'detected', 'added')
+ *     sources - options that are available to be added to the feature
+ *     included - options that have been previously exported to the feature
+ *     detected - options that have been auto-detected
+ *     added - newly added options to the feature
+ *
+ * NOTE: This routine gets a bit complex to handle all of the different possible
+ * user checkbox selections and de-selections.
+ * Cases to test:
+ *   1a) uncheck Included item -> mark as Added but unchecked
+ *   1b) re-check unchecked Added item -> return it to Included check item
+ *   2a) check Sources item -> mark as Added and checked
+ *   2b) uncheck Added item -> return it to Sources as unchecked
+ *   3a) uncheck Included item that still exists as auto-detect -> mark as Detected but unchecked
+ *   3b) re-check Detected item -> return it to Included and checked
+ *   4a) check Sources item should also add any auto-detect items as Detected and checked
+ *   4b) uncheck Sources item with auto-detect and auto-detect items should return to Sources and unchecked
+ *   5a) uncheck a Detected item -> refreshing page should keep it as unchecked Detected
+ *   6)  when nothing changes, refresh should not change any state
+ *   7)  should never see an unchecked Included item
+ */
+function _features_export_build($feature, &$form_state) {
+  module_load_include('inc', 'features', 'features.export');
+  features_include();
+
+  $components = features_get_components();
+  uasort($components, 'features_compare_component_name');
+
+  // Assemble the combined component list
+  $stub = array();
+  $sections = array('sources', 'included', 'detected', 'added');
+
+  // create a new feature "stub" to populate
   foreach ($components as $component => $component_info) {
+    // User-selected components take precedence.
+    $stub[$component] = array();
+    // add selected items from Sources checkboxes
+    if (!empty($form_state['values'][$component]['sources']['selected'])) {
+      $stub[$component] = array_merge($stub[$component], features_dom_decode_options(array_filter($form_state['values'][$component]['sources']['selected'])));
+    }
+    // add selected items from already Included and newly Added checkboxes
+    foreach (array('included', 'added') as $section) {
+      if (!empty($form_state['values'][$component][$section])) {
+        $stub[$component] = array_merge($stub[$component], features_dom_decode_options(array_filter($form_state['values'][$component][$section])));
+      }
+    }
+    // Only fallback to an existing feature's values if there are no export options for the component.
+    if (empty($stub[$component]) && !empty($feature->info['features'][$component])) {
+      $stub[$component] = $feature->info['features'][$component];
+    }
+  }
+  // Generate new populated feature
+  $feature_name = isset($feature->name) ? $feature->name : NULL;
+  $export = features_populate(array('features' => $stub, 'dependencies' => $stub['dependencies']), $feature_name);
+
+  // Components that are already exported to feature
+  $exported_features_info = !empty($feature->info['features']) ? $feature->info['features'] : array();
+  $exported_features_info['dependencies'] = !empty($feature->info['dependencies']) ? $feature->info['dependencies'] : array();
+  // Components that should be exported
+  $new_features_info = !empty($export['features']) ? $export['features'] : array();
+  $new_features_info['dependencies'] = !empty($export['dependencies']) ? $export['dependencies'] : array();
+  $excluded = !empty($feature->info['features_exclude']) ? $feature->info['features_exclude'] : array();
+
+  // now fill the $export with categorized sections of component options
+  // based upon user selections and de-selections
+  foreach ($components as $component => $component_info) {
+    $component_export = $component_info;
+    foreach ($sections as $section) {
+      $component_export['options'][$section] = array();
+      $component_export['selected'][$section] = array();
+    }
     $options = features_invoke($component, 'features_export_options');
-    if ($component === 'dependencies') {
-      $default_value = !empty($feature->info['dependencies']) ? $feature->info['dependencies'] : array();
-    }
-    else {
-      $default_value = !empty($feature->info['features'][$component]) ? $feature->info['features'][$component] : array();
-    }
-    if ($options) {
+    if (!empty($options)) {
+      $exported_components = !empty($exported_features_info[$component]) ? $exported_features_info[$component] : array();
+      $new_components = !empty($new_features_info[$component]) ? $new_features_info[$component] : array();
+
       // Find all default components that are not provided by this feature and
       // strip them out of the possible options.
       if ($map = features_get_default_map($component)) {
@@ -107,52 +325,158 @@ function features_export_form($form, $form_state, $feature = NULL) {
           }
         }
       }
-      // Ensure all options are stripped of potentially bad values.
-      foreach ($options as $k => $v) {
-        $options[$k] = check_plain($v);
-      }
-      $label = (isset($component_info['name']) ? $component_info['name'] . ": " . $component : $component);
-      $form['export']['components']['#options'][$component] = $label;
-      if (!empty($options)) {
-        $form['export']['sources'][$component] = array(
-          '#type' => 'checkboxes',
-          '#options' => features_dom_encode_options($options),
-          '#title' => $component,
-          '#default_value' => features_dom_encode_options($default_value, FALSE),
-          '#ajax' => array(
-            'callback' => 'features_export_build_form_populate',
-            'wrapper' => 'features-export-contents',
-          ),
-        );
-      }
-      else {
-        $form['export']['sources'][$component] = array(
-          '#type' => 'item',
-          '#title' => $component,
-          '#value' => t('All components of this type are exported by other features or modules.'),
-        );
+      foreach ($options as $key => $value) {
+        // if checkbox in Sources is checked, move it to Added section
+        if (!empty($form_state['values'][$component]['sources']['selected'][$key])) {
+          unset($form_state['input'][$component]['sources']['selected'][$key]);
+          $form_state['values'][$component]['sources']['selected'][$key] = FALSE;
+          $form_state['values'][$component]['added'][$key] = 1;
+          $form_state['input'][$component]['added'][$key] = features_dom_encode($key);
+          $component_export['options']['added'][$key] = check_plain($value);
+          $component_export['selected']['added'][$key] = $key;
+        }
+        elseif (in_array($key, $new_components)) {
+          // option is in the New exported array
+          if (in_array($key, $exported_components)) {
+            // option was already previously exported
+            // so it's part of the Included checkboxes
+            $section = 'included';
+            $default_value = $key;
+            // unless Included item was un-selected (removed from export $stub)
+            // but was re-detected in the $new_components
+            // means it was an auto-detect that was previously part of the export
+            // and is now de-selected in UI
+            if (!empty($form_state['values']) &&
+                (isset($form_state['values'][$component]['included'][$key]) ||
+                 empty($form_state['values'][$component]['detected'][$key])) &&
+                empty($stub[$component][$key])) {
+              $section = 'detected';
+              $default_value = FALSE;
+
+            }
+            // unless it's unchecked in the form, then move it to Newly disabled item
+            elseif (!empty($form_state['values']) &&
+                empty($form_state['values'][$component]['added'][$key]) &&
+                empty($form_state['values'][$component]['detected'][$key]) &&
+                empty($form_state['values'][$component]['included'][$key])) {
+              $section = 'added';
+              $default_value = FALSE;
+            }
+          }
+          else {
+            // option was in New exported array, but NOT in already exported
+            // so it's an auto-detect item
+            $section = 'detected';
+            if (isset($excluded[$component][$key]) && !isset($form_state['values'][$component]['detected'][$key])) {
+              $default_value = FALSE;
+            }
+            else {
+              $default_value = $key;
+            }
+            // if it's already checked in Added or Sources, leave it in Added as checked
+            if (!empty($form_state['values']) &&
+              (!empty($form_state['values'][$component]['added'][$key]) ||
+               !empty($form_state['values'][$component]['sources']['selected'][$key]))) {
+              $section = 'added';
+              $default_value = $key;
+            }
+            // if it's already been unchecked, leave it unchecked
+            elseif (!empty($form_state['values']) &&
+              !isset($form_state['values'][$component]['sources']['selected'][$key]) &&
+              empty($form_state['values'][$component]['detected'][$key]) &&
+              !isset($form_state['values'][$component]['added'][$key])) {
+              $section = 'detected';
+              $default_value = FALSE;
+            }
+          }
+          $component_export['options'][$section][$key] = check_plain($value);
+          $component_export['selected'][$section][$key] = $default_value;
+          // save which items are specifically excluded from auto-detection
+          if (($section == 'detected') && ($default_value === FALSE)) {
+            $excluded[$component][$key] = $key;
+          }
+          else {
+            unset($excluded[$component][$key]);
+          }
+          // remove the 'input' and set the 'values' so Drupal stops looking at 'input'
+          if (isset($form_state['values'])) {
+            if (!$default_value) {
+              unset($form_state['input'][$component][$section][$key]);
+              $form_state['values'][$component][$section][$key] = FALSE;
+            }
+            else {
+              $form_state['input'][$component][$section][$key] = features_dom_encode($key);
+              $form_state['values'][$component][$section][$key] = 1;
+            }
+          }
+        }
+        else {
+          // option was not part of the new export
+          $added = FALSE;
+          foreach (array('included', 'added') as $section) {
+            // restore any user-selected checkboxes
+            if (!empty($form_state['values'][$component][$section][$key])) {
+              $component_export['options'][$section][$key] = check_plain($value);
+              $component_export['selected'][$section][$key] = $key;
+              $added = TRUE;
+            }
+          }
+          if (!$added) {
+            // if not Included or Added, then put it back in the unchecked Sources checkboxes
+            $component_export['options']['sources'][$key] = check_plain($value);
+            $component_export['selected']['sources'][$key] = FALSE;
+          }
+        }
       }
     }
+    $export['components'][$component] = $component_export;
+    $export['features_exclude'] = $excluded;
   }
-  $form['export']['features'] = array(
-    '#tree' => TRUE,
-    '#prefix' => "<div id='features-export-populated'><div id='features-export-contents'>",
-    '#suffix' => "</div></div>",
-    '#markup' => !empty($feature->info) ? theme('features_components', array('info' => $feature->info, 'sources' => $feature->info['features'])) : "<div class='placeholder'></div>",
-  );
-
-  $form['buttons'] = array('#theme' => 'features_form_buttons', '#tree' => FALSE);
-  $form['buttons']['submit'] = array(
-    '#type' => 'submit',
-    '#value' => t('Download feature'),
-    '#weight' => 10,
-    '#submit' => array('features_export_build_form_submit'),
-  );
-  return $form;
+  return $export;
 }
 
 /**
- * Validation for project field.
+ * AJAX callback for features_export_form.
+ */
+function features_export_form_ajax($form, &$form_state) {
+  return $form['export'];
+}
+
+/**
+ * Tells the ajax form submission to rebuild form state.
+ */
+function features_export_form_rebuild($form, &$form_state) {
+  $form_state['rebuild'] = TRUE;
+}
+
+function features_export_components_json($feature_name) {
+  module_load_include('inc', 'features', 'features.export');
+  $export = array();
+  if (!empty($_POST['items'])) {
+    $stub = array();
+    foreach ($_POST['items'] as $key) {
+      preg_match('/^([^\[]+)(\[.+\])?\[(.+)\]\[(.+)\]$/', $key, $matches);
+      if (!empty($matches[1]) && !empty($matches[4])) {
+        $component = $matches[1];
+        $item = $matches[4];
+        if (empty($stub[$component])) {
+          $stub[$component] = array($item);
+        }
+        else {
+          $stub[$component] = array_merge($stub[$component], array($item));
+        }
+      }
+    }
+    $export = features_populate(array('features' => $stub, 'dependencies' => $stub['dependencies']), $feature_name);
+    $export['features']['dependencies'] = $export['dependencies'];
+  }
+  print drupal_json_encode($export['features']);
+}
+/**
+ * Render API callback: Validates a project field.
+ *
+ * This function is assigned as an #element_validate callback in
+ * features_export_form().
  */
 function features_export_form_validate_field($element, &$form_state) {
   switch ($element['#name']) {
@@ -174,37 +498,21 @@ function features_export_form_validate_field($element, &$form_state) {
     case 'version':
       preg_match('/^(?P<core>\d+\.x)-(?P<major>\d+)\.(?P<patch>\d+)-?(?P<extra>\w+)?$/', $element['#value'], $matches);
       if (!empty($element['#value']) && !isset($matches['core'], $matches['major'])) {
-        form_error($element, t('Please enter a valid version with core and major version number. Example: !example', array('!example' => '6.x-1.0')));
+        form_error($element, t('Please enter a valid version with core and major version number. Example: @example', array('@example' => '7.x-1.0')));
       };
       break;
   }
 }
 
 /**
- * Submit handler for features_export_form_build().
+ * Form submission handler for features_export_form().
  */
 function features_export_build_form_submit($form, &$form_state) {
-  module_load_include('inc', 'features', 'features.export');
-  features_include();
+  // generate the selected export
+  $export = _features_export_build($form['#feature'], $form_state);
+  unset($export['components']); // remove the UI data that we are not saving to disk
 
-  // Assemble the combined component list
-  $stub = array();
-  $components = array_keys(features_get_components());
-  foreach ($components as $component) {
-    // User-selected components take precedence.
-    if (!empty($form_state['values']['sources'][$component])) {
-      $stub[$component] = features_dom_decode_options(array_filter($form_state['values']['sources'][$component]));
-    }
-    // Only fallback to an existing feature's values if there are no export options for the component.
-    else if (!empty($form['#feature']->info['features'][$component])) {
-      $stub[$component] = $form['#feature']->info['features'][$component];
-    }
-  }
-
-  // Generate populated feature
   $module_name = $form_state['values']['module_name'];
-  $export = features_populate($stub, $form_state['values']['sources']['dependencies'], $module_name);
-
   // Directly copy the following attributes
   $attr = array('name', 'description', 'package');
   foreach ($attr as $key) {
@@ -265,53 +573,6 @@ function features_export_build_form_submit($form, &$form_state) {
 }
 
 /**
- * AHAH handler for features_export_form_build().
- */
-function features_export_build_form_populate($form, $form_state) {
-  module_load_include('inc', 'features', 'features.export');
-  features_include();
-  $stub = array();
-  $submitted = $form_state['values'];
-
-  // Assemble the combined component list
-  $components = array_keys(features_get_components());
-  foreach ($components as $component) {
-    // User-selected components take precedence.
-    if (!empty($submitted['sources'][$component])) {
-      // Validate and set the default value for each selected option. This
-      foreach ($submitted['sources'][$component] as $key => $value) {
-        if (isset($form['export']['sources'][$component]['#options'][$key])) {
-          $form['export']['sources'][$component]['#default_value'][$key] = $value;
-        }
-      }
-      $stub[$component] = features_dom_decode_options(array_filter($submitted['sources'][$component]));
-    }
-    // Only fallback to an existing feature's values if there are no export options for the component.
-    else if (!empty($form['export']['sources'][$component]) && !empty($form['#feature']->info['features'][$component])) {
-      $stub[$component] = $form['#feature']->info['features'][$component];
-    }
-  }
-
-  // Assemble dependencies
-  $dependencies = isset($submitted['sources']['dependencies']) ? $submitted['sources']['dependencies'] : array();
-
-  // Generate populated feature
-  $module_name = isset($form['#feature'], $form['#feature']->name) ? $form['#feature']->name : '';
-  $export = features_populate($stub, $dependencies, $module_name);
-
-  // Render component display
-  $components_rendered = theme('features_components', array('info' => $export, 'sources' => $stub));
-  $form['export']['features']['#markup'] = $components_rendered;
-
-  // @TODO: Reimplement this for D7.
-  // Re-cache form. This ensures that if the form fails to validate, selected
-  // values are preserved for the user.
-  // form_set_cache($submitted['form_build_id'], $form, $form_state);
-
-  return $form['export']['features'];
-}
-
-/**
  * array_filter() callback for excluding hidden modules.
  */
 function features_filter_hidden($module) {
@@ -319,7 +580,7 @@ function features_filter_hidden($module) {
 }
 
 /**
- * admin/build/features page callback.
+ * Form constructor for the features configuration form.
  */
 function features_admin_form($form, $form_state) {
   // Load export functions to use in comparison.
@@ -332,7 +593,7 @@ function features_admin_form($form, $form_state) {
   $modules = array_filter(features_get_modules(), 'features_filter_hidden');
   $features = array_filter(features_get_features(), 'features_filter_hidden');
   $conflicts = features_get_conflicts();
-    
+
   foreach ($modules as $key => $module) {
     if ($module->status && !empty($module->info['dependencies'])) {
       foreach ($module->info['dependencies'] as $dependent) {
@@ -346,7 +607,7 @@ function features_admin_form($form, $form_state) {
   if ( empty($features) ) {
     $form['no_features'] = array(
       '#markup' => t('No Features were found. Please use the !create_link link to create
-      a new Feature module, or upload an existing Feature to your modules directory.', 
+      a new Feature module, or upload an existing Feature to your modules directory.',
       array('!create_link' => l(t('Create Feature'), 'admin/structure/features/create'))),
     );
     return $form ;
@@ -364,7 +625,7 @@ function features_admin_form($form, $form_state) {
     if (!isset($form[$package])) {
       $form[$package] = array(
         '#tree' => FALSE,
-        '#title' => $package_title,
+        '#title' => check_plain($package_title),
         '#theme' => 'features_form_package',
         '#type' => 'fieldset',
         '#group' => 'packages',
@@ -389,14 +650,14 @@ function features_admin_form($form, $form_state) {
         }
       }
       if (!empty($unmet_dependencies)) {
-        $description .= "<div class='dependencies'>" . t('Unmet dependencies: !dependencies', array('!dependencies' => implode(', ', $unmet_dependencies))) . "</div>";
+        $description .= "<div class='dependencies'>" . t('Unmet dependencies: @dependencies', array('@dependencies' => implode(', ', $unmet_dependencies))) . "</div>";
         $disabled = TRUE;
       }
     }
 
     if (!empty($module->dependents)) {
       $disabled = TRUE;
-      $description .= "<div class='requirements'>". t('Required by: !dependents', array('!dependents' => implode(', ', $module->dependents))) ."</div>";
+      $description .= "<div class='requirements'>". t('Required by: @dependents', array('@dependents' => implode(', ', $module->dependents))) ."</div>";
     }
 
     // Detect potential conflicts
@@ -413,7 +674,7 @@ function features_admin_form($form, $form_state) {
           $disabled = TRUE;
         }
       }
-      $description .= "<div class='conflicts'>". t('Conflicts with: !conflicts', array('!conflicts' => implode(', ', $module_conflicts))) ."</div>";
+      $description .= "<div class='conflicts'>". t('Conflicts with: @conflicts', array('@conflicts' => implode(', ', $module_conflicts))) ."</div>";
     }
 
     $href = "admin/structure/features/{$name}";
@@ -421,7 +682,7 @@ function features_admin_form($form, $form_state) {
     $form[$package]['status'][$name] = array(
       '#type' => 'checkbox',
       '#title' => $module_name,
-      '#description' => $description,
+      '#description' => check_plain($description),
       '#default_value' => $module->status,
       '#disabled' => $disabled,
     );
@@ -523,7 +784,7 @@ function features_admin_components($form, $form_state, $feature) {
   $form['#conflicts'] = $conflicts;
 
   $review = $revert = FALSE;
-    
+
   // Iterate over components and retrieve status for display
   $states = features_get_component_states(array($feature->name), FALSE);
   $form['revert']['#tree'] = TRUE;
@@ -543,13 +804,14 @@ function features_admin_components($form, $form_state, $feature) {
       );
     }
     if (module_exists('diff')) {
-      $item = menu_get_item("admin/structure/features/{$feature->name}/diff/{$component}");
-      $path = ($item && $item['access']) ? $item['href'] : NULL;
+      $diffpath = "admin/structure/features/{$feature->name}/diff/{$component}";
+      $item = menu_get_item($diffpath);
+      $path = ($item && $item['access']) ? $diffpath : NULL;
     }
     else {
       $path = NULL;
     }
-      
+
     $storage = FEATURES_DEFAULT;
     if (array_key_exists($component, $states[$feature->name])) {
       $storage = $states[$feature->name][$component];
@@ -592,7 +854,7 @@ function features_admin_components_revert(&$form, &$form_state) {
   $revert = array();
   foreach (array_filter($form_state['values']['revert']) as $component => $status) {
     $revert[$module][] = $component;
-    drupal_set_message(t('Reverted all <strong>!component</strong> components for <strong>!module</strong>.', array('!component' => $component, '!module' => $module)));
+    drupal_set_message(t('Reverted all <strong>@component</strong> components for <strong>@module</strong>.', array('@component' => $component, '@module' => $module)));
   }
   features_revert($revert);
   $form_state['redirect'] = 'admin/structure/features/' . $module;
@@ -608,7 +870,7 @@ function features_admin_components_review(&$form, &$form_state) {
   $revert = array();
   foreach (array_filter($form_state['values']['revert']) as $component => $status) {
     features_set_signature($module, $component);
-    drupal_set_message(t('All <strong>!component</strong> components for <strong>!module</strong> reviewed.', array('!component' => $component, '!module' => $module)));
+    drupal_set_message(t('All <strong>@component</strong> components for <strong>@module</strong> reviewed.', array('@component' => $component, '@module' => $module)));
   }
   $form_state['redirect'] = 'admin/structure/features/' . $module;
 }
@@ -624,12 +886,12 @@ function features_form_validate(&$form, &$form_state) {
       if (!empty($conflicts[$module])) {
         foreach (array_keys($conflicts[$module]) as $conflict) {
           if (!empty($form_state['values']['status'][$conflict])) {
-            form_set_error('status', t('The feature !module cannot be enabled because it conflicts with !conflict.', array('!module' => $module, '!conflict' => $conflict)));
+            form_set_error('status', t('The feature @module cannot be enabled because it conflicts with @conflict.', array('@module' => $module, '@conflict' => $conflict)));
           }
         }
       }
       if (!drupal_check_module($module)) {
-        form_set_error('status', t('The feature !module cannot be enabled because it has unmet requirements.', array('!module' => $module, '!conflict' => $conflict)));
+        form_set_error('status', t('The feature @module cannot be enabled because it has unmet requirements.', array('@module' => $module)));
       }
     }
   }
@@ -759,9 +1021,11 @@ function features_cleanup_form_ignore(&$form, &$form_state) {
  * @param $feature
  *   A loaded feature object to display differences for.
  * @param $component
- *   Optional: specific component to display differences for. If excluded, all components are used.
+ *   (optional) Specific component to display differences for. If excluded, all
+ *   components are used.
  *
- * @return Themed display of what is different.
+ * @return
+ *   Themed display of what is different.
  */
 function features_feature_diff($feature, $component = NULL) {
   drupal_add_css(drupal_get_path('module', 'features') . '/features.css');
@@ -778,7 +1042,7 @@ function features_feature_diff($feature, $component = NULL) {
 
     module_load_include('inc', 'diff', 'diff.engine');
     $formatter = new DrupalDiffFormatter();
-    
+
     $rows = array();
     foreach ($overrides as $component => $items) {
       $rows[] = array(array('data' => $component, 'colspan' => 4, 'header' => TRUE));
@@ -806,7 +1070,7 @@ function features_compare_component_name($a, $b) {
 }
 
 /**
- * Javascript call back that returns the status of a feature.
+ * Javascript callback that returns the status of a feature.
  */
 function features_feature_status($feature) {
   module_load_include('inc', 'features', 'features.export');
@@ -825,6 +1089,11 @@ function features_dom_encode_options($options = array(), $keys_only = TRUE) {
     $encoded[strtr($key, $replacements)] = $keys_only ? $value : strtr($value, $replacements);
   }
   return $encoded;
+}
+
+function features_dom_encode($key) {
+  $replacements = features_dom_encode_map();
+  return strtr($key, $replacements);
 }
 
 /**

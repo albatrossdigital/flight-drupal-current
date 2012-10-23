@@ -14,9 +14,8 @@ function reach_blog_user_default_permissions() {
   $permissions['create blog content'] = array(
     'name' => 'create blog content',
     'roles' => array(
-      0 => 'administrator',
-      1 => 'contributor',
-      2 => 'editor',
+      0 => 'contributor',
+      1 => 'editor',
     ),
     'module' => 'node',
   );
@@ -25,8 +24,7 @@ function reach_blog_user_default_permissions() {
   $permissions['delete any blog content'] = array(
     'name' => 'delete any blog content',
     'roles' => array(
-      0 => 'administrator',
-      1 => 'editor',
+      0 => 'editor',
     ),
     'module' => 'node',
   );
@@ -44,8 +42,7 @@ function reach_blog_user_default_permissions() {
   $permissions['edit any blog content'] = array(
     'name' => 'edit any blog content',
     'roles' => array(
-      0 => 'administrator',
-      1 => 'editor',
+      0 => 'editor',
     ),
     'module' => 'node',
   );

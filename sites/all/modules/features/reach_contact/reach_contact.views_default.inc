@@ -33,26 +33,24 @@ function reach_contact_views_default_views() {
   $handler->display->display_options['style_plugin'] = 'default';
   $handler->display->display_options['row_plugin'] = 'entity';
   $handler->display->display_options['row_options']['view_mode'] = 'address_and_location';
-  /* Header: Global: Link */
+  /* Header: Broken/missing handler */
   $handler->display->display_options['header']['link']['id'] = 'link';
   $handler->display->display_options['header']['link']['table'] = 'views';
   $handler->display->display_options['header']['link']['field'] = 'link';
   $handler->display->display_options['header']['link']['label'] = 'Add more locations';
   $handler->display->display_options['header']['link']['empty'] = FALSE;
-  $handler->display->display_options['header']['link']['text'] = '+ Add new location';
-  $handler->display->display_options['header']['link']['path'] = 'party/add/organisation';
-  /* Field: Party: Party ID */
+  /* Field: Broken/missing handler */
   $handler->display->display_options['fields']['pid']['id'] = 'pid';
   $handler->display->display_options['fields']['pid']['table'] = 'party';
   $handler->display->display_options['fields']['pid']['field'] = 'pid';
-  /* Filter criterion: Party: Type */
+  /* Filter criterion: Broken/missing handler */
   $handler->display->display_options['filters']['type']['id'] = 'type';
   $handler->display->display_options['filters']['type']['table'] = 'party';
   $handler->display->display_options['filters']['type']['field'] = 'type';
   $handler->display->display_options['filters']['type']['value'] = array(
     'organisation' => 'organisation',
   );
-  /* Filter criterion: Party: Site Organization (field_site_organisation) */
+  /* Filter criterion: Broken/missing handler */
   $handler->display->display_options['filters']['field_site_organisation_value']['id'] = 'field_site_organisation_value';
   $handler->display->display_options['filters']['field_site_organisation_value']['table'] = 'field_data_field_site_organisation';
   $handler->display->display_options['filters']['field_site_organisation_value']['field'] = 'field_site_organisation_value';

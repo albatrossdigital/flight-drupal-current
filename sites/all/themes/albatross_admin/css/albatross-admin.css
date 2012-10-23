@@ -115,14 +115,14 @@ ul.tabs.primary li a:visited,
   #overlay-tabs li a:visited:hover {
     background-color: #ebebeb;
     color: black; }
-    /* line 102, ../sass/albatross-admin.sass */
-    ul.tabs.primary li a:hover.active,
-    ul.tabs.primary li a:hover:hover.active,
-    ul.tabs.primary li a:visited:hover.active,
-    #overlay-tabs li a:hover.active,
-    #overlay-tabs li a:hover:hover.active,
-    #overlay-tabs li a:visited:hover.active {
-      background-color: white !important; }
+  /* line 102, ../sass/albatross-admin.sass */
+  ul.tabs.primary li a.active,
+  ul.tabs.primary li a:hover.active,
+  ul.tabs.primary li a:visited.active,
+  #overlay-tabs li a.active,
+  #overlay-tabs li a:hover.active,
+  #overlay-tabs li a:visited.active {
+    background-color: white !important; }
 
 /* Page */
 /* line 106, ../sass/albatross-admin.sass */

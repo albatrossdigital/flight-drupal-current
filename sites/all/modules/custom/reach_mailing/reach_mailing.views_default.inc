@@ -72,7 +72,7 @@ function reach_mailing_views_default_views() {
   $handler->display->display_options['style_options']['override'] = 1;
   $handler->display->display_options['style_options']['sticky'] = 0;
   $handler->display->display_options['style_options']['empty_table'] = 0;
-  /* Header: Global: Link */
+  /* Header: Broken/missing handler */
   $handler->display->display_options['header']['link']['id'] = 'link';
   $handler->display->display_options['header']['link']['table'] = 'views';
   $handler->display->display_options['header']['link']['field'] = 'link';

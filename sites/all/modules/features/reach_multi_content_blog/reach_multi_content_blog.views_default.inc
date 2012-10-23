@@ -258,7 +258,7 @@ function reach_multi_content_blog_views_default_views() {
   /* Display: Tag Page */
   $handler = $view->new_display('page', 'Tag Page', 'page_2');
   $handler->display->display_options['defaults']['arguments'] = FALSE;
-  /* Contextual filter: Field: Tags (field_tags) */
+  /* Contextual filter: Content: Tags (field_tags) */
   $handler->display->display_options['arguments']['field_tags_tid']['id'] = 'field_tags_tid';
   $handler->display->display_options['arguments']['field_tags_tid']['table'] = 'field_data_field_tags';
   $handler->display->display_options['arguments']['field_tags_tid']['field'] = 'field_tags_tid';
@@ -277,7 +277,7 @@ function reach_multi_content_blog_views_default_views() {
   $handler->display->display_options['defaults']['title'] = FALSE;
   $handler->display->display_options['title'] = 'Tags';
   $handler->display->display_options['defaults']['arguments'] = FALSE;
-  /* Contextual filter: Field: Tags (field_tags) */
+  /* Contextual filter: Content: Tags (field_tags) */
   $handler->display->display_options['arguments']['field_tags_tid']['id'] = 'field_tags_tid';
   $handler->display->display_options['arguments']['field_tags_tid']['table'] = 'field_data_field_tags';
   $handler->display->display_options['arguments']['field_tags_tid']['field'] = 'field_tags_tid';
@@ -354,7 +354,7 @@ function reach_multi_content_blog_views_default_views() {
   $handler->display->display_options['filters']['type']['expose']['operator'] = 'type_op';
   $handler->display->display_options['filters']['type']['expose']['identifier'] = 'type';
   $handler->display->display_options['filters']['type']['expose']['reduce'] = 1;
-  /* Filter criterion: Content: Day (field_day) */
+  /* Filter criterion: Broken/missing handler */
   $handler->display->display_options['filters']['field_day_tid']['id'] = 'field_day_tid';
   $handler->display->display_options['filters']['field_day_tid']['table'] = 'field_data_field_day';
   $handler->display->display_options['filters']['field_day_tid']['field'] = 'field_day_tid';
@@ -364,11 +364,6 @@ function reach_multi_content_blog_views_default_views() {
   $handler->display->display_options['filters']['field_day_tid']['expose']['label'] = 'Day (field_day)';
   $handler->display->display_options['filters']['field_day_tid']['expose']['operator'] = 'field_day_tid_op';
   $handler->display->display_options['filters']['field_day_tid']['expose']['identifier'] = 'field_day_tid';
-  $handler->display->display_options['filters']['field_day_tid']['expose']['reduce'] = 0;
-  $handler->display->display_options['filters']['field_day_tid']['reduce_duplicates'] = 0;
-  $handler->display->display_options['filters']['field_day_tid']['type'] = 'select';
-  $handler->display->display_options['filters']['field_day_tid']['vocabulary'] = 'day';
-  $handler->display->display_options['filters']['field_day_tid']['error_message'] = 1;
   /* Filter criterion: User: Name */
   $handler->display->display_options['filters']['uid']['id'] = 'uid';
   $handler->display->display_options['filters']['uid']['table'] = 'users';

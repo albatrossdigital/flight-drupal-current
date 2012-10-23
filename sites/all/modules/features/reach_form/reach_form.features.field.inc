@@ -19,11 +19,11 @@ function reach_form_field_default_fields() {
       'entity_types' => array(),
       'field_name' => 'field_action_contact',
       'foreign keys' => array(
-        'node' => array(
+        'redhen_contact' => array(
           'columns' => array(
-            'target_id' => 'nid',
+            'target_id' => 'contact_id',
           ),
-          'table' => 'node',
+          'table' => 'redhen_contact',
         ),
       ),
       'indexes' => array(
@@ -241,11 +241,11 @@ function reach_form_field_default_fields() {
       'entity_types' => array(),
       'field_name' => 'field_action_submission',
       'foreign keys' => array(
-        'node' => array(
+        'webform_submissions' => array(
           'columns' => array(
-            'target_id' => 'nid',
+            'target_id' => 'sid',
           ),
-          'table' => 'node',
+          'table' => 'webform_submissions',
         ),
       ),
       'indexes' => array(
@@ -492,7 +492,7 @@ function reach_form_field_default_fields() {
         ),
       ),
       'locked' => '0',
-      'module' => 'media',
+      'module' => 'mediafield',
       'settings' => array(),
       'translatable' => '0',
       'type' => 'media',
@@ -504,7 +504,7 @@ function reach_form_field_default_fields() {
       'display' => array(
         'default' => array(
           'label' => 'hidden',
-          'module' => 'media',
+          'module' => 'mediafield',
           'settings' => array(
             'file_view_mode' => 'media_large',
           ),
@@ -556,6 +556,7 @@ function reach_form_field_default_fields() {
             'image' => 'image',
             'video' => 'video',
           ),
+          'browser_plugins' => array(),
           'file_extensions' => 'jpg jpeg gif png txt doc xls pdf ppt pps odt ods odp mp3 mov m4v mp4 mpeg avi ogg wmv ico',
           'progress_indicator' => 'throbber',
         ),

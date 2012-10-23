@@ -19,10 +19,3 @@ features[taxonomy][] = taxonomy_features_test
 features[user_permission][] = create features_test content
 features[views_view][] = features_test
 hidden = TRUE
-
-; Information added by drupal.org packaging script on 2012-06-14
-version = "7.x-1.0-rc3"
-core = "7.x"
-project = "features"
-datestamp = "1339680981"
-

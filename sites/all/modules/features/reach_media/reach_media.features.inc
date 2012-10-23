@@ -1,4 +1,15 @@
 <?php
+/**
+ * @file
+ * reach_media.features.inc
+ */
 
-// This file is deprecated and can be removed.
-// Please remove include_once('reach_media.features.inc') in reach_media.module as well.
+/**
+ * Implements hook_ctools_plugin_api().
+ */
+function reach_media_ctools_plugin_api() {
+  list($module, $api) = func_get_args();
+  if ($module == "strongarm" && $api == "strongarm") {
+    return array("version" => "1");
+  }
+}

@@ -1,19 +1,30 @@
 <?php
 
 /**
+ * Implements hook_features_api().
+ */
+function wysiwyg_features_api() {
+  return array(
+    'wysiwyg' => array(
+      'name' => t('Wysiwyg profiles'),
+      'default_hook' => 'wysiwyg_default_profiles',
+      'default_file' => FEATURES_DEFAULTS_INCLUDED,
+      'feature_source' => TRUE,
+    ),
+  );
+}
+
+/**
  * Implements hook_features_export_options().
  */
 function wysiwyg_features_export_options() {
   $profiles = array();
-
+  
   // Get human-readable name from filter module.
   $formats = filter_formats();
-
+  
   foreach (array_keys(wysiwyg_profile_load_all()) as $format) {
-    // Text format may vanish without deleting the wysiwyg profile.
-    if (isset($formats[$format])) {
-      $profiles[$format] = $formats[$format]->name;
-    }
+    $profiles[$format] = $formats[$format]->name;
   }
   return $profiles;
 }
@@ -89,4 +100,3 @@ function wysiwyg_features_rebuild($module) {
     wysiwyg_profile_cache_clear();
   }
 }
-

@@ -1,18 +1,18 @@
 <?php
 
 /**
- * @param $items
+ * @param $info - feature info array
  * @param $module_name
- * @return
+ * @return fully populated export array
  */
-function features_populate($items, $dependencies, $module_name) {
+function features_populate($info, $module_name) {
   // Sanitize items.
-  $items = array_filter($items);
-  $items['dependencies'] = drupal_map_assoc(array_filter($dependencies));
+  $items = !empty($info['features']) ? array_filter($info['features']) : array();
+  $items['dependencies'] = !empty($info['dependencies']) ? drupal_map_assoc(array_filter($info['dependencies'])) : array();
 
   // Populate stub
-  $stub = array('features' => array(), 'dependencies' => array(), 'conflicts' => array());
-  $export = _features_populate($items, $stub, $module_name);
+  $stub = array('features' => array(), 'dependencies' => array(), 'conflicts' => array()) + $info + array('features_exclude' => array());
+  $export = _features_populate($items, $stub, $module_name, TRUE);
 
   // Add Features API version. Any module with this entry in the .info file
   // will be treated as a Feature and included in the admin/build/features UI.
@@ -27,6 +27,7 @@ function features_populate($items, $dependencies, $module_name) {
   }
   ksort($export['features']);
   ksort($export['dependencies']);
+  ksort($export['features_exclude']);
 
   return $export;
 }
@@ -44,12 +45,22 @@ function features_populate($items, $dependencies, $module_name) {
  *
  * @return fully populated $export array.
  */
-function _features_populate($pipe, &$export, $module_name = '') {
+function _features_populate($pipe, &$export, $module_name = '', $reset = FALSE) {
+  static $processed = array();
   features_include();
+  if ($reset) {
+    $processed = array();
+  }
   foreach ($pipe as $component => $data) {
-    static $processed = array();
     // Convert already defined items to dependencies.
     _features_resolve_dependencies($data, $export, $module_name, $component);
+    // Remove any excluded items.
+    if (!empty($export['features_exclude'][$component])) {
+      $data = array_diff($data, $export['features_exclude'][$component]);
+      if ($component == 'dependencies' && !empty($export['dependencies'])) {
+        $export['dependencies'] = array_diff($export['dependencies'], $export['features_exclude'][$component]);
+      }
+    }
     if (!empty($data) && $function = features_hook($component, 'features_export')) {
       // Pass module-specific data and export array.
       // We don't use features_invoke() here since we need to pass $export by reference.
@@ -319,7 +330,7 @@ function features_detect_overrides($module) {
   }
   if (!isset($cache[$module->name])) {
     // Rebuild feature from .info file description and prepare an export from current DB state.
-    $export = features_populate($module->info['features'], $module->info['dependencies'], $module->name);
+    $export = features_populate($module->info, $module->name);
     $export = features_export_prepare($export, $module->name);
 
     $overridden = array();
@@ -636,6 +647,7 @@ function features_get_normal($component, $module_name, $reset = FALSE) {
  */
 function features_get_default($component, $module_name = NULL, $alter = TRUE, $reset = FALSE) {
   static $cache = array();
+  $alter = !empty($alter); // ensure $alter is a true/false boolean
   features_include();
   features_include_defaults($component);
   $default_hook = features_get_default_hooks($component);
@@ -660,26 +672,31 @@ function features_get_default($component, $module_name = NULL, $alter = TRUE, $r
 
   // Collect and cache information for each specified module.
   foreach ($modules as $m) {
-    if (!isset($cache[$component][$m]) || $reset) {
+    if (!isset($cache[$component][$alter][$m]) || $reset) {
       // Special handling for dependencies component.
       if ($component === 'dependencies') {
         $module = features_get_features($m);
-        $cache[$component][$m] = isset($module->info['dependencies']) ? $module->info['dependencies'] : array();
+        $cache[$component][$alter][$m] = isset($module->info['dependencies']) ? $module->info['dependencies'] : array();
         unset($module);
       }
       // All other components
       else {
         if ($default_hook && module_hook($m, $default_hook)) {
-          $cache[$component][$m] = call_user_func("{$m}_{$default_hook}");
-          $alter_type = features_get_components('alter_type', $component);
-          if ($alter && (!isset($alter_type) || $alter_type == FEATURES_ALTER_TYPE_NORMAL)) {
-            if ($alter_hook = features_get_default_alter_hook($component)) {
-              drupal_alter($alter_hook, $cache[$component][$m]);
+          $cache[$component][$alter][$m] = call_user_func("{$m}_{$default_hook}");
+          if (is_array($cache[$component][$alter][$m])) {
+            $alter_type = features_get_components('alter_type', $component);
+            if ($alter && (!isset($alter_type) || $alter_type == FEATURES_ALTER_TYPE_NORMAL)) {
+              if ($alter_hook = features_get_default_alter_hook($component)) {
+                drupal_alter($alter_hook, $cache[$component][$alter][$m]);
+              }
             }
+          }
+          else {
+            $cache[$component][$alter][$m] = FALSE;
           }
         }
         else {
-          $cache[$component][$m] = FALSE;
+          $cache[$component][$alter][$m] = FALSE;
         }
       }
     }
@@ -687,12 +704,12 @@ function features_get_default($component, $module_name = NULL, $alter = TRUE, $r
 
   // A specific module was specified. Retrieve only its components.
   if (isset($module_name)) {
-    return isset($cache[$component][$module_name]) ? $cache[$component][$module_name] : FALSE;
+    return isset($cache[$component][$alter][$module_name]) ? $cache[$component][$alter][$module_name] : FALSE;
   }
   // No module was specified. Retrieve all components.
   $all_defaults = array();
-  if (isset($cache[$component])) {
-    foreach (array_filter($cache[$component]) as $module_components) {
+  if (isset($cache[$component][$alter])) {
+    foreach (array_filter($cache[$component][$alter]) as $module_components) {
       $all_defaults = array_merge($all_defaults, $module_components);
     }
   }
@@ -857,7 +874,7 @@ function _features_linetrim($code) {
 function _features_sanitize(&$array) {
   if (is_array($array)) {
     if (_features_is_assoc($array)) {
-      ksort($array);
+      ksort($array, SORT_STRING);
       $array = array_filter($array);
     }
     else {

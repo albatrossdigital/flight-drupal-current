@@ -28,11 +28,13 @@ function elegant_backend_wysiwyg_editor_settings_alter(&$settings, &$context) {
     );*/
 
     // AutoGrow
-    $settings['extraPlugins'] = 'autogrow';
+    $settings['extraPlugins'] = !empty($settings['extraPlugins']) ? $settings['extraPlugins'] . ',autogrow' : 'autogrow';
     $settings['removePlugins'] = 'resize';
     $settings['autoGrow_onStartup'] = TRUE;
     $settings['autoGrow_maxHeight'] = 800;
     $settings['height'] = 200;
+    dpm($settings);
+
   }
   drupal_add_css(drupal_get_path('module', 'elegant_backend') . '/css/elegant-backend-wysiwyg.css');
   drupal_add_js(drupal_get_path('module', 'elegant_backend') . '/js/elegant-backend-wysiwyg.js', array('weight' => 1000));

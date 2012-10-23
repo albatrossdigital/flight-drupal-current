@@ -10,7 +10,7 @@
 function reach_mailing_field_default_fields() {
   $fields = array();
 
-  // Exported field: 'node-mailing-body'
+  // Exported field: 'node-mailing-body'.
   $fields['node-mailing-body'] = array(
     'field_config' => array(
       'active' => '1',
@@ -34,6 +34,7 @@ function reach_mailing_field_default_fields() {
           0 => 'format',
         ),
       ),
+      'locked' => '0',
       'module' => 'text',
       'settings' => array(),
       'translatable' => '1',
@@ -91,7 +92,7 @@ function reach_mailing_field_default_fields() {
     ),
   );
 
-  // Exported field: 'node-mailing-field_body_plain'
+  // Exported field: 'node-mailing-field_body_plain'.
   $fields['node-mailing-field_body_plain'] = array(
     'field_config' => array(
       'active' => '1',
@@ -112,6 +113,7 @@ function reach_mailing_field_default_fields() {
           0 => 'format',
         ),
       ),
+      'locked' => '0',
       'module' => 'text',
       'settings' => array(),
       'translatable' => '1',
@@ -163,7 +165,7 @@ function reach_mailing_field_default_fields() {
     ),
   );
 
-  // Exported field: 'node-mailing-field_mailing_auto_text_version'
+  // Exported field: 'node-mailing-field_mailing_auto_text_version'.
   $fields['node-mailing-field_mailing_auto_text_version'] = array(
     'field_config' => array(
       'active' => '1',
@@ -178,6 +180,7 @@ function reach_mailing_field_default_fields() {
           0 => 'value',
         ),
       ),
+      'locked' => '0',
       'module' => 'list',
       'settings' => array(
         'allowed_values' => array(
@@ -232,7 +235,7 @@ function reach_mailing_field_default_fields() {
     ),
   );
 
-  // Exported field: 'node-mailing-field_mailing_form'
+  // Exported field: 'node-mailing-field_mailing_form'.
   $fields['node-mailing-field_mailing_form'] = array(
     'field_config' => array(
       'active' => '1',
@@ -253,6 +256,7 @@ function reach_mailing_field_default_fields() {
           0 => 'target_id',
         ),
       ),
+      'locked' => '0',
       'module' => 'entityreference',
       'settings' => array(
         'handler' => 'base',
@@ -321,7 +325,7 @@ function reach_mailing_field_default_fields() {
     ),
   );
 
-  // Exported field: 'node-mailing-field_mailing_from'
+  // Exported field: 'node-mailing-field_mailing_from'.
   $fields['node-mailing-field_mailing_from'] = array(
     'field_config' => array(
       'active' => '1',
@@ -329,20 +333,14 @@ function reach_mailing_field_default_fields() {
       'deleted' => '0',
       'entity_types' => array(),
       'field_name' => 'field_mailing_from',
-      'foreign keys' => array(
-        'node' => array(
-          'columns' => array(
-            'target_id' => 'nid',
-          ),
-          'table' => 'node',
-        ),
-      ),
+      'foreign keys' => array(),
       'global_block_settings' => '1',
       'indexes' => array(
         'target_id' => array(
           0 => 'target_id',
         ),
       ),
+      'locked' => '0',
       'module' => 'entityreference',
       'settings' => array(
         'handler' => 'base',
@@ -413,7 +411,7 @@ function reach_mailing_field_default_fields() {
     ),
   );
 
-  // Exported field: 'node-mailing-field_mailing_status'
+  // Exported field: 'node-mailing-field_mailing_status'.
   $fields['node-mailing-field_mailing_status'] = array(
     'field_config' => array(
       'active' => '1',
@@ -428,6 +426,7 @@ function reach_mailing_field_default_fields() {
           0 => 'value',
         ),
       ),
+      'locked' => '0',
       'module' => 'list',
       'settings' => array(
         'allowed_values' => array(
@@ -488,7 +487,7 @@ function reach_mailing_field_default_fields() {
     ),
   );
 
-  // Exported field: 'node-mailing-field_subject'
+  // Exported field: 'node-mailing-field_subject'.
   $fields['node-mailing-field_subject'] = array(
     'field_config' => array(
       'active' => '1',
@@ -510,6 +509,7 @@ function reach_mailing_field_default_fields() {
           0 => 'format',
         ),
       ),
+      'locked' => '0',
       'module' => 'text',
       'settings' => array(
         'max_length' => '255',

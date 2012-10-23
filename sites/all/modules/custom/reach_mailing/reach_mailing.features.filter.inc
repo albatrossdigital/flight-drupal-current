@@ -10,7 +10,7 @@
 function reach_mailing_filter_default_formats() {
   $formats = array();
 
-  // Exported format: Mailing HTML Message
+  // Exported format: Mailing HTML Message.
   $formats['mailing_html_message'] = array(
     'format' => 'mailing_html_message',
     'name' => 'Mailing HTML Message',
@@ -43,7 +43,7 @@ function reach_mailing_filter_default_formats() {
     ),
   );
 
-  // Exported format: Mailing Text Message
+  // Exported format: Mailing Text Message.
   $formats['mailing_text_message'] = array(
     'format' => 'mailing_text_message',
     'name' => 'Mailing Text Message',

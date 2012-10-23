@@ -10,7 +10,7 @@
 function reach_page_field_default_fields() {
   $fields = array();
 
-  // Exported field: 'node-page-body'
+  // Exported field: 'node-page-body'.
   $fields['node-page-body'] = array(
     'field_config' => array(
       'active' => '1',
@@ -34,6 +34,7 @@ function reach_page_field_default_fields() {
           0 => 'format',
         ),
       ),
+      'locked' => '0',
       'module' => 'text',
       'settings' => array(),
       'translatable' => '1',
@@ -89,7 +90,7 @@ function reach_page_field_default_fields() {
     ),
   );
 
-  // Exported field: 'node-page-field_content_media'
+  // Exported field: 'node-page-field_content_media'.
   $fields['node-page-field_content_media'] = array(
     'field_config' => array(
       'active' => '1',
@@ -104,7 +105,8 @@ function reach_page_field_default_fields() {
           0 => 'fid',
         ),
       ),
-      'module' => 'media',
+      'locked' => '0',
+      'module' => 'mediafield',
       'settings' => array(),
       'translatable' => '0',
       'type' => 'media',
@@ -116,7 +118,7 @@ function reach_page_field_default_fields() {
       'display' => array(
         'cck_blocks' => array(
           'label' => 'hidden',
-          'module' => 'media',
+          'module' => 'mediafield',
           'settings' => array(
             'file_view_mode' => 'media_large',
           ),
@@ -125,7 +127,7 @@ function reach_page_field_default_fields() {
         ),
         'default' => array(
           'label' => 'hidden',
-          'module' => 'media',
+          'module' => 'mediafield',
           'settings' => array(
             'file_view_mode' => 'media_large',
           ),
@@ -134,7 +136,7 @@ function reach_page_field_default_fields() {
         ),
         'teaser' => array(
           'label' => 'above',
-          'module' => 'media',
+          'module' => 'mediafield',
           'settings' => array(
             'file_view_mode' => 'default',
           ),
@@ -167,6 +169,7 @@ function reach_page_field_default_fields() {
             'image' => 'image',
             'video' => 'video',
           ),
+          'browser_plugins' => array(),
           'file_extensions' => 'jpg jpeg gif png txt doc xls pdf ppt pps odt ods odp mp3 mov m4v mp4 mpeg avi ogg wmv ico',
           'progress_indicator' => 'throbber',
         ),
